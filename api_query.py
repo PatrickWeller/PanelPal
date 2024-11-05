@@ -21,20 +21,24 @@ def get_name_version(id):
         }
 
     except requests.exceptions.RequestException as e:
-        print(f"An error occurred: {e}")
+        print(f"{e}")
 
 ### function to get genes list
 def get_genes(id):
 
-    url = f"https://panelapp.genomicsengland.co.uk/api/v1/panels/{id}/"
+    try:
+        url = f"https://panelapp.genomicsengland.co.uk/api/v1/panels/{id}/"
 
-    response = requests.get(url)
-    data = response.json()
-    genes = [gene["gene_data"]["gene_symbol"] for gene in data.get("genes",[])]
+        response = requests.get(url)
+        data = response.json()
+        genes = [gene["gene_data"]["gene_symbol"] for gene in data.get("genes",[])]
 
-    return {
-        "genes": genes
-    }
+        return genes # return list, rather than dict
+
+    except requests.exceptions.RequestException as e:
+        print(f"{e}")
+        return []  # return empty list on error
+
 
 ### Main execution block
 if __name__ == "__main__":
@@ -46,4 +50,4 @@ if __name__ == "__main__":
 
     # Get genes
     genes_info = get_genes(panel_id)
-    print("Genes Information:", genes_info)
+    print("Genes Included:", genes_info)
