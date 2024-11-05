@@ -29,8 +29,8 @@ def create_locus_dictionary(api_response, build):
     location_dict = {}
     for gene in genes:
         gene_version = gene["gene_data"]["ensembl_genes"][f"{build}"]["82"]
-        chrom, coords = gene_version["location"].split(":")
-        start, end = coords.split("-")
+        chrom, position = gene_version["location"].split(":")
+        start, end = position.split("-")
         coordinates = [chrom, start, end]
         location_dict[gene_version["ensembl_id"]] = coordinates
     return location_dict
