@@ -24,7 +24,7 @@ def generate_bed(location_dict, panel_name):
         for gene_id, position in location_dict.items():
             # Extract data from the list
             chromosome = "chr" + position[0]  # Add 'chr' prefix
-            start = position[1]
+            start = int(position[1]) - 1
             end = position[2]
             
             # Write the data in tab-seperated BED format
