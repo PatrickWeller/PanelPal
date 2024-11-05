@@ -1,14 +1,7 @@
 import requests
 
-# check ID is an integer 
-def is_integer(id): 
-    return isinstance(id, int)
-
 ### function to get panel name and version
 def get_name_version(id):
-
-    if not is_integer(id): 
-        raise ValueError("The panel ID must be an integer.")
 
     url = f"https://panelapp.genomicsengland.co.uk/api/v1/panels/{id}/"
 
@@ -27,7 +20,7 @@ def get_name_version(id):
             "version": panel_version
         }
 
-    except requests.exeptions.RequestException as e:
+    except requests.exceptions.RequestException as e:
         print(f"An error occurred: {e}")
 
 ### function to get genes list
@@ -45,7 +38,7 @@ def get_genes(id):
 
 ### Main execution block
 if __name__ == "__main__":
-    panel_id = 1
+    panel_id = "R123"
     
     # Get panel name and version
     panel_info = get_name_version(panel_id)
