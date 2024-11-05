@@ -1,32 +1,13 @@
-# Example JSON data to be returned from PanelApp API
-api_data = {
-    "genes": [
-        {
-            "gene_name": "PRKAR1A",
-            "chromosome": "17",
-            "start": 66507921,
-            "end": 66547460
-        },
-        {
-            "gene_name": "PDE4D",
-            "chromosome": "5",
-            "start": 58264865,
-            "end": 59817947
-        },
+# Example data
+location_dict = {'ENSG00000087460': ['20', '57414773', '57486247'], 
+            'ENSG00000113448': ['5', '58264865', '59817947'], 
+            'ENSG00000108946': ['17', '66507921', '66547460']}
 
-        {
-            "gene_name": "GNAS",
-            "chromosome": "20",
-            "start": 57414773,
-            "end": 57486247
-        }
-    ]
-}
 # Example panel name 
 panel_name = "R293"
 
 
-def generate_bed(api_data, panel_name):
+def generate_bed(location_dict, panel_name):
     """
     Generate a BED file from a PanelApp JSON object
 
@@ -40,18 +21,18 @@ def generate_bed(api_data, panel_name):
     # Open the output file for writing
     with open(output_file, 'w') as bed_file:
         # Iterate through the genes in the JSON to extract data
-        for gene in api_data["genes"]:
-            chromosome = "chr" + gene["chromosome"] # chr prefix needed
-            start = gene["start"]
-            end = gene["end"]
-            gene_name = gene["gene_name"]
+        for gene_id, position in location_dict.items():
+            # Extract data from the list
+            chromosome = "chr" + position[0]  # Add 'chr' prefix
+            start = position[1]
+            end = position[2]
             
             # Write the data in tab-seperated BED format
-            bed_file.write(f"{chromosome}\t{start}\t{end}\t{gene_name}\n")
+            bed_file.write(f"{chromosome}\t{start}\t{end}\t{gene_id}\n")
 
     print("Bed file generated: " + output_file)
 
 
 # Example usage
 # Generate BED file for panel
-generate_bed(api_data, "R293")
+generate_bed(location_dict, "R293")
