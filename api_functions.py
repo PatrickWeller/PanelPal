@@ -26,10 +26,11 @@ def create_locus_dictionary(api_response, build):
     Outputs a list of chromosomal locatins in that panel
     """
     genes = api_response["genes"]
-    location_list = []
+    location_dict = {}
     for gene in genes:
-        location_list.append(gene["gene_data"]["ensembl_genes"][f"{build}"]["82"]["location"])
-    return location_list
+        gene_version = gene["gene_data"]["ensembl_genes"][f"{build}"]["82"]
+        location_dict[gene_version["ensembl_id"]] = gene_version["location"]
+    return location_dict
 
 
 if __name__ == "__main__":
