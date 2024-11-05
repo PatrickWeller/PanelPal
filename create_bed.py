@@ -1,12 +1,3 @@
-# Example data
-location_dict = {'ENSG00000087460': ['20', '57414773', '57486247'], 
-            'ENSG00000113448': ['5', '58264865', '59817947'], 
-            'ENSG00000108946': ['17', '66507921', '66547460']}
-
-# Example panel name 
-panel_name = "R293"
-
-
 def generate_bed(location_dict, panel_name):
     """
     Generate a BED file from a PanelApp JSON object
@@ -31,8 +22,3 @@ def generate_bed(location_dict, panel_name):
             bed_file.write(f"{chromosome}\t{start}\t{end}\t{gene_id}\n")
 
     print("Bed file generated: " + output_file)
-
-
-# Example usage
-# Generate BED file for panel
-generate_bed(location_dict, "R293")
