@@ -21,7 +21,7 @@ def get_name_version(id):
         }
 
     except requests.exceptions.RequestException as e:
-        print(f"{e}")
+        print(e)
 
 ### function to get genes list
 def get_genes(id):
@@ -33,11 +33,10 @@ def get_genes(id):
         data = response.json()
         genes = [gene["gene_data"]["gene_symbol"] for gene in data.get("genes",[])]
 
-        return genes # return list, rather than dict
+        return genes 
 
     except requests.exceptions.RequestException as e:
-        print(f"{e}")
-        return []  # return empty list on error
+        print(e); return []  # return empty list on error
 
 
 ### Main execution block
