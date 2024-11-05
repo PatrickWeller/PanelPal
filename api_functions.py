@@ -1,12 +1,5 @@
 import requests
 
-def main():
-    panel_id = "R293"
-    build = "GRch37"
-    
-    response = get_response(panel_id)
-    print(create_locus_dictionary(response, build))
-    
 
 def get_response(panel_id):
     """
@@ -19,6 +12,7 @@ def get_response(panel_id):
         return response.json()
     else:
         return f"Error: {response.status_code}"
+
 
 def create_locus_dictionary(api_response, build):
     """
@@ -39,7 +33,3 @@ def create_locus_dictionary(api_response, build):
         coordinates = [chrom, start, end]
         location_dict[gene_version["ensembl_id"]] = coordinates
     return location_dict
-
-
-if __name__ == "__main__":
-    main()
