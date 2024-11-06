@@ -14,7 +14,6 @@
 
 - Python 3.x
 - `requests` library
-- `pandas` library
 
 ## Installation
 
