@@ -1,15 +1,7 @@
 #!/usr/bin/env python
 
 import re
-import pandas as pd
-import sys
-import api_functions
-import api_query
-
-
-def load_panel_data(file_path):
-    """Load panel information from a specified file."""
-    return pd.read_csv(file_path, delimiter="\t", header=None, names=["panel_id", "indication"])
+import panel_app_api_functions
 
 
 def get_panel_id():
@@ -24,13 +16,7 @@ def get_panel_id():
         print("\nInvalid panel ID format. Please enter in the format R12, r12, or 12.\n")
         return None
     
-
-## TO DO: update to use api query function from Ray - this will ensure we are always querying the most up to date version
-def check_panel_existence(panel_id, panel_data):
-    """Check if the panel ID exists in the panel data."""
-    return panel_id in panel_data["panel_id"].values
-
-
+    
 def confirm_panel_selection():
     """Ask the user to confirm their panel selection."""
     confirmation = input("Is this correct? (yes/no): ").strip().lower()
@@ -38,7 +24,6 @@ def confirm_panel_selection():
 
 
 def main():
-    panel_data = load_panel_data("resources/panel_info.txt")
     
     # Print a welcome message
     print("######################################################")
@@ -51,33 +36,32 @@ def main():
         if panel_id is None:
             continue  # Retry if the panel ID was invalid
 
-        if check_panel_existence(panel_id, panel_data):
-            
-            # TO DO: build in handling of error when R number does not exist
-            # currently this produces an error         
-            panel_info = api_query.get_name_version(panel_id)
+        try:
+            panel_info = panel_app_api_functions.get_name_version(panel_id)
             indication = panel_info['name']
-
             print(f"\nPanel ID: {panel_id}")
             print(f"Clinical indication: {indication}\n")
 
             if confirm_panel_selection():
-                print(f"\nProceeding with the selected panel.")
+                    print(f"\nProceeding with the selected panel.\n")
 
-                # Get API response
-                response = api_functions.get_response(panel_id)
+                    # Get API response
+                    response = panel_app_api_functions.get_response(panel_id)
 
-                # Create a locus dictionary
-                locus_dict = api_functions.create_locus_dictionary(response, "GRch38")
+                    # Create a locus dictionary
+                    locus_dict = panel_app_api_functions.create_locus_dictionary(response, "GRch38")
 
-                # Generate bed file
-                api_functions.generate_bed(locus_dict, panel_id)
+                    # Generate bed file
+                    panel_app_api_functions.generate_bed(locus_dict, panel_id)
 
-                break  # Exit the loop if confirmed
+                    # Exit the loop if confirmed
+                    break
             else:
                 print("Let's try again.\n")
-        else:
-            print("Panel ID not found. Please try again.\n")
+
+        except Exception as e:
+                # Handle any errors from get_name_version
+                print("Panel ID not found. Please try again.\n")
 
 
 if __name__ == "__main__":
