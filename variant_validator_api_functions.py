@@ -40,7 +40,7 @@ def extract_exon_info(gene_transcript_data):
         gene_transcript_data (dict): The JSON response containing the gene transcript data.
 
     Returns:
-        list: A list of dictionaries, each containing exon data (chromosome, exon start, exon end, etc.).
+        list: A list containing exon data.
     """
     exon_data = []  # Initialize an empty list to store exon data as dictionaries
 
@@ -88,9 +88,10 @@ def generate_bed_file(gene_list, panel_name, genome_build):
     Args:
         gene_list (list): A list of gene names for which exon data is to be extracted.
         panel_name (str): The name of the panel, used to name the output BED file.
+        genome_build (str): The genome build, used to name the output BED file.
 
     Returns:
-        None: This function does not return anything, it directly writes to a BED file.
+        None: This directly writes to a BED file.
     """
     # Define the name of the output BED file based on the panel name and genome build
     output_file = f"{panel_name}_{genome_build}.bed"
