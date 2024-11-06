@@ -1,6 +1,6 @@
-# PanelPal
+## API query function
 
-**PanelPal** is a command-line tool that helps users interact with the PanelApp API to retrieve information about genetic panels, generate locus dictionaries, and create BED files for genomic analysis. This tool is particularly useful for bioinformaticians and researchers working with gene panels in clinical genomics.
+Function to extract the relevant panel version, ID and list of genes from the PanelApp API. 
 
 ## Features
 
