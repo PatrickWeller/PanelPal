@@ -3,8 +3,7 @@
 import re
 import pandas as pd
 import sys
-import api_functions
-import api_query
+import panel_app_api_functions
 
 
 def load_panel_data(file_path):
@@ -55,7 +54,7 @@ def main():
             
             # TO DO: build in handling of error when R number does not exist
             # currently this produces an error         
-            panel_info = api_query.get_name_version(panel_id)
+            panel_info = panel_app_api_functions.get_name_version(panel_id)
             indication = panel_info['name']
 
             print(f"\nPanel ID: {panel_id}")
@@ -65,13 +64,13 @@ def main():
                 print(f"\nProceeding with the selected panel.")
 
                 # Get API response
-                response = api_functions.get_response(panel_id)
+                response = panel_app_api_functions.get_response(panel_id)
 
                 # Create a locus dictionary
-                locus_dict = api_functions.create_locus_dictionary(response, "GRch38")
+                locus_dict = panel_app_api_functions.create_locus_dictionary(response, "GRch38")
 
                 # Generate bed file
-                api_functions.generate_bed(locus_dict, panel_id)
+                panel_app_api_functions.generate_bed(locus_dict, panel_id)
 
                 break  # Exit the loop if confirmed
             else:
