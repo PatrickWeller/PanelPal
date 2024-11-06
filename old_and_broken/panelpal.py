@@ -2,6 +2,8 @@
 
 import re
 import panel_app_api_functions
+import logging
+from settings import logger 
 
 
 def get_panel_id():
@@ -30,6 +32,7 @@ def main():
     print("Welcome to PanelPal!")
     print("######################################################")
     print("")
+    logger.debug("Test")
 
     while True:
         panel_id = get_panel_id()
@@ -38,33 +41,31 @@ def main():
 
         # Try to get panel information from panelapp api
         try:
-            response = panel_app_api_functions.get_response(panel_id)
-            break
+            panel_info = panel_app_api_functions.get_name_version(panel_id)
+            indication = panel_info['name']
+            print(f"\nPanel ID: {panel_id}")
+            print(f"Clinical indication: {indication}\n")
+
+            if confirm_panel_selection():
+                    print(f"\nProceeding with the selected panel.\n")
+
+                    # Get API response
+                    response = panel_app_api_functions.get_response(panel_id)
+
+                    # Create a locus dictionary
+                    locus_dict = panel_app_api_functions.create_locus_dictionary(response, "GRch38")
+
+                    # Generate bed file
+                    panel_app_api_functions.generate_bed(locus_dict, panel_id)
+
+                    # Exit the loop if confirmed
+                    break
+            else:
+                print("Let's try again.\n")
+
         except Exception as e:
-            # Handle 404 client error when R code does not exist
-            print("Panel ID not found. Please try again.\n")
-                
-    panel_info = panel_app_api_functions.get_name_version(response)
-    indication = panel_info['name']
-    print(f"\nPanel ID: {panel_id}")
-    print(f"Clinical indication: {indication}\n")
-
-    if confirm_panel_selection():
-            print(f"\nProceeding with the selected panel.\n")
-
-            # Get API response
-            response = panel_app_api_functions.get_response(panel_id)
-
-            # Create a locus dictionary
-            locus_dict = panel_app_api_functions.create_locus_dictionary(response, "GRch38")
-
-            # Generate bed file
-            panel_app_api_functions.generate_bed(locus_dict, panel_id)
-
-            # Exit the loop if confirmed
-    else:
-        print("Let's try again.\n")
-
+                # Handle 404 client error when R code does not exist
+                print("Panel ID not found. Please try again.\n")
 
 if __name__ == "__main__":
     main()
