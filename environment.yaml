@@ -1,8 +1,10 @@
 name: PanelPal  # Replace with your environment name
 channels:
   - defaults
+  - bioconda
 dependencies:
   - python==3.12.4  # Specify your desired Python version
   - pip
+  - bedtools==2.31.1
   - pip:
       - -r requirements.txt
