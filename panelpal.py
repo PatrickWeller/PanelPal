@@ -2,6 +2,8 @@
 
 import re
 import panel_app_api_functions
+import logging
+from settings import logger 
 
 
 def get_panel_id():
@@ -30,6 +32,7 @@ def main():
     print("Welcome to PanelPal!")
     print("######################################################")
     print("")
+    logger.debug("Test")
 
     while True:
         panel_id = get_panel_id()
