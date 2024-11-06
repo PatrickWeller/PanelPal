@@ -36,6 +36,7 @@ def main():
         if panel_id is None:
             continue  # Retry if the panel ID was invalid
 
+        # Try to get panel information from panelapp api
         try:
             panel_info = panel_app_api_functions.get_name_version(panel_id)
             indication = panel_info['name']
@@ -60,9 +61,8 @@ def main():
                 print("Let's try again.\n")
 
         except Exception as e:
-                # Handle any errors from get_name_version
+                # Handle 404 client error when R code does not exist
                 print("Panel ID not found. Please try again.\n")
-
 
 if __name__ == "__main__":
     main()
