@@ -68,7 +68,4 @@ BED file generated: R59.bed
 
 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-
-This updated README includes setup instructions for both `conda` and `pip` environments,
+To be confirmed.
