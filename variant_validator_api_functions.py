@@ -113,7 +113,6 @@ def generate_bed_file(gene_list, panel_name, genome_build):
 
         # Print a message indicating the BED file has been successfully saved
         print(f"Data saved to {output_file}")
-    ...
     
 
 def function2():
