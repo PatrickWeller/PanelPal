@@ -1,5 +1,43 @@
 import requests
 
+### function to get panel name and version
+def get_name_version(id):
+
+    url = f"https://panelapp.genomicsengland.co.uk/api/v1/panels/{id}/"
+
+    try:
+        # send request
+        response = requests.get(url)
+        response.raise_for_status()
+        
+        # extract relevant info ("N/A" returned if value doesn't exist)
+        data = response.json()
+        panel_name = data.get("name","N/A")
+        panel_version = data.get("version","N/A")
+
+        return {
+            "name": panel_name,
+            "version": panel_version
+        }
+
+    except requests.exceptions.RequestException as e:
+        print(e)
+
+### function to get genes list
+def get_genes(id):
+
+    try:
+        url = f"https://panelapp.genomicsengland.co.uk/api/v1/panels/{id}/"
+
+        response = requests.get(url)
+        data = response.json()
+        genes = [gene["gene_data"]["gene_symbol"] for gene in data.get("genes",[])]
+
+        return genes 
+
+    except requests.exceptions.RequestException as e:
+        print(e); return []  # return empty list on error
+
 
 def get_response(panel_id):
     """
