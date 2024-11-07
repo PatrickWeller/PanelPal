@@ -13,8 +13,3 @@ CREATE TABLE IF NOT EXISTS panelpal (
     bam_file TEXT NOT NULL
 );
 
--- Insert test data if it doesn’t already exist
-INSERT OR IGNORE INTO panelpal (
-    analysis_date, patient_name, dob, nhs_number, r_code, gene_list, bam_file
-) VALUES 
-    ('6/11/24', 'John Doe', '01/01/01', '1234567890', 'R56', 'BRCA1,BRCA2', 'http://example.com/bamfile.bam');
