@@ -43,8 +43,8 @@ def connect():
 
 def fetch_patients():
     """
-    fetches the patient records from panelpal input into the SQLite database.
-    Returns list of patient records. 
+    Fetches the patient records from panelpal input into the SQLite database.
+    Returns a list of patient records. 
     """
     try:
         # connect to panelpal.db (the above function)
