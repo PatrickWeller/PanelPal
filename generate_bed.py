@@ -21,7 +21,7 @@ def main(panel_id, panel_version, genome_build):
         panel_version (str): The version of the panel (e.g., "4").
         genome_build (str): The genome build (e.g., "GRCh38").
 
-    Example: python generate_bed.py -p "R207" -v "4" -g "GRch38"
+    Example: python generate_bed.py -p R207 -v 4 -g GRCh38
     """
     logging.info("Starting main process for panel_id=%s, panel_version=%s, genome_build=%s", panel_id, panel_version, genome_build)
     
