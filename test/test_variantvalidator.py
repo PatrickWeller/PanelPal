@@ -1,7 +1,7 @@
 import pytest
 import requests
 #from unittest.mock import patch
-from PanelPal.variant_validator_api_functions import extract_exon_info
+from variant_validator_api_functions import extract_exon_info
 
 
 class TestExtractExonInfo:
