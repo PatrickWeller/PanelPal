@@ -1,6 +1,16 @@
 import argparse
 import panel_app_api_functions
 import variant_validator_api_functions
+import logging
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler()  # You can add more handlers to log to a file if needed
+    ]
+)
 
 def main(panel_id, panel_version, genome_build):
     """
@@ -13,17 +23,29 @@ def main(panel_id, panel_version, genome_build):
 
     Example: python generate_bed.py -p "R207" -v "4" -g "GRch38"
     """
-    # Fetch the panel data using the panel_id
-    panelapp_data = panel_app_api_functions.get_response(panel_id)
+    logging.info("Starting main process for panel_id=%s, panel_version=%s, genome_build=%s", panel_id, panel_version, genome_build)
     
-    # Extract the list of genes from the panel data
-    gene_list = panel_app_api_functions.get_genes(panelapp_data)
+    try: 
+        # Fetch the panel data using the panel_id
+        panelapp_data = panel_app_api_functions.get_response(panel_id)
+        logging.info("Panel data fetched successfully for panel_id=%s", panel_id)
+        
+        # Extract the list of genes from the panel data
+        gene_list = panel_app_api_functions.get_genes(panelapp_data)
+        logging.info("Gene list extracted successfully for panel_id=%s", panel_id)
 
-    # Generate the BED file using the gene list, panel ID, panel version, and genome build
-    variant_validator_api_functions.generate_bed_file(gene_list, panel_id, panel_version, genome_build)
-    
-    # Perform bedtools merge with the provided panel details
-    variant_validator_api_functions.bedtools_merge(panel_id, panel_version, genome_build)
+        # Generate the BED file using the gene list, panel ID, panel version, and genome build
+        variant_validator_api_functions.generate_bed_file(gene_list, panel_id, panel_version, genome_build)
+        
+        # Perform bedtools merge with the provided panel details
+        variant_validator_api_functions.bedtools_merge(panel_id, panel_version, genome_build)
+
+        logging.info("Process completed successfully for panel_id=%s", panel_id)
+
+    except Exception as e:
+        logging.error("An error occurred in the BED file generation process for panel_id=%s: %s", panel_id, e)
+        raise  # Reraise the exception after logging it for further handling if needed
+
 
 if __name__ == '__main__':
     """
