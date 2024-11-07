@@ -31,8 +31,8 @@ def bedtools_merge(exon_dict, panel_id, panel_version):
     - Requires bedtools (available in PanelPal conda environment)
     """
     
-    # Sort the exon dictionary
-    sorted_exons = sorted(exon_dict, key=lambda exon: (exon["chr"], exon["start"]))
+    # Sort the exon dictionary by chromosome name and start/end positions
+    sorted_exons = sorted(exon_dict, key=lambda exon: (exon["chr"], exon["start"], exon["end"]))
     
     # Convert exon dictionary into bed format and write a temporary file (to be deleted later)
     bed_file = f"{panel_id}_{panel_version}.bed"
