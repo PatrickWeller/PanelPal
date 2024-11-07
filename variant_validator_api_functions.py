@@ -78,34 +78,35 @@ def extract_exon_info(gene_transcript_data):
         # Loop through each transcript associated with the gene
         for transcript in gene_data['transcripts']:
             # Extract chromosome information from the transcript
-            chromosome = transcript['annotations']['chromosome']
+            chromosome = transcript['annotations'].get('chromosome', 'Unknown')
             
             # Extract the reference transcript information
-            transcript_reference = transcript['reference']
+            transcript_reference = transcript.get('reference', 'Unknown')
             
             # Extract the gene symbol
-            gene_symbol = gene_data['current_symbol']
+            gene_symbol = gene_data.get('current_symbol', 'Unknown')
             
             # Loop through the genomic spans in the transcript (exon structures)
             for genomic_span_key, genomic_span in transcript['genomic_spans'].items():
-                for exon in genomic_span['exon_structure']:
-                    # Extract exon-specific information such as exon number, start, and end positions
-                    exon_number = exon['exon_number']
-                    exon_start = exon['genomic_start']
-                    exon_end = exon['genomic_end']
-                    
-                    # Store the extracted exon data in a dictionary
-                    exon_info = {
-                        "chromosome": chromosome,
-                        "exon_start": exon_start,
-                        "exon_end": exon_end,
-                        "exon_number": exon_number,
-                        "reference": transcript_reference,
-                        "gene_symbol": gene_symbol
-                    }
-                    
-                    # Append the exon data to the list of exon_data
-                    exon_data.append(exon_info)
+                if 'exon_structure' in genomic_span:  # Ensure 'exon_structure' exists before accessing it
+                    for exon in genomic_span['exon_structure']:
+                        # Extract exon-specific information such as exon number, start, and end positions
+                        exon_number = exon.get('exon_number', None)
+                        exon_start = exon.get('genomic_start', None)
+                        exon_end = exon.get('genomic_end', None)
+                        
+                        # Store the extracted exon data in a dictionary
+                        exon_info = {
+                            "chromosome": chromosome,
+                            "exon_start": exon_start,
+                            "exon_end": exon_end,
+                            "exon_number": exon_number,
+                            "reference": transcript_reference,
+                            "gene_symbol": gene_symbol
+                        }
+                        
+                        # Append the exon data to the list of exon_data
+                        exon_data.append(exon_info)
     
     logging.info(f"Extracted {len(exon_data)} exons for the gene.")
     
