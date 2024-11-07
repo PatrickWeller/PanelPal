@@ -24,8 +24,8 @@ def argument_parser():
     """
     argument_parser = argparse.ArgumentParser()
     argument_parser.add_argument('-s', '--sample', type=str, help='Sample identifier or a CSV of sample identifiers', required=True)
-    argument_parser.add_argument('-p', '--panel', help='R number. Include the R', required=True)
-    argument_parser.add_argument('-v', '--version', help='Panel version. E.g. 1.1', required=False)
+    argument_parser.add_argument('-p', '--panel', type=str, help='R number. Include the R', required=True)
+    argument_parser.add_argument('-v', '--version', type=str, help='Panel version. E.g. 1.1', required=False)
     args = argument_parser.parse_args()
     return args
 
