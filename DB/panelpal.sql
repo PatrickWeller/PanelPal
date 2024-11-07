@@ -1,3 +1,6 @@
+-- DATABASE: "panelpal.sql"
+-- run after connection has been established to sqlite
+
 -- Create the table if it doesn't already exist
 CREATE TABLE IF NOT EXISTS panelpal (
     id INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -1,2 +1,2 @@
 requests==2.32.3
-pandas
+sqlite==3.47.0

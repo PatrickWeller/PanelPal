@@ -41,7 +41,7 @@ def get_genes(id):
 
 ### Main execution block
 if __name__ == "__main__":
-    panel_id = "R123"
+    panel_id = "R24"
     
     # Get panel name and version
     panel_info = get_name_version(panel_id)
