@@ -6,7 +6,7 @@ import logging
 logging.basicConfig(
     level=logging.DEBUG, # logging level
     format='%(asctime)s - %(levelname)s - %(message)s', handlers=[ # log format (time, logging level, and log message)
-    logging.FileHandler("logging/api_functions_logger.txt"), # store logging output here
+    logging.FileHandler("logging/api_functions.log"), # store logging output here
     logging.StreamHandler()    
 ])
 
