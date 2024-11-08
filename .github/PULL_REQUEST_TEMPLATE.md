@@ -25,9 +25,11 @@
 - [ ] This PR has been tested locally.
 - [ ] Automated tests have been added or updated as needed.
 - [ ] Tests pass without errors.
+- [ ] Logging statements added (if it's a core script)
 
 ### Review and Approval
 - [ ] Self-review completed.
 - [ ] Ready for team review.
 
 ### Comments
+e.g. How to run tests if any data needed...
