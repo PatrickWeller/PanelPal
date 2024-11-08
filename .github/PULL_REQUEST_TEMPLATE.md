@@ -10,6 +10,7 @@
 - [ ] The code changes are clearly described
 - [ ] Code is PEP8 compliant 
     (Pylint can be used to show real time issues, Black can be used to enforce)
+- [ ] Are only the relevant files included in the commits (e.g. no pycache or log file)
 
 ### Documentation
 - [ ] Are there sufficient in line comments?
