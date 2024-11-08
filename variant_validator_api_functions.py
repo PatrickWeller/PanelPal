@@ -3,15 +3,6 @@ import time
 import logging
 import subprocess
 
-# set up logging
-logging.basicConfig(
-    level=logging.DEBUG, # logging level
-    format='%(asctime)s - %(levelname)s - %(message)s', handlers=[ # log format (time, logging level, and log message)
-    logging.FileHandler("logging/api_functions.log"), # store logging output here
-    logging.StreamHandler()    
-])
-
-
 def get_gene_transcript_data(gene_name, genome_build="GRCh38", max_retries=4):
     """
     Fetches the gene transcript data for a given gene from the Variant Validator API.
