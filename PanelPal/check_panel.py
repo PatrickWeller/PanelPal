@@ -6,18 +6,41 @@ import requests
 import logging
 import sys
 import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))) # Adds parent directory to sys.path
-from accessories.panel_app_api_functions import get_response
-from accessories.panel_app_api_functions import get_name_version
 
-# Configure logging for better error tracking
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+# Add parent directory to sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+from accessories.panel_app_api_functions import get_response, get_name_version
+
+# Configure logging
+logging.basicConfig(
+	level=logging.DEBUG,  # logging level
+	format="%(asctime)s - %(levelname)s - %(message)s",
+	handlers=[
+		logging.FileHandler("logging/check_panel.log"),  # store logging output here
+	],
+)
+
+# Add a console handler for warnings and errors only
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.WARNING)  # Set console handler to warning level
+console_handler.setFormatter(
+	logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+)
+logging.getLogger().addHandler(console_handler)
+
+# Get the logger instance
+logger = logging.getLogger()
+
 
 def parse_arguments():
 	"""Parse command-line arguments."""
 	argument_parser = argparse.ArgumentParser(description="Format a given panel ID.")
-	argument_parser.add_argument("--panel_id", help="Panel ID e.g. R59, r59, or 59", required=True)
+	argument_parser.add_argument(
+		"--panel_id", help="Panel ID e.g. R59, r59, or 59", required=True
+	)
 	return argument_parser.parse_args()
+
 
 def format_panel_id(input_id):
 	"""
@@ -43,6 +66,7 @@ def format_panel_id(input_id):
 
 	return panel_id
 
+
 def fetch_panel_info(formatted_id):
 	"""
 	Fetch the panel information from the API.
@@ -62,18 +86,19 @@ def fetch_panel_info(formatted_id):
 		panel_info = get_name_version(response)
 
 		# Ensure expected keys are in the response
-		if 'name' not in panel_info or 'version' not in panel_info:
+		if "name" not in panel_info or "version" not in panel_info:
 			raise KeyError(f"Response missing expected fields: 'name' or 'version'.")
-		
+
 		return panel_info
 
 	except requests.exceptions.RequestException as e:
 		logging.error(f"Error contacting the API: {e}")
 		raise  # Re-raise exception for further handling in main()
-	
+
 	except KeyError as e:
 		logging.error(f"API response error: {e}")
 		raise  # Re-raise exception for further handling in main()
+
 
 def main():
 	# Gather command-line arguments
@@ -83,11 +108,11 @@ def main():
 		# Format the panel ID
 		formatted_id = format_panel_id(args.panel_id)
 		print(f"Panel ID: {formatted_id}")
-		
+
 		# Fetch panel information from the API
 		panel_info = fetch_panel_info(formatted_id)
-		indication = panel_info['name']
-		version = panel_info['version']
+		indication = panel_info["name"]
+		version = panel_info["version"]
 
 		# Output the result
 		print(f"Clinical indication: {indication}")
@@ -100,12 +125,17 @@ def main():
 
 	except requests.exceptions.RequestException as e:
 		# Handle network issues with API
-		print(f"Network error: Unable to reach the API. Please check your connection.", file=sys.stderr)
+		print(
+			f"Network error: Unable to reach the API. Please check your connection.",
+			file=sys.stderr,
+		)
 		sys.exit(2)
 
 	except KeyError as e:
 		# Handle missing keys in the API response
-		print(f"Error: Unexpected API response. Missing expected fields.", file=sys.stderr)
+		print(
+			f"Error: Unexpected API response. Missing expected fields.", file=sys.stderr
+		)
 		sys.exit(3)
 
 	except Exception as e:
@@ -113,6 +143,7 @@ def main():
 		logging.error(f"Unexpected error: {e}")
 		print(f"Unexpected error: {e}", file=sys.stderr)
 		sys.exit(99)
+
 
 if __name__ == "__main__":
 	main()
