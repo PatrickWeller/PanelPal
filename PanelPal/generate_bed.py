@@ -1,7 +1,11 @@
 import argparse
-import panel_app_api_functions
-import variant_validator_api_functions
 import logging
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))) # Adds parent directory to sys.path
+from accessories import variant_validator_api_functions
+from accessories import panel_app_api_functions
+
 
 # Configure logging
 logging.basicConfig(
