@@ -91,8 +91,8 @@ def argument_parser():
     return argument_parser.parse_args()
 
 def get_gene_list(panel, version):
-    ...
-    
+    url = f"https://panelapp.genomicsengland.co.uk/api/v1/panels/<panel_id>/?version=<major_version>.<minor_version>"
+    response = requests.get(url)
 
 def is_gene_absent(gene, gene_list):
     """
