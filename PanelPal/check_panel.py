@@ -139,22 +139,7 @@ def fetch_panel_info(
 	    panel_info = fetch_panel_info("R59")
 	    print(panel_info["name"], panel_info["version"])
 	"""
-
-	"""
-	Fetch the panel information from the API with retry logic.
-
-	Args:
-		formatted_id (str): The formatted panel ID.
-		retries (int): Number of retry attempts for network issues.
-		delay (int): Delay between retries in seconds.
-
-	Returns:
-		dict: Dictionary containing panel name and version.
-
-	Raises:
-		requests.exceptions.RequestException: If there's an error making the API request after retries.
-		KeyError: If the response does not contain the expected keys.
-	"""
+	
 	for attempt in range(1, retries + 1):
 		try:
 			response = get_response(formatted_id)
