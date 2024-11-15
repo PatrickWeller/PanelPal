@@ -25,15 +25,13 @@ get_response_old_panel_version(panel_pk, version)
     Fetches the response from the PanelApp API for a specific panel and version.
     Raises PanelAppError if the request fails or returns an error status code.
 
-get_old_gene_list(response)
-    Extracts the HGNC symbols from the genes list in the API response.
-    Raises PanelAppError if there is an error parsing the response JSON or
-    accessing required data, and KeyError if the expected data structure is
-    not found in the response.
-
 Example Usage
 -------------
 >>> response = get_response('R293')
+>>> panel_info = get_name_version(response)
+>>> genes = get_genes(response)
+OR
+>>> response = get_response_old_panel_version(panel_pk, version)
 >>> panel_info = get_name_version(response)
 >>> genes = get_genes(response)
 
