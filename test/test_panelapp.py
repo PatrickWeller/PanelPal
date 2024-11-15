@@ -163,41 +163,74 @@ class TestGetResponse:
         with pytest.raises(Exception, match="Service unavailable: Please try again later."):
             get_response(panel_id)
 
+    @responses.activate
+    def test_http_error_unexpected_status_code(self):
+        """
+        Test that an unexpected HTTP status code raises a general PanelAppError.
+        """
+        panel_id = "R400"
+        # Define the URL for the mock API call
+        url = f"https://panelapp.genomicsengland.co.uk/api/v1/panels/{panel_id}"
+        
+        # Mock the API response with a 400 status code and a response body
+        responses.add(responses.GET, url, status=400, body="Bad Request")
+        
+        # Assert that the function raises a PanelAppError with the correct message
+        with pytest.raises(PanelAppError, match="Error: 400 - Bad Request"):
+            get_response(panel_id)
+
+    @responses.activate
+    def test_request_exception(self):
+        """
+        Test that a RequestException raises a PanelAppError.
+        """
+        panel_id = "R999"
+        # Define the URL for the mock API call
+        url = f"https://panelapp.genomicsengland.co.uk/api/v1/panels/{panel_id}"
+        
+        # Mock the API response with a connection error
+        responses.add(responses.GET, url, body=requests.exceptions.ConnectionError("Connection error"))
+        
+        # Assert that the function raises a PanelAppError with the correct message
+        with pytest.raises(PanelAppError, match=f"Failed to retrieve data for panel {panel_id}."):
+            get_response(panel_id)
+
 
 class TestGetNameVersion:
 
     @responses.activate
     def test_get_name_version_failure(self):
         """
-        Tests that non 200 codes return None
+        Tests that non-200 HTTP status codes return default 'N/A' values.
         """
-
-        # This URL is irrelevant since we're mocking the response
+        # Mock URL used for simulating the API call
         url = "https://panelapp.genomicsengland.co.uk/api/v1/panels/R233"
 
-        # Mock the failed response (404)
+        # Mock a 404 response with a 'Not found' message in the JSON body
         responses.add(
             responses.GET, url,
             json={"detail": "Not found."},
             status=404
         )
 
-        # Generates the mock response
+        # Send a GET request to the mocked URL
         response = requests.get(url)
+        
+        # Call the function being tested
         result = get_name_version(response)
-        # Tests that the response returns blank dict in this function
+        
+        # Assert that the result contains default 'N/A' values
         assert result == {'name': 'N/A', 'panel_pk': 'N/A', 'version': 'N/A'}
 
     @responses.activate
     def test_success(self):
         """
-        Tests a successful api response
+        Tests a successful API response.
         """
-
-        # This URL is irrelevant since we're mocking the response
+        # Mock URL used for simulating the API call
         url = "https://panelapp.genomicsengland.co.uk/api/v1/panels/R233"
 
-        # Creates a mock response
+        # Mock a successful API response with valid panel data
         responses.add(
             responses.GET, url, status=200,
             json={
@@ -207,68 +240,106 @@ class TestGetNameVersion:
             }
         )
 
-        # Generates the mock response
+        # Send a GET request to the mocked URL
         response = requests.get(url)
+        
+        # Call the function being tested
         result = get_name_version(response)
-
-        # Tests that a successful api response creates a panel name and version OK
+        
+        # Assert that the result matches the mocked data
         assert result == {
             "name": "Agammaglobulinaemia with absent BTK expression",
             "panel_pk": 1208,
             "version": "1.1"
-            }
+        }
+
+    @responses.activate
+    def test_value_error_on_invalid_json(self):
+        """
+        Test that the function raises PanelAppError when the response JSON is invalid,
+        causing a ValueError during parsing.
+        """
+        url = "https://panelapp.genomicsengland.co.uk/api/v1/panels/123/?version=1.0"
+        
+        # Mock an invalid JSON response (e.g., broken or malformed JSON)
+        responses.add(
+            responses.GET, url,
+            body='invalid_json',  # Invalid JSON will trigger a ValueError
+            status=200
+        )
+
+        # Perform the request and expect a PanelAppError to be raised
+        response = requests.get(url)
+        with pytest.raises(PanelAppError, match="Failed to parse panel data."):
+            get_name_version(response)
 
 
 class TestGetGenes:
     @responses.activate
     def test_get_genes_success(self):
         """
-        Test that the get_genes function returns a list of gene symbols
-        when the API response is successful.
+        Test that the function returns a list of gene symbols on success.
         """
+        # Mock URL used for simulating the API call
         url = "https://panelapp.genomicsengland.co.uk/api/v1/panels/R233"
+
+        # Mock a successful response with gene symbols in the JSON body
         responses.add(
             responses.GET, url,
             json={"genes": [{"gene_data": {"gene_symbol": "BRCA1"}}, {"gene_data": {"gene_symbol": "BRCA2"}}]},
             status=200
         )
 
+        # Send a GET request to the mocked URL
         response = requests.get(url)
+        
+        # Call the function being tested
         genes = get_genes(response)
-
+        
+        # Assert that the function returns the correct list of gene symbols
         assert genes == ["BRCA1", "BRCA2"]
 
     @responses.activate
     def test_get_genes_http_error(self):
         """
-        Test that the get_genes function raises a requests.exceptions.HTTPError
-        when the API response has a non-2xx status code.
+        Test that an HTTP error raises requests.exceptions.HTTPError.
         """
+        # Mock URL used for simulating the API call
         url = "https://panelapp.genomicsengland.co.uk/api/v1/panels/R233"
+
+        # Mock a 404 response with a 'Not found' message in the JSON body
         responses.add(
             responses.GET, url,
             json={"detail": "Not found."},
             status=404
         )
 
+        # Send a GET request to the mocked URL
         response = requests.get(url)
+        
+        # Assert that the function raises an HTTPError for the 404 response
         with pytest.raises(requests.exceptions.HTTPError):
             get_genes(response)
 
     @responses.activate
     def test_get_genes_json_error(self):
         """
-        Test that the get_genes function raises a PanelAppError
-        when there is an error parsing the JSON data.
+        Test that a JSON parsing error raises PanelAppError.
         """
+        # Mock URL used for simulating the API call
         url = "https://panelapp.genomicsengland.co.uk/api/v1/panels/R233"
+
+        # Mock a response with invalid JSON content
         responses.add(
             responses.GET, url,
             body='{"genes": [invalid_json]}',
             status=200
         )
 
+        # Send a GET request to the mocked URL
         response = requests.get(url)
+        
+        # Assert that the function raises a PanelAppError for invalid JSON
         with pytest.raises(PanelAppError):
             get_genes(response)
 
@@ -281,15 +352,17 @@ class TestGetResponseOldPanelVersion:
         """
         panel_pk = "123"
         version = "2.0"
+        # Construct the URL using panel_pk and version
         url = f"https://panelapp.genomicsengland.co.uk/api/v1/panels/{panel_pk}/?version={version}"
 
-        # Mock a successful response
+        # Mock a successful response with status 200 and a success message
         responses.add(
             responses.GET, url,
             json={"status": "success"},
             status=200
         )
 
+        # Call the function to test and assert expected response values
         response = get_response_old_panel_version(panel_pk, version)
         assert response.status_code == 200
         assert response.json() == {"status": "success"}
@@ -301,6 +374,7 @@ class TestGetResponseOldPanelVersion:
         """
         panel_pk = "999"
         version = "1.0"
+        # Construct the URL for a nonexistent panel version
         url = f"https://panelapp.genomicsengland.co.uk/api/v1/panels/{panel_pk}/?version={version}"
 
         # Mock a 404 Not Found response
@@ -309,6 +383,7 @@ class TestGetResponseOldPanelVersion:
             status=404
         )
 
+        # Expect a PanelAppError to be raised with the correct error message
         with pytest.raises(PanelAppError, match=f"Failed to retrieve version {version} of panel {panel_pk}."):
             get_response_old_panel_version(panel_pk, version)
 
@@ -319,6 +394,7 @@ class TestGetResponseOldPanelVersion:
         """
         panel_pk = "123"
         version = "3.0"
+        # Construct the URL for the panel and version
         url = f"https://panelapp.genomicsengland.co.uk/api/v1/panels/{panel_pk}/?version={version}"
         
         # Mock a 500 Internal Server Error response
@@ -327,6 +403,7 @@ class TestGetResponseOldPanelVersion:
             status=500
         )
 
+        # Expect a PanelAppError to be raised for server-side issues
         with pytest.raises(PanelAppError, match=f"Failed to retrieve version {version} of panel {panel_pk}."):
             get_response_old_panel_version(panel_pk, version)
 
@@ -337,14 +414,16 @@ class TestGetResponseOldPanelVersion:
         """
         panel_pk = "456"
         version = "1.1"
+        # Construct the URL for the panel and version
         url = f"https://panelapp.genomicsengland.co.uk/api/v1/panels/{panel_pk}/?version={version}"
 
-        # Simulate a connection error
+        # Simulate a network-related error such as a connection issue
         responses.add(
             responses.GET, url,
             body=responses.ConnectionError("Network error occurred.")
         )
 
+        # Expect a PanelAppError to be raised due to network issues
         with pytest.raises(PanelAppError, match=f"Failed to retrieve version {version} of panel {panel_pk}."):
             get_response_old_panel_version(panel_pk, version)
 
@@ -356,6 +435,7 @@ class TestGetOldGeneList:
         Test that the function correctly extracts HGNC symbols when the response is valid.
         """
         url = "https://panelapp.genomicsengland.co.uk/api/v1/panels/123/?version=1.0"
+        # Mock a successful response containing gene data
         mock_response = {
             "genes": [
                 {"gene_data": {"hgnc_symbol": "BRCA1"}},
@@ -369,6 +449,7 @@ class TestGetOldGeneList:
             status=200
         )
 
+        # Call the function and verify the list of extracted HGNC symbols
         response = requests.get(url)
         gene_list = get_old_gene_list(response)
         
@@ -380,6 +461,7 @@ class TestGetOldGeneList:
         Test that the function raises PanelAppError if the 'genes' key is missing in the response.
         """
         url = "https://panelapp.genomicsengland.co.uk/api/v1/panels/123/?version=1.0"
+        # Mock a response without the 'genes' key
         mock_response = {"other_data": []}
         responses.add(
             responses.GET, url,
@@ -387,6 +469,7 @@ class TestGetOldGeneList:
             status=200
         )
 
+        # Expect a PanelAppError to be raised due to missing 'genes' key
         response = requests.get(url)
         with pytest.raises(PanelAppError, match="Response missing required gene data."):
             get_old_gene_list(response)
@@ -397,12 +480,14 @@ class TestGetOldGeneList:
         Test that the function raises PanelAppError if the response JSON is invalid.
         """
         url = "https://panelapp.genomicsengland.co.uk/api/v1/panels/123/?version=1.0"
+        # Mock an invalid JSON response
         responses.add(
             responses.GET, url,
             body='invalid_json',
             status=200
         )
 
+        # Expect a PanelAppError due to JSON parsing failure
         response = requests.get(url)
         with pytest.raises(PanelAppError, match="Failed to parse gene list data."):
             get_old_gene_list(response)
@@ -413,6 +498,7 @@ class TestGetOldGeneList:
         Test that the function raises PanelAppError if 'hgnc_symbol' is missing in the gene data.
         """
         url = "https://panelapp.genomicsengland.co.uk/api/v1/panels/123/?version=1.0"
+        # Mock a response where 'hgnc_symbol' key is missing
         mock_response = {
             "genes": [
                 {"gene_data": {"another_key": "BRCA1"}},
@@ -424,6 +510,7 @@ class TestGetOldGeneList:
             status=200
         )
 
+        # Expect a PanelAppError due to missing 'hgnc_symbol' key
         response = requests.get(url)
         with pytest.raises(PanelAppError, match="Response missing required gene data."):
             get_old_gene_list(response)
