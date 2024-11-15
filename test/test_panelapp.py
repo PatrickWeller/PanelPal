@@ -1,7 +1,7 @@
 import responses
 import pytest
 import requests
-from panel_app_api_functions import get_response, get_name_version, get_genes
+from accessories.panel_app_api_functions import get_response, get_name_version, get_genes
 
 
 class TestGetResponse:
@@ -127,7 +127,7 @@ class TestGetResponse:
         responses.add(responses.GET, url, status=404)
 
         # Test that a corresponding exception is raised.
-        with pytest.raises(Exception, match=f"Error: Panel {panel_id} not found."):
+        with pytest.raises(Exception, match=f"Panel {panel_id} not found."):
             get_response(panel_id)
 
 
@@ -183,9 +183,9 @@ class TestGetNameVersion:
         
         # Generates the mock response
         response = requests.get(url)
-        
-        # Tests that the response returns None in this function
-        assert get_name_version(response) is None
+        result = get_name_version(response)
+        # Tests that the response returns blank dict in this function
+        assert result == {'name': 'N/A', 'panel_pk': 'N/A', 'version': 'N/A'}
     
     
     def test_success(self):
@@ -200,97 +200,20 @@ class TestGetNameVersion:
         responses.add(
             responses.GET, url, status=200,
             json={
-                    "id": 1208,
-                    "hash_id": None,
-                    "name": "Agammaglobulinaemia with absent BTK expression",
-                    "disease_group": "",
-                    "disease_sub_group": "",
-                    "status": "public",
-                    "version": "1.1",
-                    "version_created": "2023-09-14T12:48:53.836747Z",
-                    "relevant_disorders": [
-                        "R233"
-                    ],
-                    "stats": {
-                        "number_of_genes": 1,
-                        "number_of_strs": 0,
-                        "number_of_regions": 0
-                    },
-                    "types": [
-                        {
-                        "name": "GMS Rare Disease",
-                        "slug": "gms-rare-disease",
-                        "description": "This panel type is used for GMS panels that are not virtual (i.e. could be a wet lab test)"
-                        },
-                        {
-                        "name": "GMS signed-off",
-                        "slug": "gms-signed-off",
-                        "description": "This panel has undergone review by a NHSE GMS disease specialist group and processes to be signed-off for use within the GMS."
-                        }
-                    ],
-                    "genes": [
-                        {
-                        "gene_data": {
-                            "alias": [
-                            "ATK",
-                            "XLA",
-                            "PSCTK1"
-                            ],
-                            "biotype": "protein_coding",
-                            "hgnc_id": "HGNC:1133",
-                            "gene_name": "Bruton tyrosine kinase",
-                            "omim_gene": [
-                            "300300"
-                            ],
-                            "alias_name": [
-                            "Bruton's tyrosine kinase"
-                            ],
-                            "gene_symbol": "BTK",
-                            "hgnc_symbol": "BTK",
-                            "hgnc_release": "2017-11-03",
-                            "ensembl_genes": {
-                            "GRch37": {
-                                "82": {
-                                "location": "X:100604435-100641183",
-                                "ensembl_id": "ENSG00000010671"
-                                }
-                            },
-                            "GRch38": {
-                                "90": {
-                                "location": "X:101349447-101390796",
-                                "ensembl_id": "ENSG00000010671"
-                                }
-                            }
-                            },
-                            "hgnc_date_symbol_changed": "1986-01-01"
-                        },
-                        "entity_type": "gene",
-                        "entity_name": "BTK",
-                        "confidence_level": "3",
-                        "penetrance": None,
-                        "mode_of_pathogenicity": "",
-                        "publications": [],
-                        "evidence": [
-                            "NHS GMS",
-                            "Expert Review Green"
-                        ],
-                        "phenotypes": [],
-                        "mode_of_inheritance": "X-LINKED: hemizygous mutation in males, monoallelic mutations in females may cause disease (may be less severe, later onset than males)",
-                        "tags": [],
-                        "transcript": None
-                        }
-                    ],
-                    "strs": [],
-                    "regions": []
-                    }
+                "id": 1208,
+                "name": "Agammaglobulinaemia with absent BTK expression",
+                "version": "1.1"
+            }
         )
         
         # Generates the mock response
         response = requests.get(url)
+        result = get_name_version(response)
         
         # Tests that a successful api response creates a panel name and version OK
-        assert get_name_version(response) == {
+        assert result == {
             "name": "Agammaglobulinaemia with absent BTK expression",
+            "panel_pk": 1208,
             "version": "1.1"
             }
         
