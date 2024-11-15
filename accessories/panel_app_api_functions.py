@@ -49,7 +49,6 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 class PanelAppError(Exception):
     """Custom exception for PanelApp errors."""
-    pass
 
 
 def get_response(panel_id):
@@ -72,14 +71,14 @@ def get_response(panel_id):
         If the request fails or if a specific error occurs (404, 500, etc.).
     """
     url = f"https://panelapp.genomicsengland.co.uk/api/v1/panels/{panel_id}"
-    
+
     try:
         # Send the GET request to the API
         response = requests.get(url)
-        
+
         # Raise an exception for any non-2xx HTTP status codes
         response.raise_for_status()
-        
+
         # If the request was successful, return the response object
         return response
 
@@ -87,18 +86,18 @@ def get_response(panel_id):
         # Handle specific HTTP error codes
         if response.status_code == 404:
             raise PanelAppError(f"Panel {panel_id} not found.") from e
-        elif response.status_code == 500:
+        if response.status_code == 500:
             raise PanelAppError("Server error: The server failed to process the request.") from e
-        elif response.status_code == 503:
+        if response.status_code == 503:
             raise PanelAppError("Service unavailable: Please try again later.") from e
-        else:
-            # For other non-successful status codes, raise a general error
-            raise PanelAppError(f"Error: {response.status_code} - {response.text}") from e
-            
+
+        # For other non-successful status codes, raise a general error
+        raise PanelAppError(f"Error: {response.status_code} - {response.text}") from e
+
     except requests.exceptions.RequestException as e:
-        # Log any other request-related exceptions
-        logging.error(f"Request failed: {e}")
-        # Raise a custom PanelAppError with a more descriptive message
+        # Catch all other types of request exceptions (network errors, etc.)
+        logging.error("Request failed: %s", e)
+        # Raise a custom PanelAppError with a more general message
         raise PanelAppError(f"Failed to retrieve data for panel {panel_id}.") from e
 
 
@@ -127,7 +126,7 @@ def get_name_version(response):
     try:
         # Parse the JSON data from the response
         data = response.json()
-        
+
         # Extract the required fields, defaulting to 'N/A' if not found
         return {
             "name": data.get("name", "N/A"),
@@ -137,7 +136,7 @@ def get_name_version(response):
 
     except ValueError as e:
         # Log any errors encountered while parsing the JSON data
-        logging.error(f"Error parsing JSON: {e}")
+        logging.error("Error parsing JSON: %s", e)
         # Raise a custom PanelAppError with a more descriptive message
         raise PanelAppError("Failed to parse panel data.") from e
 
@@ -166,22 +165,22 @@ def get_genes(response):
     try:
         # Raise an exception for any non-2xx HTTP status codes
         response.raise_for_status()
-        
+
         # Parse the JSON data from the response
         data = response.json()
-        
+
         # Extract the gene symbols from the 'genes' key
         return [gene["gene_data"]["gene_symbol"] for gene in data.get("genes", [])]
 
     except ValueError as e:
         # Log any errors encountered while parsing the JSON data
-        logging.error(f"Error parsing JSON: {e}")
+        logging.error("Error parsing JSON: %s", e)
         # Raise a custom PanelAppError with a more descriptive message
         raise PanelAppError("Failed to parse gene data.") from e
 
     except requests.exceptions.HTTPError as e:
         # Log any errors encountered during the request
-        logging.error(f"Error fetching genes: {e}")
+        logging.error("Error fetching genes: %s", e)
         # Re-raise the exception, as it will be handled further up the call stack
         raise
 
@@ -208,20 +207,20 @@ def get_response_old_panel_version(panel_pk, version):
         If the request fails or returns an error status code.
     """
     url = f"https://panelapp.genomicsengland.co.uk/api/v1/panels/{panel_pk}/?version={version}"
-    
+
     try:
         # Send the GET request to the API
         response = requests.get(url)
-        
+
         # Raise an exception for any non-2xx HTTP status codes
         response.raise_for_status()
-        
+
         # If the request was successful, return the response object
         return response
 
     except requests.exceptions.RequestException as e:
         # Log any errors encountered during the request
-        logging.error(f"Error fetching old panel version: {e}")
+        logging.error("Error fetching old panel version: %s", e)
         # Raise a custom PanelAppError with a more descriptive message
         raise PanelAppError(f"Failed to retrieve version {version} of panel {panel_pk}.") from e
 
@@ -250,26 +249,18 @@ def get_old_gene_list(response):
     try:
         # Parse the JSON data from the response
         data = response.json()
-        
+
         # Extract the HGNC symbols from the 'genes' data
         return [gene['gene_data']['hgnc_symbol'] for gene in data["genes"]]
 
     except ValueError as e:
         # Log any errors encountered while parsing the JSON data
-        logging.error(f"Error parsing gene list JSON: {e}")
+        logging.error("Error parsing gene list JSON: %s", e)
         # Raise a custom PanelAppError with a more descriptive message
         raise PanelAppError("Failed to parse gene list data.") from e
-        
+
     except KeyError as e:
         # Log any missing required data in the response
-        logging.error(f"Missing required data in response: {e}")
+        logging.error("Missing required data in response: %s", e)
         # Raise a custom PanelAppError with a more descriptive message
         raise PanelAppError("Response missing required gene data.") from e
-
-
-def main():
-    response = get_response_old_panel_version(562, 1.6)
-    print(get_old_gene_list(response))
-
-if __name__ == "__main__":
-    main()
