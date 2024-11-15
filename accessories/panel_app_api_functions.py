@@ -74,29 +74,35 @@ def get_response(panel_id):
 
     try:
         # Send the GET request to the API
+        logging.info("Sending request to Panel App API")
         response = requests.get(url)
 
         # Raise an exception for any non-2xx HTTP status codes
         response.raise_for_status()
 
         # If the request was successful, return the response object
+        logging.info("Panel App API response successful")
         return response
 
     except requests.exceptions.HTTPError as e:
         # Handle specific HTTP error codes
         if response.status_code == 404:
+            logging.error("Error occurred while fetching panel data for panel %s: %s", panel_id, e)
             raise PanelAppError(f"Panel {panel_id} not found.") from e
         if response.status_code == 500:
+            logging.error("Error occurred while fetching panel data for panel %s: %s", panel_id, e)
             raise PanelAppError("Server error: The server failed to process the request.") from e
         if response.status_code == 503:
+            logging.error("Error occurred while fetching panel data for panel %s: %s", panel_id, e)
             raise PanelAppError("Service unavailable: Please try again later.") from e
 
         # For other non-successful status codes, raise a general error
+        logging.error("Error occurred while fetching panel data for panel %s: %s", panel_id, e)
         raise PanelAppError(f"Error: {response.status_code} - {response.text}") from e
 
     except requests.exceptions.RequestException as e:
         # Catch all other types of request exceptions (network errors, etc.)
-        logging.error("Request failed: %s", e)
+        logging.error("Error occurred while fetching panel data for panel %s: %s", panel_id, e)
         # Raise a custom PanelAppError with a more general message
         raise PanelAppError(f"Failed to retrieve data for panel {panel_id}.") from e
 
@@ -128,6 +134,7 @@ def get_name_version(response):
         data = response.json()
 
         # Extract the required fields, defaulting to 'N/A' if not found
+        logging.info("Extracting data from JSON")
         return {
             "name": data.get("name", "N/A"),
             "version": data.get("version", "N/A"),
@@ -170,6 +177,7 @@ def get_genes(response):
         data = response.json()
 
         # Extract the gene symbols from the 'genes' key
+        logging.info("Extracting data from JSON")
         return [gene["gene_data"]["gene_symbol"] for gene in data.get("genes", [])]
 
     except ValueError as e:
@@ -216,6 +224,7 @@ def get_response_old_panel_version(panel_pk, version):
         response.raise_for_status()
 
         # If the request was successful, return the response object
+        logging.info("Request to Panel App API was successful")
         return response
 
     except requests.exceptions.RequestException as e:
@@ -251,6 +260,7 @@ def get_old_gene_list(response):
         data = response.json()
 
         # Extract the HGNC symbols from the 'genes' data
+        logging.info("Extracting gene symbols from JSON")
         return [gene['gene_data']['hgnc_symbol'] for gene in data["genes"]]
 
     except ValueError as e:
