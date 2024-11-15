@@ -160,7 +160,7 @@ def get_genes(response):
     Returns
     -------
     list
-        A list of gene symbols (strings).
+        A list of HGNC symbols for each gene in the response data.
 
     Raises
     ------
@@ -218,6 +218,7 @@ def get_response_old_panel_version(panel_pk, version):
 
     try:
         # Send the GET request to the API
+        logging.info("Sending request to Panel App API")
         response = requests.get(url, timeout=10)
 
         # Raise an exception for any non-2xx HTTP status codes
@@ -232,45 +233,3 @@ def get_response_old_panel_version(panel_pk, version):
         logging.error("Error fetching old panel version: %s", e)
         # Raise a custom PanelAppError with a more descriptive message
         raise PanelAppError(f"Failed to retrieve version {version} of panel {panel_pk}.") from e
-
-
-def get_old_gene_list(response):
-    """
-    Extracts the HGNC symbols from the genes list in the API response.
-
-    Parameters
-    ----------
-    response : requests.Response
-        The response object returned from the PanelApp API.
-
-    Returns
-    -------
-    list
-        A list of HGNC symbols for each gene in the response data.
-
-    Raises
-    ------
-    PanelAppError
-        If there is an error parsing the response JSON or accessing required data.
-    KeyError
-        If the expected data structure is not found in the response.
-    """
-    try:
-        # Parse the JSON data from the response
-        data = response.json()
-
-        # Extract the HGNC symbols from the 'genes' data
-        logging.info("Extracting gene symbols from JSON")
-        return [gene['gene_data']['hgnc_symbol'] for gene in data["genes"]]
-
-    except ValueError as e:
-        # Log any errors encountered while parsing the JSON data
-        logging.error("Error parsing gene list JSON: %s", e)
-        # Raise a custom PanelAppError with a more descriptive message
-        raise PanelAppError("Failed to parse gene list data.") from e
-
-    except KeyError as e:
-        # Log any missing required data in the response
-        logging.error("Missing required data in response: %s", e)
-        # Raise a custom PanelAppError with a more descriptive message
-        raise PanelAppError("Response missing required gene data.") from e

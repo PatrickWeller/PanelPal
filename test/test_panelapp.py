@@ -1,7 +1,7 @@
 import responses
 import pytest
 import requests
-from accessories.panel_app_api_functions import get_response, get_name_version, get_genes, get_response_old_panel_version, get_old_gene_list 
+from accessories.panel_app_api_functions import get_response, get_name_version, get_genes, get_response_old_panel_version
 from accessories.panel_app_api_functions import PanelAppError
 
 
@@ -426,91 +426,3 @@ class TestGetResponseOldPanelVersion:
         # Expect a PanelAppError to be raised due to network issues
         with pytest.raises(PanelAppError, match=f"Failed to retrieve version {version} of panel {panel_pk}."):
             get_response_old_panel_version(panel_pk, version)
-
-
-class TestGetOldGeneList:
-    @responses.activate
-    def test_successful_gene_list_extraction(self):
-        """
-        Test that the function correctly extracts HGNC symbols when the response is valid.
-        """
-        url = "https://panelapp.genomicsengland.co.uk/api/v1/panels/123/?version=1.0"
-        # Mock a successful response containing gene data
-        mock_response = {
-            "genes": [
-                {"gene_data": {"hgnc_symbol": "BRCA1"}},
-                {"gene_data": {"hgnc_symbol": "BRCA2"}},
-                {"gene_data": {"hgnc_symbol": "TP53"}}
-            ]
-        }
-        responses.add(
-            responses.GET, url,
-            json=mock_response,
-            status=200
-        )
-
-        # Call the function and verify the list of extracted HGNC symbols
-        response = requests.get(url)
-        gene_list = get_old_gene_list(response)
-        
-        assert gene_list == ["BRCA1", "BRCA2", "TP53"]
-
-    @responses.activate
-    def test_missing_genes_key(self):
-        """
-        Test that the function raises PanelAppError if the 'genes' key is missing in the response.
-        """
-        url = "https://panelapp.genomicsengland.co.uk/api/v1/panels/123/?version=1.0"
-        # Mock a response without the 'genes' key
-        mock_response = {"other_data": []}
-        responses.add(
-            responses.GET, url,
-            json=mock_response,
-            status=200
-        )
-
-        # Expect a PanelAppError to be raised due to missing 'genes' key
-        response = requests.get(url)
-        with pytest.raises(PanelAppError, match="Response missing required gene data."):
-            get_old_gene_list(response)
-
-    @responses.activate
-    def test_invalid_json(self):
-        """
-        Test that the function raises PanelAppError if the response JSON is invalid.
-        """
-        url = "https://panelapp.genomicsengland.co.uk/api/v1/panels/123/?version=1.0"
-        # Mock an invalid JSON response
-        responses.add(
-            responses.GET, url,
-            body='invalid_json',
-            status=200
-        )
-
-        # Expect a PanelAppError due to JSON parsing failure
-        response = requests.get(url)
-        with pytest.raises(PanelAppError, match="Failed to parse gene list data."):
-            get_old_gene_list(response)
-
-    @responses.activate
-    def test_missing_hgnc_symbol(self):
-        """
-        Test that the function raises PanelAppError if 'hgnc_symbol' is missing in the gene data.
-        """
-        url = "https://panelapp.genomicsengland.co.uk/api/v1/panels/123/?version=1.0"
-        # Mock a response where 'hgnc_symbol' key is missing
-        mock_response = {
-            "genes": [
-                {"gene_data": {"another_key": "BRCA1"}},
-            ]
-        }
-        responses.add(
-            responses.GET, url,
-            json=mock_response,
-            status=200
-        )
-
-        # Expect a PanelAppError due to missing 'hgnc_symbol' key
-        response = requests.get(url)
-        with pytest.raises(PanelAppError, match="Response missing required gene data."):
-            get_old_gene_list(response)
