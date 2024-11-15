@@ -75,7 +75,7 @@ def get_response(panel_id):
     try:
         # Send the GET request to the API
         logging.info("Sending request to Panel App API")
-        response = requests.get(url)
+        response = requests.get(url, timeout=10)
 
         # Raise an exception for any non-2xx HTTP status codes
         response.raise_for_status()
@@ -218,7 +218,7 @@ def get_response_old_panel_version(panel_pk, version):
 
     try:
         # Send the GET request to the API
-        response = requests.get(url)
+        response = requests.get(url, timeout=10)
 
         # Raise an exception for any non-2xx HTTP status codes
         response.raise_for_status()
