@@ -1,255 +1,275 @@
 """
-Module for interacting with the PanelApp API to extract gene information and generate BED files.
+Module for interacting with the PanelApp API to extract gene information.
 
-This module provides functions to interact with the PanelApp API, retrieve panel information, and generate
-a BED file that represents the location of genes in a given panel. The flow includes fetching data from the
-API, extracting relevant details like gene names, versions, and chromosomal locations, and saving the result 
-in a standard BED file format.
+This module provides functions to interact with the PanelApp API, retrieve panel
+information, and extract relevant details like gene names, panel names, and
+versions. The module handles errors gracefully by raising custom exceptions
+and providing detailed error messages.
 
-Functions:
-    - get_response(panel_id): Fetches JSON data from the PanelApp API for a given panel ID.
-    - get_name_version(response): Extracts the name and version of the panel from the API response.
-    - get_genes(response): Extracts a list of gene symbols from the API response.
-    - create_locus_dictionary(response, build): Generates a dictionary of gene Ensembl IDs and their chromosomal locations.
-    - generate_bed(location_dict, panel_name): Generates a BED file from a dictionary of gene locations.
+Functions
+---------
+get_response(panel_id)
+    Fetches JSON data from the PanelApp API for a given panel ID.
+    Raises PanelAppError if the request fails or a specific error occurs.
 
-Example Usage:
+get_name_version(response)
+    Extracts the name, version, and primary key of the panel from the API
+    response. Raises PanelAppError if there is an issue parsing the response.
 
-    # Fetch the panel data for a given panel ID (e.g., 'R293')
-    response = get_response('R293')
-    
-    # Extract the panel name and version from the response
-    panel_info = get_name_version(response)
-    
-    # Extract the list of genes from the panel
-    genes = get_genes(response)
-    
-    # Generate a locus dictionary mapping Ensembl gene IDs to chromosomal locations
-    location_dict = create_locus_dictionary(response, 'GRCh37')
-    
-    # Generate the BED file from the locus dictionary
-    generate_bed(location_dict, 'R293_panel')
-    
-This module requires the `requests` library to fetch data from the PanelApp API and interact with the response.
+get_genes(response)
+    Extracts a list of gene symbols from the API response.
+    Raises PanelAppError if there is an error parsing the response JSON or
+    requests.exceptions.HTTPError if the response contains an error status code.
+
+get_response_old_panel_version(panel_pk, version)
+    Fetches the response from the PanelApp API for a specific panel and version.
+    Raises PanelAppError if the request fails or returns an error status code.
+
+get_old_gene_list(response)
+    Extracts the HGNC symbols from the genes list in the API response.
+    Raises PanelAppError if there is an error parsing the response JSON or
+    accessing required data, and KeyError if the expected data structure is
+    not found in the response.
+
+Example Usage
+-------------
+>>> response = get_response('R293')
+>>> panel_info = get_name_version(response)
+>>> genes = get_genes(response)
+
+Notes
+-----
+This module requires the `requests` library to fetch data from the PanelApp API.
 """
-
+import logging
 import requests
+
+# Set up logging configuration
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+class PanelAppError(Exception):
+    """Custom exception for PanelApp errors."""
+    pass
 
 
 def get_response(panel_id):
     """
     Fetches JSON data for a given panel ID from the PanelApp API.
 
-    Parameters: 
-    panel_id (str) – e.g., 'R293'.
-    
-    Returns: 
-    dict – JSON data if successful.
-    
-    Raises: 
-    Exception – if request fails.
+    Parameters
+    ----------
+    panel_id : str
+        The ID of the panel, e.g., 'R293'.
+
+    Returns
+    -------
+    requests.Response
+        Response object from the API request.
+
+    Raises
+    ------
+    PanelAppError
+        If the request fails or if a specific error occurs (404, 500, etc.).
     """
     url = f"https://panelapp.genomicsengland.co.uk/api/v1/panels/{panel_id}"
-    response = requests.get(url)
     
-    if response.status_code == 200:
+    try:
+        # Send the GET request to the API
+        response = requests.get(url)
+        
+        # Raise an exception for any non-2xx HTTP status codes
+        response.raise_for_status()
+        
+        # If the request was successful, return the response object
         return response
-    elif response.status_code == 404:
-        raise Exception(f"Error: Panel {panel_id} not found.")
-    elif response.status_code == 500:
-        raise Exception("Server error: The server failed to process the request.")
-    elif response.status_code == 503:
-        raise Exception("Service unavailable: Please try again later.")
-    else:
-        raise Exception(f"Error: {response.status_code} - {response.text}")
-    
-    
+
+    except requests.exceptions.HTTPError as e:
+        # Handle specific HTTP error codes
+        if response.status_code == 404:
+            raise PanelAppError(f"Panel {panel_id} not found.") from e
+        elif response.status_code == 500:
+            raise PanelAppError("Server error: The server failed to process the request.") from e
+        elif response.status_code == 503:
+            raise PanelAppError("Service unavailable: Please try again later.") from e
+        else:
+            # For other non-successful status codes, raise a general error
+            raise PanelAppError(f"Error: {response.status_code} - {response.text}") from e
+            
+    except requests.exceptions.RequestException as e:
+        # Log any other request-related exceptions
+        logging.error(f"Request failed: {e}")
+        # Raise a custom PanelAppError with a more descriptive message
+        raise PanelAppError(f"Failed to retrieve data for panel {panel_id}.") from e
+
+
 def get_name_version(response):
     """
     Extracts the panel name and version from the given API response.
 
-    Parameters: 
-    response (requests.Response) – The response object returned from the PanelApp API.
+    Parameters
+    ----------
+    response : requests.Response
+        The response object returned from the PanelApp API.
 
-    Returns: 
-    dict – A dictionary containing the panel's 'name' and 'version'. If the data is missing, it returns 'N/A' for both.
+    Returns
+    -------
+    dict
+        A dictionary containing:
+            - name (str): Panel name or 'N/A' if not found
+            - version (str): Panel version or 'N/A' if not found
+            - panel_pk (str): Panel primary key or 'N/A' if not found
 
-    Raises:
-    requests.exceptions.RequestException – If the response indicates a failure (e.g., 404, 500), the exception is raised.
+    Raises
+    ------
+    PanelAppError
+        If there is an issue parsing the response JSON.
     """
     try:
-        # Ensure the response is successful (status code 200)
-        response.raise_for_status()
-        
-        # Parse the JSON content from the response
+        # Parse the JSON data from the response
         data = response.json()
         
-        # Extract the 'name' and 'version' from the data, defaulting to 'N/A' if not found
-        panel_name = data.get("name", "N/A")  # Default to 'N/A' if 'name' is missing
-        panel_version = data.get("version", "N/A")  # Default to 'N/A' if 'version' is missing
-
-        # Return a dictionary containing the extracted name and version
+        # Extract the required fields, defaulting to 'N/A' if not found
         return {
-            "name": panel_name,
-            "version": panel_version
+            "name": data.get("name", "N/A"),
+            "version": data.get("version", "N/A"),
+            "panel_pk": data.get("id", "N/A")
         }
 
-    except requests.exceptions.RequestException as e:
-        # Catch any exceptions related to the request (e.g., network issues, invalid status codes)
-        print(f"Error: {e}")
-        
-        # Return None if an error occurred, indicating failure to fetch or parse the data
-        return None
-
+    except ValueError as e:
+        # Log any errors encountered while parsing the JSON data
+        logging.error(f"Error parsing JSON: {e}")
+        # Raise a custom PanelAppError with a more descriptive message
+        raise PanelAppError("Failed to parse panel data.") from e
 
 
 def get_genes(response):
     """
     Extracts a list of gene symbols from the given API response.
 
-    Parameters: 
-    response (requests.Response) – The response object returned from the PanelApp API.
+    Parameters
+    ----------
+    response : requests.Response
+        The response object returned from the PanelApp API.
 
-    Returns: 
-    list – A list of gene symbols (strings). If no genes are found or an error occurs, an empty list is returned.
+    Returns
+    -------
+    list
+        A list of gene symbols (strings).
 
-    Raises:
-    requests.exceptions.RequestException – If the response indicates a failure (e.g., 404, 500), the exception is raised.
+    Raises
+    ------
+    PanelAppError
+        If there is an error parsing the response JSON.
+    requests.exceptions.HTTPError
+        If the response contains an error status code.
     """
     try:
-        # Ensure the response is successful (status code 200)
+        # Raise an exception for any non-2xx HTTP status codes
         response.raise_for_status()
-
-        # Parse the JSON content from the response
+        
+        # Parse the JSON data from the response
         data = response.json()
+        
+        # Extract the gene symbols from the 'genes' key
+        return [gene["gene_data"]["gene_symbol"] for gene in data.get("genes", [])]
 
-        # Extract gene symbols from the 'genes' field, defaulting to an empty list if 'genes' is missing
-        genes = [gene["gene_data"]["gene_symbol"] for gene in data.get("genes", [])]
+    except ValueError as e:
+        # Log any errors encountered while parsing the JSON data
+        logging.error(f"Error parsing JSON: {e}")
+        # Raise a custom PanelAppError with a more descriptive message
+        raise PanelAppError("Failed to parse gene data.") from e
 
-        # Return the list of gene symbols
-        return genes
+    except requests.exceptions.HTTPError as e:
+        # Log any errors encountered during the request
+        logging.error(f"Error fetching genes: {e}")
+        # Re-raise the exception, as it will be handled further up the call stack
+        raise
+
+
+def get_response_old_panel_version(panel_pk, version):
+    """
+    Fetches the response from the PanelApp API for a specific panel and version.
+
+    Parameters
+    ----------
+    panel_pk : str
+        The Panel App database primary key for that panel.
+    version : str
+        The version of the panel to request from the API.
+
+    Returns
+    -------
+    requests.Response
+        The response object from the API request.
+
+    Raises
+    ------
+    PanelAppError
+        If the request fails or returns an error status code.
+    """
+    url = f"https://panelapp.genomicsengland.co.uk/api/v1/panels/{panel_pk}/?version={version}"
+    
+    try:
+        # Send the GET request to the API
+        response = requests.get(url)
+        
+        # Raise an exception for any non-2xx HTTP status codes
+        response.raise_for_status()
+        
+        # If the request was successful, return the response object
+        return response
 
     except requests.exceptions.RequestException as e:
-        # Catch any exceptions related to the request (e.g., network issues, invalid status codes)
-        print(f"Error: {e}")
+        # Log any errors encountered during the request
+        logging.error(f"Error fetching old panel version: {e}")
+        # Raise a custom PanelAppError with a more descriptive message
+        raise PanelAppError(f"Failed to retrieve version {version} of panel {panel_pk}.") from e
+
+
+def get_old_gene_list(response):
+    """
+    Extracts the HGNC symbols from the genes list in the API response.
+
+    Parameters
+    ----------
+    response : requests.Response
+        The response object returned from the PanelApp API.
+
+    Returns
+    -------
+    list
+        A list of HGNC symbols for each gene in the response data.
+
+    Raises
+    ------
+    PanelAppError
+        If there is an error parsing the response JSON or accessing required data.
+    KeyError
+        If the expected data structure is not found in the response.
+    """
+    try:
+        # Parse the JSON data from the response
+        data = response.json()
         
-        # Return an empty list if an error occurred, indicating failure to fetch or parse the data
-        return []
+        # Extract the HGNC symbols from the 'genes' data
+        return [gene['gene_data']['hgnc_symbol'] for gene in data["genes"]]
 
-
-
-# def create_locus_dictionary(response, build):
-#     """
-#     Creates a dictionary mapping gene Ensembl IDs to their chromosomal locations for a specific genome build.
-
-#     Parameters: 
-#     response (requests.Response) – The response object containing JSON data from the PanelApp API.
-#     build (str) – The chromosome build (e.g., 'GRCh37') used to extract the gene locations.
-
-#     Returns: 
-#     dict – A dictionary where keys are Ensembl gene IDs, and values are lists containing:
-#             [chromosome, start position, end position].
-#             Example:
-#             {
-#                 'ENSG00000087460': ['20', '57414773', '57486247'],
-#                 'ENSG00000113448': ['5', '58264865', '59817947']
-#             }
-
-#     Raises:
-#     requests.exceptions.RequestException – If the response indicates a failure (e.g., 404, 500), the exception is raised.
-#     """
-#     try:
-#         # Ensure the response is successful (status code 200)
-#         response.raise_for_status()
-    
-#         # Parse the JSON content from the response
-#         data = response.json()
+    except ValueError as e:
+        # Log any errors encountered while parsing the JSON data
+        logging.error(f"Error parsing gene list JSON: {e}")
+        # Raise a custom PanelAppError with a more descriptive message
+        raise PanelAppError("Failed to parse gene list data.") from e
         
-#         # Extract the list of genes from the data
-#         genes = data.get("genes", [])
-        
-#         # Initialize an empty dictionary to store gene locations
-#         location_dict = {}
-        
-#         # Iterate over the list of genes to extract relevant information
-#         for gene in genes:
-#             # Retrieve the gene version for the given build (e.g., GRCh37)
-#             gene_version = gene["gene_data"]["ensembl_genes"].get(build, {})
-            
-#             # If the version information is missing, skip this gene
-#             if not gene_version:
-#                 continue
-            
-#             # Retrieve the first available release for the gene version
-#             release = list(gene_version.keys())[0]  # Assumes the first release is the desired one
-            
-#             # Extract the gene version data for the selected release
-#             gene_version = gene_version[release]
-            
-#             # Split the location string (e.g., '20:57414773-57486247') into chromosome and position range
-#             chrom, position = gene_version["location"].split(":")
-#             start, end = position.split("-")
-            
-#             # Store the gene's chromosomal coordinates in the dictionary
-#             coordinates = [chrom, start, end]
-#             location_dict[gene_version["ensembl_id"]] = coordinates
-        
-#         # Return the dictionary of gene loci
-#         return location_dict
-    
-#     except requests.exceptions.RequestException as e:
-#         # Print the error message if an exception occurs during the request
-#         print(f"Error: {e}")
-        
-#         # Return an empty list as a fallback (indicating failure)
-#         return []
+    except KeyError as e:
+        # Log any missing required data in the response
+        logging.error(f"Missing required data in response: {e}")
+        # Raise a custom PanelAppError with a more descriptive message
+        raise PanelAppError("Response missing required gene data.") from e
 
 
+def main():
+    response = get_response_old_panel_version(562, 1.6)
+    print(get_old_gene_list(response))
 
-# def generate_bed(location_dict, panel_name):
-#     """
-#     Generates a BED file from a dictionary of gene locations.
-
-#     Parameters:
-#     location_dict (dict) – A dictionary where keys are Ensembl gene IDs and values are lists containing:
-#                             [chromosome, start position, end position].
-#                             Example:
-#                             {
-#                                 'ENSG00000087460': ['20', '57414773', '57486247'],
-#                                 'ENSG00000113448': ['5', '58264865', '59817947']
-#                             }
-#     panel_name (str) – The name of the panel used for naming the output BED file.
-
-#     Returns:
-#     None – The function writes a BED file to disk with the given panel name.
-    
-#     Output format:
-#     The generated BED file will contain tab-separated values with the following columns:
-#     - chromosome (e.g., 'chr20')
-#     - start position (0-based)
-#     - end position (1-based)
-#     - gene ID (e.g., Ensembl gene ID like 'ENSG00000087460')
-#     """
-    
-#     # Create a filename for the BED file using the panel name
-#     output_file = panel_name + ".bed"
-    
-#     try:
-#         # Open the output file for writing
-#         with open(output_file, 'w') as bed_file:
-#             # Iterate through the gene-location dictionary
-#             for gene_id, position in location_dict.items():
-#                 # Extract chromosome and positions, adjusting start position to 0-based
-#                 chromosome = "chr" + position[0]  # Add 'chr' prefix to chromosome
-#                 start = int(position[1]) - 1  # Convert start position to 0-based indexing
-#                 end = position[2]  # End position remains 1-based
-                
-#                 # Write each gene's data in BED format (tab-separated)
-#                 bed_file.write(f"{chromosome}\t{start}\t{end}\t{gene_id}\n")
-        
-#         # Print a success message with the output file's name
-#         print("BED file generated:", output_file)
-    
-#     except IOError as e:
-#         # Handle any issues that arise while opening or writing to the file
-#         print(f"Error writing to file {output_file}: {e}")
+if __name__ == "__main__":
+    main()
