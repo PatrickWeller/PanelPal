@@ -6,7 +6,7 @@ import logging
 # Set this flag to True to enable console logging, False to disable it
 ENABLE_CONSOLE_LOGGING = True
 
-# Always log to a file
+# Always log to a file, called app.log
 handlers = [logging.FileHandler('app.log')]
 
 # Optionally log to the console if the above is set to True
