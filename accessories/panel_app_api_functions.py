@@ -39,11 +39,8 @@ Notes
 -----
 This module requires the `requests` library to fetch data from the PanelApp API.
 """
-import logging
 import requests
-
-# Set up logging configuration
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+from settings import logger
 
 class PanelAppError(Exception):
     """Custom exception for PanelApp errors."""
@@ -72,35 +69,35 @@ def get_response(panel_id):
 
     try:
         # Send the GET request to the API
-        logging.info("Sending request to Panel App API")
+        logger.info("Sending request to Panel App API")
         response = requests.get(url, timeout=10)
 
         # Raise an exception for any non-2xx HTTP status codes
         response.raise_for_status()
 
         # If the request was successful, return the response object
-        logging.info("Panel App API response successful")
+        logger.info("Panel App API response successful")
         return response
 
     except requests.exceptions.HTTPError as e:
         # Handle specific HTTP error codes
         if response.status_code == 404:
-            logging.error("Error occurred while fetching panel data for panel %s: %s", panel_id, e)
+            logger.error("Error occurred while fetching panel data for panel %s: %s", panel_id, e)
             raise PanelAppError(f"Panel {panel_id} not found.") from e
         if response.status_code == 500:
-            logging.error("Error occurred while fetching panel data for panel %s: %s", panel_id, e)
+            logger.error("Error occurred while fetching panel data for panel %s: %s", panel_id, e)
             raise PanelAppError("Server error: The server failed to process the request.") from e
         if response.status_code == 503:
-            logging.error("Error occurred while fetching panel data for panel %s: %s", panel_id, e)
+            logger.error("Error occurred while fetching panel data for panel %s: %s", panel_id, e)
             raise PanelAppError("Service unavailable: Please try again later.") from e
 
         # For other non-successful status codes, raise a general error
-        logging.error("Error occurred while fetching panel data for panel %s: %s", panel_id, e)
+        logger.error("Error occurred while fetching panel data for panel %s: %s", panel_id, e)
         raise PanelAppError(f"Error: {response.status_code} - {response.text}") from e
 
     except requests.exceptions.RequestException as e:
         # Catch all other types of request exceptions (network errors, etc.)
-        logging.error("Error occurred while fetching panel data for panel %s: %s", panel_id, e)
+        logger.error("Error occurred while fetching panel data for panel %s: %s", panel_id, e)
         # Raise a custom PanelAppError with a more general message
         raise PanelAppError(f"Failed to retrieve data for panel {panel_id}.") from e
 
@@ -132,7 +129,7 @@ def get_name_version(response):
         data = response.json()
 
         # Extract the required fields, defaulting to 'N/A' if not found
-        logging.info("Extracting data from JSON")
+        logger.info("Extracting data from JSON")
         return {
             "name": data.get("name", "N/A"),
             "version": data.get("version", "N/A"),
@@ -141,7 +138,7 @@ def get_name_version(response):
 
     except ValueError as e:
         # Log any errors encountered while parsing the JSON data
-        logging.error("Error parsing JSON: %s", e)
+        logger.error("Error parsing JSON: %s", e)
         # Raise a custom PanelAppError with a more descriptive message
         raise PanelAppError("Failed to parse panel data.") from e
 
@@ -175,18 +172,18 @@ def get_genes(response):
         data = response.json()
 
         # Extract the gene symbols from the 'genes' key
-        logging.info("Extracting data from JSON")
+        logger.info("Extracting data from JSON")
         return [gene["gene_data"]["gene_symbol"] for gene in data.get("genes", [])]
 
     except ValueError as e:
         # Log any errors encountered while parsing the JSON data
-        logging.error("Error parsing JSON: %s", e)
+        logger.error("Error parsing JSON: %s", e)
         # Raise a custom PanelAppError with a more descriptive message
         raise PanelAppError("Failed to parse gene data.") from e
 
     except requests.exceptions.HTTPError as e:
         # Log any errors encountered during the request
-        logging.error("Error fetching genes: %s", e)
+        logger.error("Error fetching genes: %s", e)
         # Re-raise the exception, as it will be handled further up the call stack
         raise
 
@@ -216,18 +213,18 @@ def get_response_old_panel_version(panel_pk, version):
 
     try:
         # Send the GET request to the API
-        logging.info("Sending request to Panel App API")
+        logger.info("Sending request to Panel App API")
         response = requests.get(url, timeout=10)
 
         # Raise an exception for any non-2xx HTTP status codes
         response.raise_for_status()
 
         # If the request was successful, return the response object
-        logging.info("Request to Panel App API was successful")
+        logger.info("Request to Panel App API was successful")
         return response
 
     except requests.exceptions.RequestException as e:
         # Log any errors encountered during the request
-        logging.error("Error fetching old panel version: %s", e)
+        logger.error("Error fetching old panel version: %s", e)
         # Raise a custom PanelAppError with a more descriptive message
         raise PanelAppError(f"Failed to retrieve version {version} of panel {panel_pk}.") from e
