@@ -15,6 +15,7 @@ if ENABLE_CONSOLE_LOGGING:
 
 # Set up the logger configuration
 logging.basicConfig(
+    # Can toggle between DEBUG, INFO, ERROR etc. during development
     level=logging.DEBUG,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=handlers
