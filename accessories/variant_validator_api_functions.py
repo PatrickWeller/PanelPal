@@ -138,6 +138,11 @@ def generate_bed_file(gene_list, panel_name, panel_version, genome_build="GRCh38
                 for exon in exon_data:
                     # Subtract 1 to zero-index the start position
                     exon["exon_start"] -= 1
+
+                    # Add padding of 10bp on either side
+                    exon["exon_start"] = max(0, exon["exon_start"] - 10)  # Avoid negative start positions
+                    exon["exon_end"] += 10
+
                     # Each line in the BED file corresponds to an exon and its relevant details
                     bed_file.write(f"{exon['chromosome']}\t{exon['exon_start']}\t{exon['exon_end']}\t"
                                 f"{exon['exon_number']}\t{exon['reference']}\t{exon['gene_symbol']}\n")
