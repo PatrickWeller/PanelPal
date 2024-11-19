@@ -21,5 +21,33 @@ logging.basicConfig(
     handlers=handlers
 )
 
-# Create a logger instance
-logger = logging.getLogger(__name__)
+
+def get_logger(module_name):
+    """
+    Returns a logger configured with the module's name.
+    
+    This should be called at the top of every script to ensure that
+    log messages are associated with the correct module name.
+
+    Parameters
+    ----------
+    module_name : str
+        The name of the module requesting the logger.
+
+    Returns
+    -------
+    logging.Logger
+        A logger instance.
+
+    Usage
+    -----
+    # Create a logger specific to this module
+    logger = get_logger(__name__)
+
+    # Use the logger
+    logger.info("This is the message contents)
+
+    # Output
+    2024-11-19 12:00:00,000 - CheckPanel - INFO - Sending request to Panel App API
+    """
+    return logging.getLogger(module_name)
