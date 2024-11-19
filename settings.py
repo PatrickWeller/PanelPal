@@ -41,13 +41,12 @@ def get_logger(module_name):
 
     Usage
     -----
-    # Create a logger specific to this module
-    logger = get_logger(__name__)
-
-    # Use the logger
-    logger.info("This is the message contents)
+    Create a logger specific to a module
+    
+    >>> logger = get_logger(__name__)
+    >>> logger.info("This is the message contents")
 
     # Output
-    2024-11-19 12:00:00,000 - CheckPanel - INFO - Sending request to Panel App API
+    2024-11-19 12:00:00,000 - CheckPanel - INFO - This is the message contents
     """
     return logging.getLogger(module_name)
