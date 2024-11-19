@@ -1,4 +1,6 @@
 import logging
+import os
+import inspect
 
 # Set up the basic configuration for the logger
 
@@ -49,4 +51,9 @@ def get_logger(module_name):
     # Output
     2024-11-19 12:00:00,000 - CheckPanel - INFO - This is the message contents
     """
+    if not module_name or module_name == "__main__":
+        # Determine the name of the script that called this function
+        caller_frame = inspect.stack()[1]
+        script_path = caller_frame.filename
+        module_name = os.path.splitext(os.path.basename(script_path))[0]
     return logging.getLogger(module_name)
