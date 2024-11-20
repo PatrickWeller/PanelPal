@@ -1,18 +1,17 @@
 import responses
 import pytest
 import requests
-from panel_app_api_functions import get_response, get_name_version, get_genes
+from accessories.panel_app_api_functions import get_response, get_name_version, get_genes
 
 
 class TestGetResponse:
-    
+
     def test_get_response_success(self):
         """
-        Tests successful api requests generates both a correct json, and a 200 status code
+        Tests successful api requests generates both a correct json, and a 200 status code.
         """
-        
         panel_id = "R233"
-        
+
         # This is real data from the api from panel R233
         # It is only one gene so was chosen for brevity.
         # The null values were changed for None for python compatibility.
@@ -293,13 +292,13 @@ class TestGetNameVersion:
             "name": "Agammaglobulinaemia with absent BTK expression",
             "version": "1.1"
             }
-        
-        
+     
+       
 class TestGetGenes:
-    
+ 
     @responses.activate
     def test_response(self):
         ...
-    
+
     def test_succcess(self):
         ...

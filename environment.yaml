@@ -2,6 +2,7 @@ name: PanelPal  # Replace with your environment name
 channels:
   - defaults
   - bioconda
+  - conda-forge
 dependencies:
   - python==3.12.4  # Specify your desired Python version
   - pip
