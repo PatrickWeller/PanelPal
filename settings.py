@@ -54,6 +54,7 @@ if ENABLE_CONSOLE_LOGGING:
 logging.basicConfig(
     level=logging.DEBUG, # Do not toggle
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    datefmt="%Y-%m-%d %H:%M:%S", # custom date format which omits milliseconds
     handlers=handlers
 )
 
