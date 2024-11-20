@@ -28,8 +28,7 @@ import requests
 from check_panel import (
     format_panel_id,
     is_valid_panel_id,
-    fetch_panel_info,
-    setup_logging,
+    fetch_panel_info
 )
 
 
@@ -202,32 +201,3 @@ def test_fetch_panel_info_max_retries(_, mock_get_response):
     result = fetch_panel_info("R59", retries=5, delay=0.1)
     assert result == {}
     assert mock_get_response.call_count == 5  # Retries exactly 5 times
-
-
-# --- Tests for setup_logging ---
-def test_setup_logging():
-    """
-    Test that logging setup correctly creates a log file.
-
-    This function ensures that a log file is created when the logging setup is run.
-
-    Returns:
-        None
-    """
-
-    setup_logging(log_file="test.log")  # Ensure log file is created
-
-
-def test_setup_logging_invalid_path():
-    """
-    Test that invalid log file paths are handled gracefully.
-
-    This function ensures that a FileNotFoundError is raised when an invalid path is specified
-    for the log file.
-
-    Returns:
-        None
-    """
-
-    with pytest.raises(FileNotFoundError):
-        setup_logging(log_file="/nonexistent/path/test.log")  # Invalid directory

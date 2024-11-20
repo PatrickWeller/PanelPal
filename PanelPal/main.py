@@ -75,7 +75,8 @@ def main():
     args = parser.parse_args()
 
     if args.command == "check-panel":
-        check_panel_main(args)
+        panel_id = args.panel_id
+        check_panel_main(panel_id)
     elif args.command == "generate-bed":
         generate_bed_main(
             panel_id=args.panel_id,

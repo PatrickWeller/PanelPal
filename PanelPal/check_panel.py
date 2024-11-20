@@ -11,44 +11,11 @@ Error handling is implemented for network failures, invalid input, and unexpecte
 
 import argparse
 import re
-import logging
 import time
+import logging
 import requests
 from accessories.panel_app_api_functions import get_response, get_name_version
-
-
-def setup_logging(log_file="logging/check_panel.log"):
-    """
-    Configure logging to write to a file and output warnings to the console.
-
-    Parameters
-    ----------
-    log_file : str, optional
-        Path to the log file (default is "logging/check_panel.log").
-
-    Returns
-    -------
-    logging.Logger
-        Configured logger object.
-    """
-    logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
-
-    file_handler = logging.FileHandler(log_file)
-    file_handler.setLevel(logging.DEBUG)
-    file_handler.setFormatter(
-        logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-    )
-
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.WARNING)
-    console_handler.setFormatter(
-        logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-    )
-
-    logger.addHandler(file_handler)
-    logger.addHandler(console_handler)
-    return logger
+from settings import get_logger
 
 
 def parse_arguments():
@@ -217,7 +184,9 @@ def main(panel_id=None):
     Exception
         For any other unexpected errors.
     """
-    logger = setup_logging()
+    
+    # Create a logger, named after this module, e.g. check_panel
+    logger = get_logger(__name__)
 
     if panel_id is None:
         args = parse_arguments()
