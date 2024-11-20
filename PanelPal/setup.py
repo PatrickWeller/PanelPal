@@ -9,7 +9,6 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/PatrickWeller/PanelPal",
     packages=find_packages(),
-    install_requires=open("requirements.txt").readlines(),
     python_requires=">=3.6",
     entry_points={
         'console_scripts': [

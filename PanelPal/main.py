@@ -26,11 +26,15 @@ from generate_bed import main as generate_bed_main
 
 
 def main():
-    """Main function which gathers arguments and passes to relevant PanelPal command"""
+    """Main function which gathers arguments and passes them to the relevant PanelPal command"""
     parser = argparse.ArgumentParser(
         description="PanelPal: A toolkit for panelapp queries"
     )
-    subparsers = parser.add_subparsers(dest="command")
+
+    subparsers = parser.add_subparsers(
+        dest="command",
+        title="Available Commands",
+    )
 
     # Subcommand: check-panel
     parser_check = subparsers.add_parser(
