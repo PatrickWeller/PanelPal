@@ -35,7 +35,16 @@ from check_panel import (
 
 # --- Tests for is_valid_panel_id ---
 def test_is_valid_panel_id():
-    """Test the validation of correctly and incorrectly formatted panel IDs."""
+    """
+    Test the validation of correctly and incorrectly formatted panel IDs.
+
+    This function tests various panel ID formats to ensure the validation function works as expected.
+    It includes standard cases, invalid lowercase input, missing 'R' prefix, and entirely incorrect formats.
+
+    Returns:
+        None
+    """
+
     assert is_valid_panel_id("R59") is True
     assert is_valid_panel_id("R207") is True
     assert is_valid_panel_id("r59") is False  # Needs to be uppercase
@@ -45,7 +54,16 @@ def test_is_valid_panel_id():
 
 
 def test_is_valid_panel_id_edge_cases():
-    """Test edge cases for panel ID validation."""
+    """
+    Test edge cases for panel ID validation.
+
+    This function tests edge cases, such as leading/trailing spaces, special characters, and missing numeric components,
+    to ensure the validation function handles them correctly.
+
+    Returns:
+        None
+    """
+
     assert is_valid_panel_id(" R59") is False  # Leading space
     assert is_valid_panel_id("R59 ") is False  # Trailing space
     assert is_valid_panel_id("") is False  # Empty string
@@ -55,13 +73,30 @@ def test_is_valid_panel_id_edge_cases():
 
 # --- Tests for format_panel_id ---
 def test_format_panel_id():
-    """Test the formatting of panel IDs to ensure they are correctly prefixed."""
+    """
+    Test the formatting of panel IDs to ensure they are correctly prefixed.
+
+    This function tests that the panel ID is correctly formatted with the 'R' prefix and uppercase characters.
+    
+    Returns:
+        None
+    """
+
     assert format_panel_id("R59") == "R59"
     assert format_panel_id("59") == "R59"  # Adds 'R' prefix
 
 
 def test_format_panel_id_edge_cases():
-    """Test edge cases for formatting panel IDs."""
+    """
+    Test edge cases for formatting panel IDs.
+
+    This function checks various edge cases for the formatting of panel IDs, including trimming spaces,
+    converting lowercase to uppercase, handling large IDs, and rejecting invalid characters.
+
+    Returns:
+        None
+    """
+
     assert format_panel_id(" R59 ") == "R59"  # Trims spaces
     assert format_panel_id("r59") == "R59"  # Converts to uppercase
     assert format_panel_id("9999999999999") == "R9999999999999"  # Handles large IDs
@@ -75,7 +110,20 @@ def test_format_panel_id_edge_cases():
 @patch("check_panel.get_response")
 @patch("check_panel.get_name_version")
 def test_fetch_panel_info(mock_get_name_version, _):
-    """Test fetching panel information from a valid panel ID."""
+    """
+    Test fetching panel information from a valid panel ID.
+
+    This function tests the retrieval of panel information from the API using a mocked response,
+    ensuring the returned data is correct when the API returns valid information.
+    
+    Args:
+        mock_get_name_version (MagicMock): Mocked function for processing the response.
+        _ (MagicMock): Mocked function for API request.
+
+    Returns:
+        None
+    """
+
     mock_get_name_version.return_value = {"name": "PanelName", "version": "1.0"}
     result = fetch_panel_info("R59")
     assert result == {"name": "PanelName", "version": "1.0"}
@@ -84,7 +132,20 @@ def test_fetch_panel_info(mock_get_name_version, _):
 @patch("check_panel.get_response")
 @patch("check_panel.get_name_version")
 def test_fetch_panel_info_edge_cases(mock_get_name_version, mock_get_response):
-    """Test edge cases for fetching panel information."""
+    """
+    Test edge cases for fetching panel information.
+
+    This function tests various edge cases, including nonexistent panels, incomplete responses, 
+    and handling connection errors, to ensure the function handles them correctly.
+
+    Args:
+        mock_get_name_version (MagicMock): Mocked function for processing the response.
+        mock_get_response (MagicMock): Mocked function for the API request.
+
+    Returns:
+        None
+    """
+
     mock_get_response.return_value = None  # Nonexistent panel
     result = fetch_panel_info("R999999")
     assert result == {}  # Should handle missing panels gracefully
@@ -101,7 +162,20 @@ def test_fetch_panel_info_edge_cases(mock_get_name_version, mock_get_response):
 @patch("check_panel.get_response")
 @patch("check_panel.get_name_version")
 def test_fetch_panel_info_slow_response(_, mock_get_response):
-    """Test handling of slow API responses with retries."""
+    """
+    Test handling of slow API responses with retries.
+
+    This function tests that slow API responses trigger retry logic, returning an empty dictionary
+    if all retries are exhausted.
+
+    Args:
+        _ (MagicMock): Mocked function for processing the response.
+        mock_get_response (MagicMock): Mocked function for the API request.
+
+    Returns:
+        None
+    """
+
     mock_get_response.side_effect = [requests.exceptions.Timeout]
     result = fetch_panel_info("R59", retries=1, delay=1)
     assert result == {}  # Should return empty dictionary
@@ -110,7 +184,20 @@ def test_fetch_panel_info_slow_response(_, mock_get_response):
 @patch("check_panel.get_response")
 @patch("check_panel.get_name_version")
 def test_fetch_panel_info_max_retries(_, mock_get_response):
-    """Test maximum retry logic for API request failures."""
+    """
+    Test maximum retry logic for API request failures.
+
+    This function ensures that the function retries the specified number of times before
+    returning an empty dictionary on failure.
+
+    Args:
+        _ (MagicMock): Mocked function for processing the response.
+        mock_get_response (MagicMock): Mocked function for the API request.
+
+    Returns:
+        None
+    """
+
     mock_get_response.side_effect = requests.exceptions.RequestException
     result = fetch_panel_info("R59", retries=5, delay=0.1)
     assert result == {}
@@ -119,11 +206,28 @@ def test_fetch_panel_info_max_retries(_, mock_get_response):
 
 # --- Tests for setup_logging ---
 def test_setup_logging():
-    """Test that logging setup correctly creates a log file."""
+    """
+    Test that logging setup correctly creates a log file.
+
+    This function ensures that a log file is created when the logging setup is run.
+
+    Returns:
+        None
+    """
+
     setup_logging(log_file="test.log")  # Ensure log file is created
 
 
 def test_setup_logging_invalid_path():
-    """Test that invalid log file paths are handled gracefully."""
+    """
+    Test that invalid log file paths are handled gracefully.
+
+    This function ensures that a FileNotFoundError is raised when an invalid path is specified
+    for the log file.
+
+    Returns:
+        None
+    """
+
     with pytest.raises(FileNotFoundError):
         setup_logging(log_file="/nonexistent/path/test.log")  # Invalid directory
