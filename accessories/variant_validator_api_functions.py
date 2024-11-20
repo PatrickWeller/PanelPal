@@ -1,16 +1,57 @@
+"""
+This module provides functionality for fetching gene transcript data, 
+extracting exon information, generating BED files, and merging genomic regions 
+using bedtools. It is designed to work with Variant Validator's API to 
+retrieve gene-to-transcript mapping data, which is outputted in BED format.
+
+Functions
+---------
+- get_gene_transcript_data
+    Fetches gene transcript data from the Variant Validator API.
+- extract_exon_info
+    Extracts exon-related information from the fetched gene transcript data.
+- generate_bed_file
+    Generates a BED file from a list of genes and their exon data.
+- bedtools_merge
+    Sorts and merges overlapping regions in a BED file using bedtools.
+
+Dependencies
+------------
+- requests
+    For making HTTP requests to the Variant Validator API.
+- subprocess
+    For executing bedtools commands to sort and merge BED files.
+- time
+    For handling retry logic and wait times between requests.
+- logging
+    For logging the progress and errors in the operations.
+
+Example Usage
+-------------
+>>> gene_list = ["BRCA1", "BRCA2", "XRCC2"]
+>>> panel_name = "R207"
+>>> panel_version = "4"
+>>> genome_build = "GRCh38"
+>>> generate_bed_file(gene_list, panel_name, panel_version, genome_build)
+>>> bedtools_merge(panel_name, panel_version, genome_build)
+"""
+
 import requests
 import time
 import logging
 import subprocess
 
-def get_gene_transcript_data(gene_name, genome_build="GRCh38", max_retries=4):
+
+def get_gene_transcript_data(gene_name, genome_build="GRCh38", max_retries=4, wait_time=2):
     """
     Fetches the gene transcript data for a given gene from the Variant Validator API.
 
-    Args:
+    Arguments:
         gene_name (str): The name of the gene to fetch transcript data for.
         genome_build (str, optional): The genome build to use (default is "GRCh38").
-        max_retries (int, optional): The maximum number of retries in case rate limit is exceeded (error 429). 
+        max_retries (int, optional): Max number of retries when rate limit is exceeded (error 429).
+        wait_time (int, optional): Fixed wait time (in seconds) between requests (default: 2).
+
     Returns:
         dict: The JSON response containing gene transcript information.
 
@@ -24,32 +65,34 @@ def get_gene_transcript_data(gene_name, genome_build="GRCh38", max_retries=4):
     url = f"{base_url}/{gene_name}/mane_select/refseq/{genome_build}?content-type=application%2Fjson"
 
     retries = 0
-    
-    while retries < max_retries:
 
-        logging.info(f"Fetching data for {gene_name} (Attempt {retries+1})")
+    while retries < max_retries:
+        logging.info("Fetching data for %s (Attempt %d)", gene_name, retries + 1)
 
         # Send the GET request to the Variant Validator API
         response = requests.get(url)
 
-        if response.status_code == 200: # success
-            logging.info(f"Data for {gene_name} fetched successfully.")
-            return response.json() # return JSON content from API response
-        
-        # run a number of retries if request times out
-        elif response.status_code == 429:
-            wait_time = 2 ** retries # the time delay between requests exponentially increases for each new retry
-            logging.warning(f"Rate limit exceeded for {gene_name}. Retrying in {wait_time} seconds.")
-            time.sleep(wait_time) 
-            retries += 1
-        else:
-            logging.error(f"Failed to fetch gene data for {gene_name}: {response.status_code}")
-            raise Exception(f"{response.status_code}. Terminating.")
-    
-    # exception for when every attempt to fetch gene data fails
-    logging.error(f"Max retries reached for {gene_name}. The number of tries may need increasing.")
-    raise Exception(f"Max retries reached for {gene_name}. Terminating.")
+        if response.status_code == 200:  # success
+            logging.info("Data for %s fetched successfully.", gene_name)
+            return response.json()  # return JSON content from API response
 
+        elif response.status_code == 429:  # Rate limit exceeded
+            backoff_time = 2 ** retries  # Exponential backoff for retries
+            logging.warning("Rate limit exceeded for %s. Retrying in %d seconds.", gene_name, backoff_time)
+            time.sleep(backoff_time)
+            retries += 1
+
+        else:  # Other errors
+            logging.error("Failed to fetch gene data for %s: %d", gene_name, response.status_code)
+            raise Exception(f"HTTP {response.status_code}: Failed to fetch data for {gene_name}.")
+
+        # Fixed wait between requests to reduce likelihood of hitting rate limits
+        logging.info("Waiting for %d seconds before the next request.", wait_time)
+        time.sleep(wait_time)
+
+    # Exception if max retries are exceeded
+    logging.error("Max retries reached for %s. The number of retries may need increasing.", gene_name)
+    raise Exception(f"Max retries reached for {gene_name}. Terminating.")
 
 
 def extract_exon_info(gene_transcript_data):
@@ -70,13 +113,13 @@ def extract_exon_info(gene_transcript_data):
         for transcript in gene_data['transcripts']:
             # Extract chromosome information from the transcript
             chromosome = transcript['annotations'].get('chromosome', 'Unknown')
-            
+
             # Extract the reference transcript information
             transcript_reference = transcript.get('reference', 'Unknown')
-            
+
             # Extract the gene symbol
             gene_symbol = gene_data.get('current_symbol', 'Unknown')
-            
+
             # Loop through the genomic spans in the transcript (exon structures)
             for genomic_span_key, genomic_span in transcript['genomic_spans'].items():
                 if 'exon_structure' in genomic_span:  # Ensure 'exon_structure' exists before accessing it
@@ -85,7 +128,7 @@ def extract_exon_info(gene_transcript_data):
                         exon_number = exon.get('exon_number', None)
                         exon_start = exon.get('genomic_start', None)
                         exon_end = exon.get('genomic_end', None)
-                        
+
                         # Store the extracted exon data in a dictionary
                         exon_info = {
                             "chromosome": chromosome,
@@ -98,9 +141,9 @@ def extract_exon_info(gene_transcript_data):
                         
                         # Append the exon data to the list of exon_data
                         exon_data.append(exon_info)
-    
-    logging.info(f"Extracted {len(exon_data)} exons for the gene.")
-    
+
+    logging.info("Extracted %d exons for the gene.", len(exon_data))
+
     # Return the complete list of exon data
     return exon_data
 
@@ -120,7 +163,7 @@ def generate_bed_file(gene_list, panel_name, panel_version, genome_build="GRCh38
     """
     # Define the name of the output BED file based on the panel name and genome build
     output_file = f"{panel_name}_v{panel_version}_{genome_build}.bed"
-    logging.info(f"Creating BED file: {output_file}")
+    logging.info("Creating BED file: %s", output_file)
 
     # Open the BED file for writing (or create it if it doesn't exist)
     with open(output_file, 'w') as bed_file:
@@ -130,10 +173,10 @@ def generate_bed_file(gene_list, panel_name, panel_version, genome_build="GRCh38
             try:
                 # Fetch the transcript data for the current gene using the API
                 gene_transcript_data = get_gene_transcript_data(gene, genome_build)
-            
+
                 # Extract the exon information from the retrieved transcript data
                 exon_data = extract_exon_info(gene_transcript_data)
-                
+
                 # Write the extracted exon information to the BED file
                 for exon in exon_data:
                     # Subtract 1 to zero-index the start position
@@ -148,14 +191,14 @@ def generate_bed_file(gene_list, panel_name, panel_version, genome_build="GRCh38
                                 f"{exon['exon_number']}\t{exon['reference']}\t{exon['gene_symbol']}\n")
 
                 # log addition of exon data for each gene    
-                logging.info(f"Added exon data for {gene} to the BED file.")
-            
+                logging.info("Added exon data for %s to the BED file.", gene)
+        
             except Exception as e:
-                logging.error(f"Error processing {gene}: {e}")
+                logging.error("Error processing %s: %s", gene, e)
 
         # log message indicating that BED file has been successfully saved
-        logging.info(f"Data saved to {output_file}")
-    
+        logging.info("Data saved to %s", output_file)
+
 
 def bedtools_merge(panel_name, panel_version, genome_build):
     """
@@ -173,7 +216,7 @@ def bedtools_merge(panel_name, panel_version, genome_build):
         Requires bedtools (available in PanelPal conda environment).
 
     """
-    
+
     # Define the input and output file names based on parameters
     bed_file = f"{panel_name}_v{panel_version}_{genome_build}.bed"
     merged_bed_file = f"{panel_name}_v{panel_version}_{genome_build}_merged.bed"
@@ -182,16 +225,17 @@ def bedtools_merge(panel_name, panel_version, genome_build):
     try:
         merge_command = f"bedtools sort -i {bed_file} | bedtools merge > {merged_bed_file}"
         subprocess.run(merge_command, shell=True, check=True)
-        logging.info(f"Successfully sorted and merged BED file to {merged_bed_file}")
-    
+        logging.info("Successfully sorted and merged BED file to %s", merged_bed_file)
+
     # If an error is encountered log the error
     except subprocess.CalledProcessError as e:
-        logging.error(f"Error during bedtools operation: {e}")
+        logging.error("Error during bedtools operation: %s", e)
 
 
-
-####### TEST VARIABLES #######
 def main():
+    """
+    Dummy variables for testing purposes.
+    """
     # Set panel id and version
     panel_name = "R207"
     panel_version = "4"
