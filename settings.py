@@ -1,4 +1,19 @@
+"""
+Application Settings
+
+This file contains settings and configuration for the application. It is designed to centralize 
+important options, such as logging, environment-specific variables, and other global settings.
+
+Sections:
+---------
+1. Logging Settings:
+   - Configures logging to both console and rotating log files.
+   - Supports toggling console logging with the `ENABLE_CONSOLE_LOGGING` flag.
+   - Rotates logs automatically when `app.log` exceeds 5 MB, keeping up to 5 backups.
+"""
+
 import logging
+import logging.handlers
 import os
 import inspect
 
@@ -12,12 +27,15 @@ ENABLE_CONSOLE_LOGGING = True
 
 
 # Create a handler for outputting logging to a file
-file_handler = logging.FileHandler(filename='app.log')
+file_handler = logging.handlers.RotatingFileHandler(
+    filename='app.log', # app.log will always be the most recent log file
+    maxBytes=5 * 1024 * 1024, # 5 MB
+    backupCount=5)  # 5 backup log files, from app.log (newest) to app.log.4 (oldest)
 # Can toggle the level logged to a file between DEBUG, INFO, WARNING etc. during development
 file_handler.setLevel(logging.DEBUG)
 
 
-# Always log to a file, called app.log
+# Always log to app.log files
 handlers = [file_handler]
 
 
@@ -61,6 +79,7 @@ def get_logger(module_name):
     -----
     Create a logger specific to a module
     
+    >>> from settings import get_logger
     >>> logger = get_logger(__name__)
     >>> logger.info("This is the message contents")
 
