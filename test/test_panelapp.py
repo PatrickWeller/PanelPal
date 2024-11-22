@@ -113,6 +113,26 @@ class TestGetResponse:
         assert response.status_code == 200
         # Performs the test that the json accessed matches the one above
         assert response.json() == real_json
+    
+    
+    @responses.activate
+    def test_get_response_timeout(self):
+        """
+        Tests for Timeout Errors
+        """
+        panel_id = "R293"
+        url = f"https://panelapp.genomicsengland.co.uk/api/v1/panels/{panel_id}"
+
+        # Simulate a timeout by raising a `ConnectTimeout` when the request is made
+        responses.add(
+            responses.GET,
+            url,
+            body=requests.exceptions.ConnectTimeout(),
+        )
+
+        # Test that a corresponding exception is raised with the correct message
+        with pytest.raises(Exception, match="Timeout: Panel R293 request exceeded the time limit."):
+            get_response(panel_id)
 
 
     @responses.activate
@@ -366,6 +386,27 @@ class TestGetResponseOldPanelVersion:
         response = get_response_old_panel_version(panel_pk, version)
         assert response.status_code == 200
         assert response.json() == {"status": "success"}
+    
+    
+    @responses.activate
+    def test_get_response_old_panel_version_timeout(self):
+        """
+        Tests for Timeout Errors in get_response_old_panel_version
+        """
+        panel_pk = "123"
+        version = "1.0"
+        url = f"https://panelapp.genomicsengland.co.uk/api/v1/panels/{panel_pk}/?version={version}"
+
+        # Simulate a timeout by raising a `ConnectTimeout` when the request is made
+        responses.add(
+            responses.GET,
+            url,
+            body=requests.exceptions.ConnectTimeout(),
+        )
+
+        # Test that the correct exception is raised with the expected message
+        with pytest.raises(Exception, match=f"Timeout: Panel \\(primary key:{panel_pk}\\) request exceeded the time limit. Please try again"):
+            get_response_old_panel_version(panel_pk, version)
 
     @responses.activate
     def test_404_error(self):
