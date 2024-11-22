@@ -63,7 +63,7 @@ def get_response(panel_id):
     Raises
     ------
     PanelAppError
-        If the request fails or if a specific error occurs (404, 500, etc.).
+        If the request fails, times out, or if a specific error occurs (404, 500, etc.).
     """
     url = f"https://panelapp.genomicsengland.co.uk/api/v1/panels/{panel_id}"
 
@@ -78,6 +78,10 @@ def get_response(panel_id):
         # If the request was successful, return the response object
         logger.info("Panel App API response successful")
         return response
+    
+    except requests.exceptions.Timeout:
+        logger.error("Request timed out while fetching panel data for panel %s", panel_id)
+        raise PanelAppError(f"Timeout: Panel {panel_id} request exceeded the time limit. Please try again")
 
     except requests.exceptions.HTTPError as e:
         # Handle specific HTTP error codes
@@ -207,7 +211,7 @@ def get_response_old_panel_version(panel_pk, version):
     Raises
     ------
     PanelAppError
-        If the request fails or returns an error status code.
+        If the request fails, times out, or returns an error status code.
     """
     url = f"https://panelapp.genomicsengland.co.uk/api/v1/panels/{panel_pk}/?version={version}"
 
@@ -222,6 +226,10 @@ def get_response_old_panel_version(panel_pk, version):
         # If the request was successful, return the response object
         logger.info("Request to Panel App API was successful")
         return response
+    
+    except requests.exceptions.Timeout:
+        logger.error("Request timed out while fetching panel data for panel with primary key %s", panel_pk)
+        raise PanelAppError(f"Timeout: Panel (primary key:{panel_pk}) request exceeded the time limit. Please try again")
 
     except requests.exceptions.RequestException as e:
         # Log any errors encountered during the request
