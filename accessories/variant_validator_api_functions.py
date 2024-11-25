@@ -1,7 +1,10 @@
 import requests
 import time
-import logging
 import subprocess
+from settings import get_logger
+
+# Create a logger named after variant_validator_api_functions
+logger = get_logger(__name__)
 
 def get_gene_transcript_data(gene_name, genome_build="GRCh38", max_retries=4):
     """
@@ -27,27 +30,27 @@ def get_gene_transcript_data(gene_name, genome_build="GRCh38", max_retries=4):
     
     while retries < max_retries:
 
-        logging.info(f"Fetching data for {gene_name} (Attempt {retries+1})")
+        logger.info(f"Fetching data for {gene_name} (Attempt {retries+1})")
 
         # Send the GET request to the Variant Validator API
         response = requests.get(url)
 
         if response.status_code == 200: # success
-            logging.info(f"Data for {gene_name} fetched successfully.")
+            logger.info(f"Data for {gene_name} fetched successfully.")
             return response.json() # return JSON content from API response
         
         # run a number of retries if request times out
         elif response.status_code == 429:
             wait_time = 2 ** retries # the time delay between requests exponentially increases for each new retry
-            logging.warning(f"Rate limit exceeded for {gene_name}. Retrying in {wait_time} seconds.")
+            logger.warning(f"Rate limit exceeded for {gene_name}. Retrying in {wait_time} seconds.")
             time.sleep(wait_time) 
             retries += 1
         else:
-            logging.error(f"Failed to fetch gene data for {gene_name}: {response.status_code}")
+            logger.error(f"Failed to fetch gene data for {gene_name}: {response.status_code}")
             raise Exception(f"{response.status_code}. Terminating.")
     
     # exception for when every attempt to fetch gene data fails
-    logging.error(f"Max retries reached for {gene_name}. The number of tries may need increasing.")
+    logger.error(f"Max retries reached for {gene_name}. The number of tries may need increasing.")
     raise Exception(f"Max retries reached for {gene_name}. Terminating.")
 
 
@@ -99,7 +102,7 @@ def extract_exon_info(gene_transcript_data):
                         # Append the exon data to the list of exon_data
                         exon_data.append(exon_info)
     
-    logging.info(f"Extracted {len(exon_data)} exons for the gene.")
+    logger.info(f"Extracted {len(exon_data)} exons for the gene.")
     
     # Return the complete list of exon data
     return exon_data
@@ -120,7 +123,7 @@ def generate_bed_file(gene_list, panel_name, panel_version, genome_build="GRCh38
     """
     # Define the name of the output BED file based on the panel name and genome build
     output_file = f"{panel_name}_v{panel_version}_{genome_build}.bed"
-    logging.info(f"Creating BED file: {output_file}")
+    logger.info(f"Creating BED file: {output_file}")
 
     # Open the BED file for writing (or create it if it doesn't exist)
     with open(output_file, 'w') as bed_file:
@@ -143,13 +146,13 @@ def generate_bed_file(gene_list, panel_name, panel_version, genome_build="GRCh38
                                 f"{exon['exon_number']}\t{exon['reference']}\t{exon['gene_symbol']}\n")
 
                 # log addition of exon data for each gene    
-                logging.info(f"Added exon data for {gene} to the BED file.")
+                logger.info(f"Added exon data for {gene} to the BED file.")
             
             except Exception as e:
-                logging.error(f"Error processing {gene}: {e}")
+                logger.error(f"Error processing {gene}: {e}")
 
         # log message indicating that BED file has been successfully saved
-        logging.info(f"Data saved to {output_file}")
+        logger.info(f"Data saved to {output_file}")
     
 
 def bedtools_merge(panel_name, panel_version, genome_build):
@@ -177,11 +180,11 @@ def bedtools_merge(panel_name, panel_version, genome_build):
     try:
         merge_command = f"bedtools sort -i {bed_file} | bedtools merge > {merged_bed_file}"
         subprocess.run(merge_command, shell=True, check=True)
-        logging.info(f"Successfully sorted and merged BED file to {merged_bed_file}")
+        logger.info(f"Successfully sorted and merged BED file to {merged_bed_file}")
     
     # If an error is encountered log the error
     except subprocess.CalledProcessError as e:
-        logging.error(f"Error during bedtools operation: {e}")
+        logger.error(f"Error during bedtools operation: {e}")
 
 
 
