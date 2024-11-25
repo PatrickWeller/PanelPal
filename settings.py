@@ -25,12 +25,21 @@ import inspect
 # Set this flag to True to enable console logging, False to disable it
 ENABLE_CONSOLE_LOGGING = True
 
+# Get the base directory of this file, 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Define the directory where logs will be stored
+LOG_DIR = os.path.join(BASE_DIR, "logging")
+os.makedirs(LOG_DIR, exist_ok=True)  # Ensure the logging directory exists
+
+# Define the path to the main log file
+LOG_FILE = os.path.join(LOG_DIR, "panelpal.log")
 
 # Create a handler for outputting logging to a file
 file_handler = logging.handlers.RotatingFileHandler(
-    filename='app.log', # app.log will always be the most recent log file
+    filename=LOG_FILE, # Logs will always go to PanelPal/logging/ folder
     maxBytes=5 * 1024 * 1024, # 5 MB
-    backupCount=5)  # 5 backup log files, from app.log (newest) to app.log.4 (oldest)
+    backupCount=5)  # 5 backup log files, from panelpal.log (newest) to panelpal.log.4 (oldest)
 # Can toggle the level logged to a file between DEBUG, INFO, WARNING etc. during development
 file_handler.setLevel(logging.DEBUG)
 
