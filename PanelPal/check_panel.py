@@ -1,119 +1,220 @@
 #!/usr/bin/env python
 
+"""
+Script to check and retrieve panel information from the PanelApp API.
+
+This script allows users to query panel information based on a panel ID.
+It validates the panel ID, formats it, and then fetches information from the
+PanelApp API. The retrieved data includes the panel's clinical indication and version.
+Error handling is implemented for network failures, invalid input, and unexpected responses.
+"""
+
 import argparse
 import re
+import time
+import logging
 import requests
-import sys
-import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))) # Adds parent directory to sys.path
-from accessories.panel_app_api_functions import get_response
-from accessories.panel_app_api_functions import get_name_version
+from accessories.panel_app_api_functions import get_response, get_name_version
 from settings import get_logger
 
-# Create a logger, named after this module, e.g. check_panel
-logger = get_logger(__name__)
 
 def parse_arguments():
-	"""Parse command-line arguments."""
-	argument_parser = argparse.ArgumentParser(description="Format a given panel ID.")
-	argument_parser.add_argument("--panel_id", help="Panel ID e.g. R59, r59, or 59", required=True)
-	return argument_parser.parse_args()
+    """
+    Parse the panel ID argument from the command line.
+
+    Returns
+    -------
+    argparse.Namespace
+        Parsed arguments with the 'panel_id' attribute.
+    """
+    parser = argparse.ArgumentParser(
+        description="Check and retrieve panel information."
+    )
+    parser.add_argument(
+        "--panel_id",
+        type=str,
+        help="The ID of the panel to query (e.g., R59).",
+        required=True,
+    )
+    return parser.parse_args()
+
+
+def is_valid_panel_id(input_id):
+    """
+    Validate the panel ID format (e.g., 'R59').
+
+    Parameters
+    ----------
+    input_id : str
+        The panel ID to check.
+
+    Returns
+    -------
+    bool
+        True if the ID is valid, False otherwise.
+    """
+    return re.fullmatch(r"R\d+$", input_id) is not None
+
 
 def format_panel_id(input_id):
-	"""
-	Formats the input panel ID by stripping whitespace, converting to uppercase,
-	and ensuring it starts with 'R' followed by digits.
+    """
+    Format and validate the panel ID (e.g., "59" → "R59").
 
-	Args:
-		input_id (str): The input panel ID to format.
+    Parameters
+    ----------
+    input_id : str
+        The panel ID to format.
 
-	Returns:
-		str: Formatted panel ID starting with 'R' and followed by digits.
+    Returns
+    -------
+    str
+        The correctly formatted panel ID.
 
-	Raises:
-		ValueError: If the input ID is not in the expected format.
-	"""
-	panel_id = input_id.strip().upper()
+    Raises
+    ------
+    ValueError
+        If the ID format is invalid.
+    """
+    panel_id = input_id.strip().upper()
+    if not panel_id.startswith("R"):
+        panel_id = "R" + panel_id
+    if not is_valid_panel_id(panel_id):
+        raise ValueError("Panel ID must be 'R' followed by digits (e.g., 'R59').")
+    return panel_id
 
-	if not panel_id.startswith("R"):
-		panel_id = "R" + panel_id
 
-	if not re.fullmatch(r"R\d+", panel_id):
-		raise ValueError("Panel ID must be 'R' followed by digits (e.g., 'R59').")
+def fetch_panel_info(formatted_id, retries=3, delay=10):
+    """
+    Fetch panel information (name and version) from the API with retry logic.
 
-	return panel_id
+    Parameters
+    ----------
+    formatted_id : str
+        The formatted panel ID (e.g., "R59").
+    retries : int, optional
+        Number of retry attempts (default is 3).
+    delay : int, optional
+        Delay between retries in seconds (default is 10).
 
-def fetch_panel_info(formatted_id):
-	"""
-	Fetch the panel information from the API.
+    Returns
+    -------
+    dict
+        A dictionary containing the panel's 'name' and 'version'.
 
-	Args:
-		formatted_id (str): The formatted panel ID.
+    Raises
+    ------
+    RuntimeError
+        If the API request fails after retries.
+    KeyError
+        If expected keys ('name', 'version') are missing in the response.
+    """
+    for attempt in range(1, retries + 1):
+        try:
+            response = get_response(formatted_id)
+            panel_info = get_name_version(response)
 
-	Returns:
-		dict: Dictionary containing panel name and version.
+            missing_keys = [key for key in ["name", "version"] if key not in panel_info]
+            if missing_keys:
+                raise KeyError
 
-	Raises:
-		requests.exceptions.RequestException: If there's an error making the API request.
-		KeyError: If the response does not contain the expected keys.
-	"""
-	try:
-		response = get_response(formatted_id)
-		panel_info = get_name_version(response)
+            return panel_info
 
-		# Ensure expected keys are in the response
-		if 'name' not in panel_info or 'version' not in panel_info:
-			raise KeyError(f"Response missing expected fields: 'name' or 'version'.")
+        except requests.exceptions.ConnectionError:
+            logging.warning(
+                "ConnectionError: Unable to reach API for panel %s, retrying in %d seconds...",
+                formatted_id,
+                delay,
+            )
+            if attempt < retries:
+                time.sleep(delay)
+            else:
+                logging.error(
+                    "ConnectionError: Unable to reach API for panel %s after max retries. "
+                    "Please check your network connection.",
+                    formatted_id,
+                )
+                return {}
 
-		logger.info("Panel information successfully retrieved")
-		return panel_info
+        except requests.exceptions.RequestException:
+            logging.warning(
+                "Attempt %d/%d: Encountered an issue with the API for panel %s, " +
+                "retrying in %d seconds...",
+                attempt,
+                retries,
+                formatted_id,
+                delay,
+            )
+            if attempt < retries:
+                time.sleep(delay)
+            else:
+                logging.error(
+                    "RequestException: API request failed for panel %s. " +
+                    "Check the network or API status.",
+                    formatted_id,
+                )
+                return {}
 
-	except requests.exceptions.RequestException as e:
-		logger.error(f"Error contacting the API: {e}")
-		raise  # Re-raise exception for further handling in main()
-	
-	except KeyError as e:
-		logger.error(f"API response error: {e}")
-		raise  # Re-raise exception for further handling in main()
+        except KeyError:
+            logging.error(
+                "Unexpected API response for panel %s: Missing expected fields.",
+                formatted_id,
+            )
+            return {}
 
-def main():
-	# Gather command-line arguments
-	args = parse_arguments()
+    return {}
 
-	try:
-		# Format the panel ID
-		formatted_id = format_panel_id(args.panel_id)
-		print(f"Panel ID: {formatted_id}")
-		
-		# Fetch panel information from the API
-		panel_info = fetch_panel_info(formatted_id)
-		indication = panel_info['name']
-		version = panel_info['version']
 
-		# Output the result
-		print(f"Clinical indication: {indication}")
-		print(f"Latest version: {version}")
+def main(panel_id=None):
+    """
+    Retrieve and display information for the given panel ID.
 
-	except ValueError as e:
-		# Handle input format errors
-		print(f"Error: {e}", file=sys.stderr)
-		sys.exit(1)
+    If no `panel_id` is provided, the script parses it from command-line arguments.
 
-	except requests.exceptions.RequestException as e:
-		# Handle network issues with API
-		print(f"Network error: Unable to reach the API. Please check your connection.", file=sys.stderr)
-		sys.exit(2)
+    Parameters
+    ----------
+    panel_id : str, optional
+        The panel ID to check. If not provided, it is parsed from arguments.
 
-	except KeyError as e:
-		# Handle missing keys in the API response
-		print(f"Error: Unexpected API response. Missing expected fields.", file=sys.stderr)
-		sys.exit(3)
+    Raises
+    ------
+    ValueError
+        If the panel ID is invalid or doesn't follow the correct format.
+    KeyError
+        If the API response is missing expected keys ('name' or 'version').
+    RuntimeError
+        If the API request fails after multiple attempts or encounters network issues.
+    Exception
+        For any other unexpected errors.
+    """
 
-	except Exception as e:
-		# Catch all other errors
-		logger.error(f"Unexpected error: {e}")
-		print(f"Unexpected error: {e}", file=sys.stderr)
-		sys.exit(99)
+    # Create a logger, named after this module, e.g. check_panel
+    logger = get_logger(__name__)
+
+    if panel_id is None:
+        args = parse_arguments()
+        panel_id = args.panel_id
+
+    try:
+        formatted_id = format_panel_id(panel_id)
+        logger.debug("Formatted Panel ID: %s", formatted_id)
+
+        panel_info = fetch_panel_info(formatted_id)
+
+        print(
+            f"Panel ID: {formatted_id}\n"
+            f"Clinical Indication: {panel_info['name']}\n"
+            f"Latest Version: {panel_info['version']}"
+        )
+
+    except ValueError as e:
+        logger.error("ValueError: %s", e)
+
+    except KeyError:
+        logger.error("Unexpected API response: Missing expected fields.")
+
+    except Exception as e:
+        logger.error("%s", e)
+
 
 if __name__ == "__main__":
-	main()
+    main()

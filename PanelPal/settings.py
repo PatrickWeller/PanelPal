@@ -51,7 +51,7 @@ handlers = [file_handler]
 # Create a handler for outputting logging to the console
 stream_handler = logging.StreamHandler()
 # Can toggle the level logged to the console between DEBUG, INFO, WARNING etc. during development
-stream_handler.setLevel(logging.INFO)
+stream_handler.setLevel(logging.ERROR)
 
 
 # Optionally log to the console if the above is set to True
