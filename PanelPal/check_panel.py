@@ -3,15 +3,15 @@
 import argparse
 import re
 import requests
-import logging
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))) # Adds parent directory to sys.path
 from accessories.panel_app_api_functions import get_response
 from accessories.panel_app_api_functions import get_name_version
+from settings import get_logger
 
-# Configure logging for better error tracking
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+# Create a logger, named after this module, e.g. check_panel
+logger = get_logger(__name__)
 
 def parse_arguments():
 	"""Parse command-line arguments."""
@@ -64,15 +64,16 @@ def fetch_panel_info(formatted_id):
 		# Ensure expected keys are in the response
 		if 'name' not in panel_info or 'version' not in panel_info:
 			raise KeyError(f"Response missing expected fields: 'name' or 'version'.")
-		
+
+		logger.info("Panel information successfully retrieved")
 		return panel_info
 
 	except requests.exceptions.RequestException as e:
-		logging.error(f"Error contacting the API: {e}")
+		logger.error(f"Error contacting the API: {e}")
 		raise  # Re-raise exception for further handling in main()
 	
 	except KeyError as e:
-		logging.error(f"API response error: {e}")
+		logger.error(f"API response error: {e}")
 		raise  # Re-raise exception for further handling in main()
 
 def main():
@@ -110,7 +111,7 @@ def main():
 
 	except Exception as e:
 		# Catch all other errors
-		logging.error(f"Unexpected error: {e}")
+		logger.error(f"Unexpected error: {e}")
 		print(f"Unexpected error: {e}", file=sys.stderr)
 		sys.exit(99)
 
