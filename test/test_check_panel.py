@@ -25,11 +25,7 @@ Dependencies:
 from unittest.mock import patch
 import pytest
 import requests
-from check_panel import (
-    format_panel_id,
-    is_valid_panel_id,
-    fetch_panel_info
-)
+from check_panel import format_panel_id, is_valid_panel_id, fetch_panel_info
 
 
 # --- Tests for is_valid_panel_id ---

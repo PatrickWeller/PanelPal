@@ -5,8 +5,6 @@ setup(
     version="0.1.0",
     author="Team Jenkins",
     description="A tool for managing genomic panels.",
-    long_description=open("README.md").read(),
-    long_description_content_type="text/markdown",
     url="https://github.com/PatrickWeller/PanelPal",
     packages=find_packages(),
     python_requires=">=3.6",

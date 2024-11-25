@@ -55,9 +55,9 @@ def get_response(panel_id):
     if response.status_code == 200:
         return response
     elif response.status_code == 404:
-        raise Exception(f"Error: Panel {panel_id} not found.")
+        raise Exception(f"Panel {panel_id} not found.")
     elif response.status_code == 500:
-        raise Exception("Server error: The server failed to process the request.")
+        raise Exception("The server failed to process the request.")
     elif response.status_code == 503:
         raise Exception("Service unavailable: Please try again later.")
     else:
