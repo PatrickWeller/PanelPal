@@ -46,15 +46,23 @@ To set up a conda environment for this project, you can use the provided `enviro
 
 ## Usage
 
-Run the panel_pal.py script from your terminal.
+### check panel
+To check and retrieve panel information from the PanelApp API:
 
-    python panel_pal.py
+```bash
+#either
+PanelPal check-panel --panel_id R207
 
-The script will prompt you to enter a panel ID (e.g., R59, r59, or 59). The input will be validated to ensure it matches the correct format.
+#or
+python PanelPal/check_panel.py --panel_id R207
+```
 
-Once a valid panel ID is entered, the tool will fetch information from the PanelApp API and display details about the selected panel.
+### generate bed file
+To generate a bed file for a given panel:
 
-You will be asked to confirm your selection before proceeding. If confirmed, the tool will generate a BED file with gene locus information.
+```bash
+python PanelPal/check_panel.py --panel_id R207 --panel_version 4 --genome_build GRCh38
+```
 
 ## Directory structure
 The following structure should be used going foward to keep the project directories tidy and in preperation for package build. This will also resolve issues importing modules going forward. Note: DB directory has been ommitted from the tree for now.
@@ -64,16 +72,16 @@ The following structure should be used going foward to keep the project director
 ├── env
 │   ├── environment.yaml
 │   └── requirements.txt
-├── logging
-│   └── panelpal.log
 ├── PanelPal
 │   ├── accessories
 │   │   ├── __init__.py
 │   │   ├── panel_app_api_functions.py
 │   │   └── variant_validator_api_functions.py
-│   ├── check_panel.py
+│   ├── check_panel.py 
 │   ├── generate_bed.py # This script will require restructuring to be called from main PanelPal function
 │   ├── __init__.py
+│   ├── logging
+│   │   └── panelpal.log
 │   ├── main.py
 │   ├── settings.py
 │   └── setup.py
@@ -84,16 +92,4 @@ The following structure should be used going foward to keep the project director
 ```
 
 ## License
-
 To be confirmed.
-
-
-## Notes
-When running a python script from directory PanelPal the following lines are needed if calling accessory functions
-```
-import sys
-import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))) 
-from accessories import panel_app_api_functions
-```
-Note: this will not be an issue when the python package has been "built"
