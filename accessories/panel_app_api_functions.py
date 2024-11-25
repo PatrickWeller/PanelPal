@@ -237,7 +237,7 @@ def get_response_old_panel_version(panel_pk, version):
         logger.error("Request timed out while fetching panel data for panel"
                      "with primary key %s", panel_pk)
         # Raise a custom PanelAppError with a descriptive message
-        raise PanelAppError(f"Panel {panel_pk} request exceeded the time limit. "
+        raise PanelAppError(f"Timeout: Panel {panel_pk} request exceeded the time limit. "
                             "Please try again") from e
 
     except requests.exceptions.RequestException as e:

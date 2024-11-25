@@ -131,7 +131,7 @@ class TestGetResponse:
         )
 
         # Test that a corresponding exception is raised with the correct message
-        with pytest.raises(Exception, match="Timeout: Panel R293 request exceeded the time limit."):
+        with pytest.raises(PanelAppError, match="Timeout: Panel R293 request exceeded the time limit."):
             get_response(panel_id)
 
 
@@ -405,7 +405,7 @@ class TestGetResponseOldPanelVersion:
         )
 
         # Test that the correct exception is raised with the expected message
-        with pytest.raises(Exception, match=f"Timeout: Panel \\(primary key:{panel_pk}\\) request exceeded the time limit. Please try again"):
+        with pytest.raises(PanelAppError, match=f"Timeout: Panel {panel_pk} request exceeded the time limit. Please try again"):
             get_response_old_panel_version(panel_pk, version)
 
     @responses.activate
