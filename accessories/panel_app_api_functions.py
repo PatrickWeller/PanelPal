@@ -78,9 +78,12 @@ def get_response(panel_id):
         # If the request was successful, return the response object
         logger.info("Panel App API response successful")
         return response
-    
+
+    # Handle errors if the API request times out
     except requests.exceptions.Timeout:
+        # Log error if the API request times out
         logger.error("Request timed out while fetching panel data for panel %s", panel_id)
+        # Raise a custom PanelAppError with a descriptive message
         raise PanelAppError(f"Timeout: Panel {panel_id} request exceeded the time limit. Please try again")
 
     except requests.exceptions.HTTPError as e:
@@ -226,9 +229,12 @@ def get_response_old_panel_version(panel_pk, version):
         # If the request was successful, return the response object
         logger.info("Request to Panel App API was successful")
         return response
-    
+
+    # Handle errors if the API request times out
     except requests.exceptions.Timeout:
+        # Log error if the API request times out
         logger.error("Request timed out while fetching panel data for panel with primary key %s", panel_pk)
+        # Raise a custom PanelAppError with a descriptive message
         raise PanelAppError(f"Timeout: Panel (primary key:{panel_pk}) request exceeded the time limit. Please try again")
 
     except requests.exceptions.RequestException as e:
