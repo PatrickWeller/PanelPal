@@ -46,7 +46,7 @@ To set up a conda environment for this project, you can use the provided `enviro
 
 ## Usage
 
-### check panel
+### Check Panel
 To check and retrieve panel information from the PanelApp API:
 
 ```bash
@@ -57,15 +57,15 @@ PanelPal check-panel --panel_id R207
 python PanelPal/check_panel.py --panel_id R207
 ```
 
-### generate bed file
+### Generate Bed File
 To generate a bed file for a given panel:
 
 ```bash
-python PanelPal/check_panel.py --panel_id R207 --panel_version 4 --genome_build GRCh38
+python PanelPal/generate_bed.py --panel_id R207 --panel_version 4 --genome_build GRCh38
 ```
 
 ## Directory structure
-The following structure should be used going foward to keep the project directories tidy and in preperation for package build. This will also resolve issues importing modules going forward. Note: DB directory has been ommitted from the tree for now.
+The following structure should be used going foward to keep the project directories tidy and in preparation for package build. This will also resolve issues importing modules going forward. Note: DB directory has been omitted from the tree for now.
 
 ```bash
 .
