@@ -14,6 +14,7 @@ import re
 import time
 import logging
 import requests
+import sys
 from accessories.panel_app_api_functions import get_response, get_name_version
 from settings import get_logger
 
@@ -206,15 +207,8 @@ def main(panel_id=None):
             f"Latest Version: {panel_info['version']}"
         )
 
-    except ValueError as e:
-        logger.error("ValueError: %s", e)
+    except Exception:
+        sys.exit()
 
-    except KeyError:
-        logger.error("Unexpected API response: Missing expected fields.")
-
-    except Exception as e:
-        logger.error("%s", e)
-
-
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
     main()
