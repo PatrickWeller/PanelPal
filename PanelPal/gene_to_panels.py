@@ -1,16 +1,10 @@
 #!/usr/bin/env python
 
-import requests
 import argparse
-import pandas as pd
 import re
+import requests
+import pandas as pd
 from settings import get_logger  # Ensure this exists or use a fallback.
-
-# Fallback for logger if settings module is not available
-def get_logger(name):
-    import logging
-    logging.basicConfig(level=logging.INFO)
-    return logging.getLogger(name)
 
 
 def parse_arguments():
@@ -31,33 +25,7 @@ def parse_arguments():
         help="The HGNC symbol of the gene to query (e.g., BRCA1).",
         required=True,
     )
-    parser.add_argument(
-        "--r_codes_file",
-        type=str,
-        help="Path to the R_codes.txt file.",
-        required=False,
-    )
     return parser.parse_args()
-
-
-def load_r_codes(file_path="PanelPal/resources/R_codes.txt"):
-    """
-    Load R codes and names from a text file into a pandas DataFrame.
-
-    Parameters
-    ----------
-    file_path : str
-        Path to the R_codes.txt file.
-
-    Returns
-    -------
-    pd.DataFrame
-        DataFrame containing R codes and their associated names.
-    """
-    try:
-        return pd.read_csv(file_path, sep="\t")
-    except Exception as e:
-        raise ValueError(f"Error loading R codes file: {e}")
 
 
 def get_response_gene(hgnc_symbol):
@@ -101,9 +69,52 @@ def extract_panels(response_json):
             panel_id = panel.get("id")
             panel_name = panel.get("name")
             relevant_disorders = panel.get("relevant_disorders")
-            if panel_id and panel_name:
-                panels.append({"PanelApp ID": panel_id, "Panel Name": panel_name, "Relevant Disorders": relevant_disorders})
+            panels.append(
+                {
+                    "PanelApp ID": panel_id,
+                    "Panel Name": panel_name,
+                    "Relevant Disorders": relevant_disorders,
+                }
+            )
     return pd.DataFrame(panels)
+
+
+def extract_r_codes(disorders):
+    """
+    Extract R codes from the relevant disorders string.
+
+    Parameters
+    ----------
+    disorders : str or None
+        A string containing the relevant disorders information, or None.
+
+    Returns
+    -------
+    str
+        A comma-separated string of extracted R codes, or "N/A" if no R codes are found.
+    """
+    if not disorders:
+        return "N/A"
+    r_codes = re.findall(r"R\d+", str(disorders))
+    return ", ".join(r_codes) if r_codes else "N/A"
+
+
+def extract_r_codes_from_disorders(panels_df):
+    """
+    Add an 'R Code' column to the panels DataFrame by extracting R codes.
+
+    Parameters
+    ----------
+    panels_df : pd.DataFrame
+        The DataFrame containing panel information with a 'Relevant Disorders' column.
+
+    Returns
+    -------
+    pd.DataFrame
+        A DataFrame with an added 'R Code' column where extracted R codes are listed.
+    """
+    panels_df["R Code"] = panels_df["Relevant Disorders"].apply(extract_r_codes)
+    return panels_df
 
 
 def add_r_codes_to_panels(panels_df, r_codes_df):
@@ -131,6 +142,27 @@ def add_r_codes_to_panels(panels_df, r_codes_df):
 
 
 def main(hgnc_symbol=None):
+    """
+    Main function to query PanelApp for gene information and display associated panels.
+
+    Parameters
+    ----------
+    hgnc_symbol : str, optional
+        The HGNC symbol of the gene to query (e.g., BRCA1). If not provided, the function
+        parses command-line arguments to retrieve it.
+
+    Returns
+    -------
+    None
+        Prints panel information, including PanelApp IDs, R codes, and panel names, to the console.
+
+    Notes
+    -----
+    - This function interacts with the PanelApp API to retrieve gene-panel associations.
+    - If no panels are found for the specified gene, an appropriate message is displayed.
+    - Any HTTP or file errors encountered during execution are logged and printed.
+    """
+
     # Create a logger, named after this module, e.g., check_panel
     logger = get_logger(__name__)
 
@@ -141,35 +173,33 @@ def main(hgnc_symbol=None):
 
     try:
         # Load R codes file
-        r_codes_df = load_r_codes(args.r_codes_file)
+        # r_codes_df = load_r_codes()
 
         # Get response from PanelApp API
-        logger.info(f"Querying PanelApp API for gene: {args.hgnc_symbol}")
-        response = get_response_gene(args.hgnc_symbol)
+        logger.info(f"Querying PanelApp API for gene: {hgnc_symbol}")
+        response = get_response_gene(hgnc_symbol)
         response_json = response.json()
 
         # Extract panel data
         panels_df = extract_panels(response_json)
         if panels_df.empty:
-            logger.info(f"No panels found for gene {args.hgnc_symbol}.")
-            print(f"No panels found for gene {args.hgnc_symbol}.")
+            logger.info(f"No panels found for gene {hgnc_symbol}.")
+            print(f"No panels found for gene {hgnc_symbol}.")
             return
-        
-        #print(panels_df)
 
-        # Add R codes
-        panels_with_r_codes = add_r_codes_to_panels(panels_df, r_codes_df)
+        # Extract R codes
+        panels_with_r_codes = extract_r_codes_from_disorders(panels_df)
+        panels_with_r_codes.replace("N/A", "-", inplace=True)
 
-        # Display the results
-        print(f"Panels associated with gene {hgnc_symbol}:\n")
-        print(f"{'PanelApp ID':<15}{'R Code':<10}{'Panel Name':<50}")
-        print("-" * 75)
+        print(f"\nPanels associated with gene {hgnc_symbol}:\n")
+        print(f"{'PanelApp ID':<15}{'R Code':<15}{'Panel Name'}")
+        print("-" * 100)
 
         for _, row in panels_with_r_codes.iterrows():
             panel_id = row["PanelApp ID"]
-            r_code = row["R Code"] if not pd.isna(row["R Code"]) else "-"
+            r_code = row["R Code"]
             panel_name = row["Panel Name"]
-            print(f"{panel_id:<15}{r_code:<10}{panel_name:<50}")
+            print(f"{panel_id:<15}{r_code:<15}{panel_name:}")
 
     except requests.RequestException as e:
         logger.error(f"Error querying the API: {e}")

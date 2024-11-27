@@ -23,6 +23,7 @@ Usage examples:
 import argparse
 from check_panel import main as check_panel_main
 from generate_bed import main as generate_bed_main
+from gene_to_panels import main as gene_to_panels_main
 
 
 def main():
@@ -72,11 +73,26 @@ def main():
         help="The genome build (e.g., GRCh38).",
     )
 
+    # Subcommand: gene-panels
+    parser_gene_panels = subparsers.add_parser(
+        "gene-panels",
+        help="List panels containing a given gene",
+    )
+    parser_gene_panels.add_argument(
+        "--hgnc_symbol",
+        type=str,
+        required=True,
+        help="The HGNC symbol of the gene to query (e.g., BRCA1).",
+    )
+
     args = parser.parse_args()
 
     if args.command == "check-panel":
         panel_id = args.panel_id
         check_panel_main(panel_id)
+    elif args.command == "gene-panels":
+        hgnc_symbol = args.hgnc_symbol
+        gene_to_panels_main(hgnc_symbol)
     elif args.command == "generate-bed":
         generate_bed_main(
             panel_id=args.panel_id,
