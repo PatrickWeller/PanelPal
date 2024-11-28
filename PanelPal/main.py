@@ -29,7 +29,7 @@ from gene_to_panels import main as gene_to_panels_main
 def main():
     """Main function which gathers arguments and passes them to the relevant PanelPal command"""
     parser = argparse.ArgumentParser(
-        description="PanelPal: A toolkit for panelapp queries"
+        description="panelpal: A toolkit for panelapp queries"
     )
 
     subparsers = parser.add_subparsers(
@@ -94,11 +94,10 @@ def main():
         hgnc_symbol = args.hgnc_symbol
         gene_to_panels_main(hgnc_symbol)
     elif args.command == "generate-bed":
-        generate_bed_main(
-            panel_id=args.panel_id,
-            panel_version=args.panel_version,
-            genome_build=args.genome_build,
-        )
+        panel_id=args.panel_id
+        panel_version=args.panel_version,
+        genome_build=args.genome_build
+        generate_bed_main(panel_id, panel_version, genome_build)
     else:
         parser.print_help()
 

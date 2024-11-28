@@ -51,17 +51,28 @@ To check and retrieve panel information from the PanelApp API:
 
 ```bash
 #either
-PanelPal check-panel --panel_id R207
+panelpal check-panel --panel_id R207
 
 #or
 python PanelPal/check_panel.py --panel_id R207
+```
+
+### Get panels containing a given gene
+To generate a list of panels containing a specific gene (e.g. BRCA1):
+
+```bash
+#either
+panelpal gene-panels --hgnc_symbol BRCA1
+
+#or
+python PanelPal/gene_to_panels.py --hgnc_symbol BRCA1
 ```
 
 ### Generate Bed File
 To generate a bed file for a given panel:
 
 ```bash
-python PanelPal/generate_bed.py --panel_id R207 --panel_version 4 --genome_build GRCh38
+python panelpal/generate_bed.py --panel_id R207 --panel_version 4 --genome_build GRCh38
 ```
 
 ## Directory structure
