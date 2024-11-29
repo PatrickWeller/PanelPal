@@ -36,7 +36,8 @@ Run the script from the command line:
 
 Logging
 -------
-DEBUG level logs are written to both the console and `logging/generate_bed.log`.
+Logs are written to `panelpal/logging/panelpal.log`.
+settings.py can be modified to also write logs to the stream
 
 Notes
 -----
@@ -45,24 +46,19 @@ Notes
 """
 
 import argparse
-import logging
-# Custom module for PanelApp API interaction
-from accessories import panel_app_api_functions
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))) # Adds parent directory to sys.path
 # Custom module for VariantValidator API interaction
 from accessories import variant_validator_api_functions
+# Custom module for PanelApp API interaction
+from accessories import panel_app_api_functions
+from settings import get_logger
 
-# Configure logging
-logging.basicConfig(
-    level=logging.DEBUG,  # Log all levels (DEBUG, INFO, WARNING, ERROR)
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler("/home/madyson/PanelPal/logging/generate_bed.log"),
-        logging.StreamHandler()  # Logs also printed to console
-    ]
-)
 
-# Create a logger instance for consistent usage throughout the script
-logger = logging.getLogger()
+# Create a logger named after generate_bed
+logger = get_logger(__name__)
+
 
 def main(panel_id, panel_version, genome_build):
     """
@@ -83,7 +79,7 @@ def main(panel_id, panel_version, genome_build):
         If an error occurs during any part of the BED file generation process.
     """
     # Log the start of the BED generation process
-    logging.info(
+    logger.info(
         "Starting main process for panel_id=%s, panel_version=%s, genome_build=%s", 
         panel_id,
         panel_version,
@@ -92,30 +88,30 @@ def main(panel_id, panel_version, genome_build):
 
     try:
         # Fetch the panel data from PanelApp using the panel_id
-        logging.debug(
+        logger.debug(
             "Requesting panel data for panel_id=%s", 
             panel_id
             )
         panelapp_data = panel_app_api_functions.get_response(panel_id)
-        logging.info(
+        logger.info(
             "Panel data fetched successfully for panel_id=%s",
             panel_id
             )
 
         # Extract the list of genes from the panel data
-        logging.debug(
+        logger.debug(
             "Extracting gene list from panel data for panel_id=%s",
             panel_id
             )
         gene_list = panel_app_api_functions.get_genes(panelapp_data)
-        logging.info(
+        logger.info(
             "Gene list extracted successfully for panel_id=%s. Total genes found: %d",
             panel_id,
             len(gene_list)
             )
 
         # Generate the BED file using the gene list, panel ID, panel version, and genome build
-        logging.debug(
+        logger.debug(
             "Generating BED file for panel_id=%s, panel_version=%s, genome_build=%s",
             panel_id,
             panel_version,
@@ -126,13 +122,13 @@ def main(panel_id, panel_version, genome_build):
                                                           panel_version,
                                                           genome_build
                                                           )
-        logging.info(
+        logger.info(
             "BED file generated successfully for panel_id=%s",
             panel_id
             )
 
         # Perform bedtools merge with the provided panel details
-        logging.debug(
+        logger.debug(
             "Starting bedtools merge for panel_id=%s, panel_version=%s, genome_build=%s",
             panel_id,
             panel_version,
@@ -142,26 +138,27 @@ def main(panel_id, panel_version, genome_build):
                                                        panel_version,
                                                        genome_build
                                                        )
-        logging.info(
+        logger.info(
             "Bedtools merge completed successfully for panel_id=%s",
             panel_id
             )
 
         # Log completion of the process
-        logging.info(
+        logger.info(
             "Process completed successfully for panel_id=%s",
             panel_id
             )
 
     except Exception as e:
         # Reraise the exception after logging it for further handling if needed
-        logging.error(
+        logger.error(
             "An error occurred in the BED file generation process for panel_id=%s: %s",
             panel_id,
             e,
             exc_info=True
             )
         raise
+
 
 
 if __name__ == '__main__':
@@ -196,7 +193,7 @@ if __name__ == '__main__':
 
     # Parse the command-line arguments
     args = parser.parse_args()
-    logging.debug(
+    logger.debug(
         "Parsed command-line arguments: panel_id=%s, panel_version=%s, genome_build=%s",
         args.panel_id,
         args.panel_version,

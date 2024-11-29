@@ -23,48 +23,73 @@ To set up a conda environment for this project, you can use the provided `enviro
 
    ```bash
    git clone https://github.com/PatrickWeller/PanelPal.git
+    ```
+
 2. Create a new conda environment with the following command:
 
    ```bash
-   conda env create -f environment.yaml
+   conda env create -f env/environment.yaml
+    ```
+
 3. Activate the environment:
 
     ```bash
     conda activate PanelPal
-4. Using pip
+    ```
+
+4. Install PanelPal via pip
 
     ```bash
-    pip install -r requirements.txt
+    cd PanelPal
+    pip install .
+    ```
+
 ## Usage
 
-Run the panel_pal.py script from your terminal.
+### Check Panel
+To check and retrieve panel information from the PanelApp API:
 
-    python panel_pal.py
-
-The script will prompt you to enter a panel ID (e.g., R59, r59, or 59). The input will be validated to ensure it matches the correct format.
-
-Once a valid panel ID is entered, the tool will fetch information from the PanelApp API and display details about the selected panel.
-
-You will be asked to confirm your selection before proceeding. If confirmed, the tool will generate a BED file with gene locus information.
-
-# Example Output
 ```bash
-######################################################
-Welcome to PanelPal!
-######################################################
+#either
+PanelPal check-panel --panel_id R207
 
-Please enter panel ID (e.g., R59, r59, or 59): R59
-
-Panel ID: R59
-Clinical indication: Hereditary Cancer Panel
-
-Is this correct? (yes/no): yes
-
-Proceeding with the selected panel.
-
-BED file generated: R59.bed
+#or
+python PanelPal/check_panel.py --panel_id R207
 ```
 
-License
+### Generate Bed File
+To generate a bed file for a given panel:
 
+```bash
+python PanelPal/generate_bed.py --panel_id R207 --panel_version 4 --genome_build GRCh38
+```
+
+## Directory structure
+The following structure should be used going foward to keep the project directories tidy and in preparation for package build. This will also resolve issues importing modules going forward. Note: DB directory has been omitted from the tree for now.
+
+```bash
+.
+├── env
+│   ├── environment.yaml
+│   └── requirements.txt
+├── PanelPal
+│   ├── accessories
+│   │   ├── __init__.py
+│   │   ├── panel_app_api_functions.py
+│   │   └── variant_validator_api_functions.py
+│   ├── check_panel.py 
+│   ├── generate_bed.py # This script will require restructuring to be called from main PanelPal function
+│   ├── __init__.py
+│   ├── logging
+│   │   └── panelpal.log
+│   ├── main.py
+│   ├── settings.py
+│   └── setup.py
+├── README.md
+└── test
+    ├── __init__.py
+    └── test_*.py
+```
+
+## License
 To be confirmed.
