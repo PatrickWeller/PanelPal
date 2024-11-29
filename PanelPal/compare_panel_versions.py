@@ -32,20 +32,16 @@ from settings import get_logger
 
 def main():
     logger = get_logger(__name__)
+    
     # Accesses values from the command line
     args = argument_parser()
-    
+
     # Assigns command line arguments to variables
     panel = args.panel # single str
     versions = args.versions # list of 2 versions
     
     # Works out which version number is older than the other
-    # older_version, newer_version = which_is_older(versions)
-    if versions[0] < versions[1]:
-        older_version, newer_version = versions[0], versions[1]
-    else:
-        older_version, newer_version = versions[1], versions[0]
-
+    older_version, newer_version = determine_order(versions)
 
     panel_json = get_response(panel)
 
@@ -73,7 +69,11 @@ def main():
     print(added_genes)
     
 
-    
+def validate_panel(panel):
+    if panel.startswith('R') and panel[1:].isdigit():
+        return panel
+    raise argparse.ArgumentTypeError("Panel must be an R number with 'R' included.")
+
 def argument_parser():
     """
     Creates and configures an argmuent parser for the command line interface
@@ -92,16 +92,62 @@ def argument_parser():
     -------
 
     """
-    #
-    #######
-    ### Not done with this
-    ### Is 1 a valid version, or is 1.0 or 1.1 always the first?
-    ####### 
-    #
     argument_parser = argparse.ArgumentParser()
-    argument_parser.add_argument('-p', '--panel', type=str, help='R number. Include the R', required=True)
-    argument_parser.add_argument('-v', '--versions', type=float, help='Panel versions. E.g. 1.1, you must provide 2 values', nargs=2, required=True)
-    return argument_parser.parse_args()
+    
+    argument_parser.add_argument(
+        '-p', '--panel',
+        type=validate_panel,
+        help='R number. Include the R',
+        required=True)
+
+    argument_parser.add_argument(
+        '-v', '--versions',
+        type=float,
+        help='Panel versions. E.g. 1.1 or 69.23 you must provide 2 values',
+        nargs=2,
+        required=True)
+
+    argument_parser.add_argument(
+        '-f', '--filter',
+        type=str,
+        help='Filter by gene status. green, amber (green and amber), or all',
+        nargs=1,
+        default='green')
+    
+    try:
+        return argument_parser.parse_args()
+    except argparse.ArgumentTypeError as e:
+        logger.error(f"messaged {e}")
+        sys.exit(1)
+
+
+def determine_order(versions):
+    """
+    Checks which of 2 version numbers is older and which is newer
+
+    Parameters
+    ----------
+    versions: list of float
+        A list of 2 version numbers
+
+    Returns
+    -------
+    older_version
+        The earlier version of the two numbers
+    newer_version
+        The newer version of the two numbers
+
+    Example
+    -------
+    >>> versions = [2.3, 1.0]
+    >>> determine_order(versions)
+    1.0, 2.3
+    """
+    if versions[0] < versions[1]:
+        older_version, newer_version = versions[0], versions[1]
+    else:
+        older_version, newer_version = versions[1], versions[0]
+    return older_version, newer_version
 
 
 def is_gene_absent(gene, gene_list):
