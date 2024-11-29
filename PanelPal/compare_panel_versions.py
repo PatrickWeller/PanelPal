@@ -43,37 +43,53 @@ def main():
     # Works out which version number is older than the other
     older_version, newer_version = determine_order(versions)
 
-    panel_json = get_response(panel)
+    # Send API request for the panel provided
+    try:
+        panel_json = get_response(panel)
+    # Exit the program if that panel does not exist
+    except PanelAppError:
+        logger.error(f"Panel {panel} is incorrect")
+        sys.exit(1)
 
+    # Access and store the primary key of that panel from the Panel APP database
     panel_info = get_name_version(panel_json)
     panel_pk = panel_info["panel_pk"]
 
+    # Send API request for the older panel version
     try:
         older_version_json = get_response_old_panel_version(panel_pk, older_version)
+    # Exit the program if that version does not exist
     except PanelAppError:
-        print("Panel version incorrect")
+        print(f"Panel {panel} v{older_version} may not exist, please check and try again")
         sys.exit(1)
+    # Send API request for the newer panel version
     try:
         newer_version_json = get_response_old_panel_version(panel_pk, newer_version)
+    # Exit the program if that version does not exist
     except PanelAppError:
-        logger.error("Panel version incorrect")
+        logger.error(f"Panel {panel} v{newer_version} may not exist, please check and try again")
         sys.exit(1)
 
+    # Get the list of genes for each panel version
     older_version_genes = get_genes(older_version_json)
     newer_version_genes = get_genes(newer_version_json)
 
+    # Compare the gene lists for each version to identify the differences
     removed_genes = get_removed_genes(older_version_genes, newer_version_genes)
     added_genes = get_added_genes(older_version_genes, newer_version_genes)
 
-    print(removed_genes)
-    print(added_genes)
+    # Print the two lists to show the difference in panel versions
+    print("Removed genes:", removed_genes)
+    print("Added genes:", added_genes)
     
 
 def validate_panel(panel):
     """Checks that a panel is in the format R21, otherwise raises ArgumentTypeError and ends program"""
+    # Checks that panel starts with R and is followed by digits
     if panel.startswith('R') and panel[1:].isdigit():
         return panel
     raise argparse.ArgumentTypeError("Panel must be an R number in format 'R21'.")
+
 
 def argument_parser():
     """
@@ -204,12 +220,9 @@ def get_removed_genes(older_panel, newer_panel):
     ["BRCA2", "TP53"]
     """
     filtered_list = filter(lambda item: is_gene_absent(item, newer_panel), older_panel)
-    removed_genes = 'Removed Genes: '
+    removed_genes = []
     for gene in filtered_list:
-        if removed_genes == 'Removed Genes: ':
-            removed_genes += gene
-        else:
-            removed_genes += ', ' + gene
+        removed_genes.append(gene)
     return removed_genes
 
 def get_added_genes(older_panel, newer_panel):
@@ -238,12 +251,9 @@ def get_added_genes(older_panel, newer_panel):
     ["BRCA2", "TP53"]
     """
     filtered_list = filter(lambda item: is_gene_absent(item, older_panel), newer_panel)
-    added_genes = 'Added Genes: '
+    added_genes = []
     for gene in filtered_list:
-        if added_genes == 'Added Genes: ':
-            added_genes += gene
-        else:
-            added_genes += ', ' + gene
+        added_genes.append(gene)
     return added_genes
 
 
