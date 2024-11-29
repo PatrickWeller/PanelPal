@@ -105,7 +105,7 @@ def main():
         older_version_json = get_response_old_panel_version(panel_pk, older_version)
     # Exit the program if that version does not exist
     except PanelAppError:
-        print("Panel %s v%s may not exist, please check and try again", panel, older_version)
+        logger.error("Panel %s v%s may not exist, please check and try again", panel, older_version)
         sys.exit(1)
     # Send API request for the newer panel version
     try:
@@ -190,7 +190,6 @@ def argument_parser():
         '-f', '--filter',
         choices=["green", "amber", "all"],
         help='Filter by gene status. Green only; green and amber; or all',
-        nargs=1,
         default='green')
 
     # Return the name space object for use of the arguments

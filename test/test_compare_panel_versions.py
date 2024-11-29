@@ -8,13 +8,86 @@ ordering, gene list comparisons, and gene presence/absence detection.
 
 import pytest
 import argparse
+import sys
 from compare_panel_versions import (
     validate_panel, 
     determine_order, 
     is_gene_absent, 
     get_removed_genes, 
-    get_added_genes
+    get_added_genes,
+    argument_parser
 )
+
+class TestArgParser:
+    """
+    Test class for the argument_parser function which handles command-line arguments.
+    """
+
+    def test_valid_arguments(self, monkeypatch):
+        """
+        Test case to ensure that valid arguments are correctly parsed.
+        Simulates the scenario where valid command-line arguments are provided.
+        """
+        # Mocking the command line arguments
+        monkeypatch.setattr(sys, 'argv', ['compare_gene_lists.py', '-p', 'R1234', '-v', '1.0', '2.0', '-f', 'green'])
+        
+        # Calling the argument_parser function
+        args = argument_parser()
+        
+        # Asserting that the arguments were parsed correctly
+        assert args.panel == 'R1234', "Panel argument parsing failed"
+        assert args.versions == [1.0, 2.0], "Versions argument parsing failed"
+        assert args.filter == 'green', "Filter argument parsing failed"
+
+    def test_default_filter(self, monkeypatch):
+        """
+        Test case to ensure that the default filter is set to 'green' when no filter is provided.
+        Simulates the scenario where the filter argument is not provided.
+        """
+        # Mocking the command line arguments without the filter
+        monkeypatch.setattr(sys, 'argv', ['compare_gene_lists.py', '-p', 'R1234', '-v', '1.0', '2.0'])
+        
+        # Calling the argument_parser function
+        args = argument_parser()
+        
+        # Asserting the default filter value is 'green'
+        assert args.filter == 'green', "Default filter argument parsing failed"
+
+    def test_invalid_filter(self, monkeypatch):
+        """
+        Test case to ensure that an invalid filter argument raises an error.
+        Simulates the scenario where an invalid filter value ('blue') is provided.
+        """
+        # Mocking the command line arguments with an invalid filter
+        monkeypatch.setattr(sys, 'argv', ['compare_gene_lists.py', '-p', 'R1234', '-v', '1.0', '2.0', '-f', 'blue'])
+        
+        # Calling the function and expecting it to raise an error due to invalid filter
+        with pytest.raises(SystemExit):  # argparse should exit with an error for invalid input
+            argument_parser()
+
+    def test_missing_panel_argument(self, monkeypatch):
+        """
+        Test case to ensure that the 'panel' argument is required and raises an error if missing.
+        Simulates the scenario where the panel argument is not provided.
+        """
+        # Mocking the command line arguments with a missing panel argument
+        monkeypatch.setattr(sys, 'argv', ['compare_gene_lists.py', '-v', '1.0', '2.0', '-f', 'green'])
+        
+        # Calling the function and expecting it to raise an error due to missing required argument
+        with pytest.raises(SystemExit):  # argparse should exit with an error for missing panel
+            argument_parser()
+
+    def test_missing_versions_argument(self, monkeypatch):
+        """
+        Test case to ensure that the 'versions' argument is required and raises an error if missing.
+        Simulates the scenario where the versions argument is not provided.
+        """
+        # Mocking the command line arguments with a missing versions argument
+        monkeypatch.setattr(sys, 'argv', ['compare_gene_lists.py', '-p', 'R1234', '-f', 'green'])
+        
+        # Calling the function and expecting it to raise an error due to missing versions
+        with pytest.raises(SystemExit):  # argparse should exit with an error for missing versions
+            argument_parser()
 
 class TestValidatePanel:
     """Tests for the validate_panel function."""
