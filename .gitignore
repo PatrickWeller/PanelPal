@@ -1,1 +1,8 @@
-
+ignore/
+PanelPal/app.log
+PanelPal/accessories/__pycache__/
+PanelPal/PanelPal.egg-info
+test/__pycache__/
+*.bed
+*.log
+DB/
