@@ -70,9 +70,10 @@ def main():
     
 
 def validate_panel(panel):
+    """Checks that a panel is in the format R21, otherwise raises ArgumentTypeError and ends program"""
     if panel.startswith('R') and panel[1:].isdigit():
         return panel
-    raise argparse.ArgumentTypeError("Panel must be an R number with 'R' included.")
+    raise argparse.ArgumentTypeError("Panel must be an R number in format 'R21'.")
 
 def argument_parser():
     """
@@ -92,7 +93,9 @@ def argument_parser():
     -------
 
     """
-    argument_parser = argparse.ArgumentParser()
+    argument_parser = argparse.ArgumentParser(
+        description='A script to compare the genes on two versions of an NGS panel'
+    )
     
     argument_parser.add_argument(
         '-p', '--panel',
@@ -103,22 +106,18 @@ def argument_parser():
     argument_parser.add_argument(
         '-v', '--versions',
         type=float,
-        help='Panel versions. E.g. 1.1 or 69.23 you must provide 2 values',
+        help='Two panel versions. E.g. 1.1 or 69.23',
         nargs=2,
         required=True)
 
     argument_parser.add_argument(
         '-f', '--filter',
-        type=str,
-        help='Filter by gene status. green, amber (green and amber), or all',
+        choices=["green", "amber", "all"],
+        help='Filter by gene status. Green only; green and amber; or all',
         nargs=1,
         default='green')
     
-    try:
-        return argument_parser.parse_args()
-    except argparse.ArgumentTypeError as e:
-        logger.error(f"messaged {e}")
-        sys.exit(1)
+    return argument_parser.parse_args()
 
 
 def determine_order(versions):
