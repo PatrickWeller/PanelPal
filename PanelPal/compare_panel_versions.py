@@ -1,5 +1,5 @@
 """
-Compare Gene Lists
+Compare Panel Versions
 
 This script compares two versions of a gene panel to identify differences 
 in gene composition between them. Specifically, it outputs lists of genes 
@@ -13,6 +13,9 @@ Parameters
     Two version numbers for the panel, in order to compare changes 
     between them (e.g., 1.0 and 2.0). The script determines which 
     version is older based on the numbers provided.
+-f, --filter : 'green', 'amber', 'all'
+    The option for filtering between keeping just green genes,
+    or green and amber, or all genes.
 
 Example
 -------
