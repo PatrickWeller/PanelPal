@@ -24,6 +24,8 @@ output any genes that have been added or removed.
 """
 
 import argparse
+import requests
+from accessories.panel_app_api_functions import get_response, get_name_version, get_response_old_panel_version, get_genes
 
 def main():
     # Accesses values from the command line
@@ -39,23 +41,23 @@ def main():
         older_version, newer_version = versions[0], versions[1]
     else:
         older_version, newer_version = versions[1], versions[0]
-    
-    print(older_version)
-    print(newer_version)
-    
-    
-    # Creates 2 list of genes, one for each version of the panel
-    
-    # older_panel = get_gene_list(panel, older_version)
-    # newer_panel = get_gene_list(panel, newer_version)
-    
-    #test data for checking code, to later be removed when get_gene_list has been written.
-    older_panel = ['a', 'b', 'c', 'd', 'e']
-    newer_panel = ['a', 'c', 'e', 'f', 'g']
-    
-    removed_genes = get_removed_genes(older_panel, newer_panel)
-    added_genes = get_added_genes(older_panel, newer_panel)
-    
+
+
+    panel_json = get_response(panel)
+
+    panel_info = get_name_version(panel_json)
+    panel_pk = panel_info["panel_pk"]
+
+
+    older_version_json = get_response_old_panel_version(panel_pk, older_version)
+    newer_version_json = get_response_old_panel_version(panel_pk, newer_version)
+
+    older_version_genes = get_genes(older_version_json)
+    newer_version_genes = get_genes(newer_version_json)
+
+    removed_genes = get_removed_genes(older_version_genes, newer_version_genes)
+    added_genes = get_added_genes(older_version_genes, newer_version_genes)
+
     print(removed_genes)
     print(added_genes)
     
@@ -90,9 +92,6 @@ def argument_parser():
     argument_parser.add_argument('-v', '--versions', type=float, help='Panel versions. E.g. 1.1, you must provide 2 values', nargs=2, required=True)
     return argument_parser.parse_args()
 
-def get_gene_list(panel, version):
-    url = f"https://panelapp.genomicsengland.co.uk/api/v1/panels/<panel_id>/?version=<major_version>.<minor_version>"
-    response = requests.get(url)
 
 def is_gene_absent(gene, gene_list):
     """
