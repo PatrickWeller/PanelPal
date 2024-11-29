@@ -24,10 +24,14 @@ output any genes that have been added or removed.
 """
 
 import argparse
-import requests
+import sys
 from accessories.panel_app_api_functions import get_response, get_name_version, get_response_old_panel_version, get_genes
+from accessories.panel_app_api_functions import PanelAppError
+from settings import get_logger
+
 
 def main():
+    logger = get_logger(__name__)
     # Accesses values from the command line
     args = argument_parser()
     
@@ -48,9 +52,16 @@ def main():
     panel_info = get_name_version(panel_json)
     panel_pk = panel_info["panel_pk"]
 
-
-    older_version_json = get_response_old_panel_version(panel_pk, older_version)
-    newer_version_json = get_response_old_panel_version(panel_pk, newer_version)
+    try:
+        older_version_json = get_response_old_panel_version(panel_pk, older_version)
+    except PanelAppError:
+        print("Panel version incorrect")
+        sys.exit(1)
+    try:
+        newer_version_json = get_response_old_panel_version(panel_pk, newer_version)
+    except PanelAppError:
+        logger.error("Panel version incorrect")
+        sys.exit(1)
 
     older_version_genes = get_genes(older_version_json)
     newer_version_genes = get_genes(newer_version_json)
