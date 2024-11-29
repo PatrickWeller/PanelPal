@@ -47,16 +47,16 @@ Notes
 import argparse
 import logging
 # Custom module for PanelApp API interaction
-from ..accessories import panel_app_api_functions
+from accessories import panel_app_api_functions
 # Custom module for VariantValidator API interaction
-from ..accessories import variant_validator_api_functions
+from accessories import variant_validator_api_functions
 
 # Configure logging
 logging.basicConfig(
     level=logging.DEBUG,  # Log all levels (DEBUG, INFO, WARNING, ERROR)
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler("logging/generate_bed.log"),  # Output stored here
+        logging.FileHandler("/home/madyson/PanelPal/logging/generate_bed.log"),
         logging.StreamHandler()  # Logs also printed to console
     ]
 )
