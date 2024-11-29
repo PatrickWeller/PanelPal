@@ -190,7 +190,8 @@ if __name__ == '__main__':
     parser.add_argument('-g', '--genome_build',
                         type=str,
                         required=True,
-                        help='The genome build (e.g., GRCh38).'
+                        help='The genome build (e.g., GRCh38).',
+                        choices=["GRCh37", "GRCh38"]
                         )
 
     # Parse the command-line arguments
