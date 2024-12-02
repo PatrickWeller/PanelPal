@@ -8,7 +8,7 @@ Functions:
     - Establish connection to SQLite database.
     - Fetch patient records from the "panelpal" table, which includes fields: 
         patient ID, analysis date, name, date of birth, NHS number, test R code, genes, 
-        BAM file link.
+        bed file link.
     - Logs of all operations and any errors that arise during database interactions. 
 
 Example usage:
