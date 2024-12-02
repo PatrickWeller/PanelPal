@@ -19,8 +19,8 @@ Example usage:
 import sqlite3
 import logging
 
-### LOGGING - configure settings
 
+# logging
 logging.basicConfig(
     level=logging.DEBUG,
     # format debugging messages (timestamp, name of logger, level of log message, actual message)
@@ -33,9 +33,6 @@ logging.basicConfig(
 
 # initialise logger
 logger = logging.getLogger(__name__)
-
-
-########## CREATE DB ############
 
 
 def connect():
@@ -115,8 +112,6 @@ def fetch_patients():
             conn.close()
             logger.info("Connection to database closed")
 
-
-##### RUN FUNCTION ######
 
 if __name__ == "__main__":
     fetch_patients()
