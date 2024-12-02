@@ -13,7 +13,7 @@ isolation of the test data.
 
 import unittest
 import sqlite3
-from setup import connect, fetch_patients
+from DB.setup import connect, fetch_patients
 
 
 class TestDatabase(unittest.TestCase):
