@@ -42,10 +42,10 @@ def connect():
     """
     This function connects to the SQLite database and returns a database connection object.
 
-    First, it attempts to establish a connection to the SQLite database, titled "panelpal.db". 
+    First, it attempts to establish a connection to the SQLite database, titled "panelpal.db".
     It logs the connection attempt and any errors that occur.
 
-    Returns: 
+    Returns:
         sqlite3.Connection: a connection object to interact with the database.
 
     Raises:
@@ -65,21 +65,22 @@ def connect():
     # log any errors that occur
     except sqlite3.Error as e:
         logger.error("Failed to connect: %s", e)
+        return None  # return None if the connection fails
 
 
 def fetch_patients():
     """
     Fetches the patient records from panelpal input into the SQLite database.
 
-    This function retrieves all patient records from the "panelpal" table within the 
+    This function retrieves all patient records from the "panelpal" table within the
     SQLite database, logging the retrieval process and number of patients fetched.
-    
-    Returns: a list of patient records, including the fields: 
-        patient ID, analysis date, patient name, DOB, NHS number, 
+
+    Returns: a list of patient records, including the fields:
+        patient ID, analysis date, patient name, DOB, NHS number,
         test R code, list of genes included in the test, link to BAM file.
 
-    Raises: 
-        sqlite3.Error: if fetching data from the database fails, an exception is raised. 
+    Raises:
+        sqlite3.Error: if fetching data from the database fails, an exception is raised.
     """
     # initialise the connection variable
     conn = None
