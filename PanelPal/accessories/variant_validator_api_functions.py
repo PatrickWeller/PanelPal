@@ -38,8 +38,12 @@ Example Usage
 
 import requests
 import time
-import logging
 import subprocess
+import logging
+from settings import get_logger
+
+# Create a logger named after variant_validator_api_functions
+logger = get_logger(__name__)
 
 
 def get_gene_transcript_data(gene_name, genome_build="GRCh38", max_retries=4, wait_time=2):
@@ -186,9 +190,11 @@ def generate_bed_file(gene_list, panel_name, panel_version, genome_build="GRCh38
                     exon["exon_start"] = max(0, exon["exon_start"] - 10)  # Avoid negative start positions
                     exon["exon_end"] += 10
 
+                    # Concatenate exon number, reference, and gene symbol in one column
+                    concat_info = f"{exon['exon_number']}|{exon['reference']}|{exon['gene_symbol']}"
+
                     # Each line in the BED file corresponds to an exon and its relevant details
-                    bed_file.write(f"{exon['chromosome']}\t{exon['exon_start']}\t{exon['exon_end']}\t"
-                                f"{exon['exon_number']}\t{exon['reference']}\t{exon['gene_symbol']}\n")
+                    bed_file.write(f"{exon['chromosome']}\t{exon['exon_start']}\t{exon['exon_end']}\t{concat_info}\n")
 
                 # log addition of exon data for each gene    
                 logging.info("Added exon data for %s to the BED file.", gene)

@@ -1,5 +1,6 @@
 name: PanelPal  # Replace with your environment name
 channels:
+  - conda-forge
   - defaults
   - bioconda
   - conda-forge
