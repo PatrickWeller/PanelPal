@@ -147,18 +147,16 @@ def extract_exon_info(gene_transcript_data):
             # Loop through the genomic spans in the transcript (exon structures)
             for genomic_span in transcript["genomic_spans"].items():
                 if (
-                    "exon_structure" in genomic_span[1]
-                ):  # Ensure 'exon_structure' exists before accessing it
+                    # Ensure 'exon_structure' exists before accessing it
+                    # Access the value part of the tuple, containing exon_structure
+                    "exon_structure"
+                    in genomic_span[1]
+                ):
                     for exon in genomic_span[1]["exon_structure"]:
                         # Extract exon-specific information: EX number, start, and end positions
                         exon_number = exon.get("exon_number", None)
                         exon_start = exon.get("genomic_start", None)
                         exon_end = exon.get("genomic_end", None)
-
-                        # if exon_end is missing, set it to None if not already None
-                        # (this code may be unnecessary, only added to fix a test failure)
-                        if exon_end is None:
-                            exon_end = None
 
                         # Store the extracted exon data in a dictionary
                         exon_info = {
