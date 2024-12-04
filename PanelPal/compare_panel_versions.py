@@ -35,7 +35,7 @@ from accessories.panel_app_api_functions import PanelAppError
 from settings import get_logger
 
 
-def main():
+def main(panel=None, versions=None, filter='green'):
     """
     Compares gene lists between two versions of a genetic panel from PanelApp.
 
@@ -47,9 +47,12 @@ def main():
 
     Parameters
     ----------
-    None
-        This function does not take parameters directly, but accesses command-line
-        arguments through `argument_parser`.
+    panel : str, optional
+        The panel ID to compare. If None, will be parsed from command-line arguments.
+    versions : list, optional
+        A list of two version numbers to compare. If None, will be parsed from command-line arguments.
+    filter : str, optional
+        Filter option for gene status. Defaults to 'green'.
 
     Raises
     ------
@@ -78,12 +81,12 @@ def main():
     """
     logger = get_logger(__name__)
 
-    # Accesses values from the command line
-    args = argument_parser()
-
-    # Assigns command line arguments to variables
-    panel = args.panel # single str
-    versions = args.versions # list of 2 versions
+    # Accesses values from the command line through argument parsing
+    if panel is None or versions is None:
+        args = argument_parser()
+        panel = args.panel
+        versions = args.versions
+        filter = args.filter
 
     # Works out which version number is older than the other
     older_version, newer_version = determine_order(versions)
