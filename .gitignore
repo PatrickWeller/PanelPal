@@ -4,7 +4,10 @@ PanelPal/accessories/__pycache__/
 PanelPal/PanelPal.egg-info
 PanelPal/__pycache__/
 test/__pycache__/
-__pycache/
+__pycache__/
 *.bed
 *.log
 DB/
+.coverage.*
+.coverage
+.coveragerc
