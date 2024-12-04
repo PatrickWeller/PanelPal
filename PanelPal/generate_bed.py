@@ -12,7 +12,7 @@ Key Features
 1. Fetches panel data based on a given panel ID and panel version.
 2. Extracts associated genes and exon informaiton
 3. Converts exon data into BED file format.
-3. Merges overlapping regions in the BED file.
+4. Merges overlapping regions in the BED file.
 
 Command-Line Arguments
 ----------------------
