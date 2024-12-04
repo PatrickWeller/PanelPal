@@ -34,6 +34,7 @@ from accessories.panel_app_api_functions import (
 from accessories.panel_app_api_functions import PanelAppError
 from settings import get_logger
 
+logger = get_logger(__name__)
 
 def main(panel=None, versions=None, status_filter='green'):
     """
@@ -80,7 +81,6 @@ def main(panel=None, versions=None, status_filter='green'):
     Removed genes: ['BRCA1', 'TP53']
     Added genes: ['BRCA2', 'MEF2C']
     """
-    logger = get_logger(__name__)
 
     # Accesses values from the command line through argument parsing
     if panel is None or versions is None:
@@ -123,9 +123,13 @@ def main(panel=None, versions=None, status_filter='green'):
     older_version_genes = get_genes(older_version_json)
     newer_version_genes = get_genes(newer_version_json)
 
-    # Compare the gene lists for each version to identify the differences and print them
-    print("Removed genes:", get_removed_genes(older_version_genes, newer_version_genes))
-    print("Added genes:", get_added_genes(older_version_genes, newer_version_genes))
+    # Compare the 2 versions for removed or added genes
+    removed = get_removed_genes(older_version_genes, newer_version_genes)
+    added = get_added_genes(older_version_genes, newer_version_genes)
+
+    # Print the differences in gene lists
+    print("Removed genes:", removed)
+    print("Added genes:", added)
 
 
 def validate_panel(panel):
@@ -290,6 +294,7 @@ def get_removed_genes(older_panel, newer_panel):
         removed_genes.append(gene)
 
     # Return the list of removed genes
+    logger.info("%d genes removed from this panel between these 2 versions", len(removed_genes))
     return removed_genes
 
 def get_added_genes(older_panel, newer_panel):
@@ -328,6 +333,7 @@ def get_added_genes(older_panel, newer_panel):
         added_genes.append(gene)
 
     # Return the list of added genes
+    logger.info("%d genes added to this panel between these 2 versions", len(added_genes))
     return added_genes
 
 
