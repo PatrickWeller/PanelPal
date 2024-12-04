@@ -331,5 +331,5 @@ def get_added_genes(older_panel, newer_panel):
     return added_genes
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     main()
