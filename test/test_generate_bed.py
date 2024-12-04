@@ -16,10 +16,11 @@ Fixtures:
 
 import subprocess
 import sys
+from pathlib import Path
 from unittest import mock
 import pytest
-from accessories import variant_validator_api_functions, panel_app_api_functions
-from ..PanelPal.generate_bed import main
+from PanelPal.accessories import variant_validator_api_functions, panel_app_api_functions
+from PanelPal.generate_bed import main
 
 def test_missing_required_arguments():
     """
@@ -77,9 +78,9 @@ def test_valid_arguments():
             sys.executable,
             "PanelPal/generate_bed.py",
             "-p",
-            "R207",
+            "R219",
             "-v",
-            "4",
+            "1",
             "-g",
             "GRCh38",
         ],
@@ -88,23 +89,16 @@ def test_valid_arguments():
         check=False
     )
 
-    # Assert successful execution
-    assert result.returncode == 0
+    # Assert successful execution, print error if not
+    assert result.returncode == 0, f"Script failed with error: {result.stderr}"
 
-    # Check for the success message in either stdout or stderr
-    output = result.stdout + result.stderr
-    assert "Process completed successfully" in output
+    # Verify the expected file exists
+    expected_file = Path("R219_v1_GRCh38.bed")
+    assert expected_file.exists(), f"Expected output file {expected_file} was not created."
 
-
-# Mocking the logger to capture the log output for verification
-# This is so the exception handling can be tested
-@pytest.fixture
-def mocked_logger_fixture():
-    """
-    Mock logger needed to test exception handling.
-    """
-    with mock.patch("PanelPal.PanelPal.generate_bed.logger") as mock_logger:
-        yield mock_logger
+    # Verify the expected file exists
+    expected_merged_file = Path("R219_v1_GRCh38_merged.bed")
+    assert expected_file.exists(), f"Expected output file {expected_merged_file} was not created."
 
 # Test case for exception handling when the get_response function fails
 def test_generate_bed_exception_handling():
