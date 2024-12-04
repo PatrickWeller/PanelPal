@@ -55,14 +55,14 @@ class TestArgParser:
         # Assert that the arguments parse correctly
         assert args.panel == "R1234", "Panel argument parsing failed"
         assert args.versions == [1.0, 2.0], "Versions argument parsing failed"
-        assert args.filter == "green", "Filter argument parsing failed"
+        assert args.status_filter == "green", "Status filter argument parsing failed"
 
     def test_default_filter(self, monkeypatch):
         """
         Test case to ensure that the default filter is set to 'green' when no filter is provided.
-        Simulates the scenario where the filter argument is not provided.
+        Simulates the scenario where the status filter argument is not provided.
         """
-        # Mock the command line arguments without the filter
+        # Mock the command line arguments without the status filter
         monkeypatch.setattr(
             sys, "argv", ["compare_gene_lists.py", "-p", "R1234", "-v", "1.0", "2.0"]
         )
@@ -70,22 +70,22 @@ class TestArgParser:
         # Call the argument_parser function
         args = argument_parser()
 
-        # Assert that the default filter value is 'green'
-        assert args.filter == "green", "Default filter argument parsing failed"
+        # Assert that the default status filter value is 'green'
+        assert args.status_filter == "green", "Default filter argument parsing failed"
 
     def test_invalid_filter(self, monkeypatch):
         """
         Test case to ensure that an invalid filter argument raises an error.
         Simulates the scenario where an invalid filter value ('blue') is provided.
         """
-        # Mock the command line arguments with an invalid filter
+        # Mock the command line arguments with an invalid status filter
         monkeypatch.setattr(
             sys,
             "argv",
             ["compare_gene_lists.py", "-p", "R1234", "-v", "1.0", "2.0", "-f", "blue"],
         )
 
-        # Call the function and expect it to raise an error due to invalid filter
+        # Call the function and expect it to raise an error due to invalid status filter
         with pytest.raises(SystemExit):  # argparse should exit with an error for invalid input
             argument_parser()
 

@@ -24,7 +24,7 @@ Usage examples:
         $ PanelPal generate-bed --panel_id R59 --panel_version 4 --genome_build GRCh38
 
     - To query the gene differences between two versions of a panel:
-        $ PanelPal compare-panel-versions --panel_id R21 --versions 1.0 2.2 --filter green
+        $ PanelPal compare-panel-versions --panel_id R21 --versions 1.0 2.2 --status_filter green
 """
 
 import argparse
@@ -100,7 +100,7 @@ def main():
         help='Two panel versions. E.g. 1.1 or 69.23',
     )
     parser_versions.add_argument(
-        '--filter', "-f",
+        '--status_filter', "-f",
         choices=["green", "amber", "all"],
         default='green',
         help='Filter by gene status. Green only; green and amber; or all',
@@ -121,7 +121,7 @@ def main():
         compare_panel_versions_main(
             panel=args.panel,
             versions=args.versions,
-            filter=args.filter,
+            status_filter=args.status_filter,
         )
     else:
         parser.print_help()

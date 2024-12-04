@@ -13,7 +13,7 @@ Parameters
     Two version numbers for the panel, in order to compare changes 
     between them (e.g., 1.0 and 2.0). The script determines which 
     version is older based on the numbers provided.
--f, --filter : 'green', 'amber', 'all'
+-f, --status_filter : 'green', 'amber', 'all'
     The option for filtering between keeping just green genes,
     or green and amber, or all genes.
 
@@ -35,7 +35,7 @@ from accessories.panel_app_api_functions import PanelAppError
 from settings import get_logger
 
 
-def main(panel=None, versions=None, filter='green'):
+def main(panel=None, versions=None, status_filter='green'):
     """
     Compares gene lists between two versions of a genetic panel from PanelApp.
 
@@ -50,8 +50,9 @@ def main(panel=None, versions=None, filter='green'):
     panel : str, optional
         The panel ID to compare. If None, will be parsed from command-line arguments.
     versions : list, optional
-        A list of two version numbers to compare. If None, will be parsed from command-line arguments.
-    filter : str, optional
+        List of two version numbers to compare.
+        If None, will be parsed from command-line arguments.
+    status_filter : str, optional
         Filter option for gene status. Defaults to 'green'.
 
     Raises
@@ -86,7 +87,7 @@ def main(panel=None, versions=None, filter='green'):
         args = argument_parser()
         panel = args.panel
         versions = args.versions
-        filter = args.filter
+        status_filter = args.status_filter
 
     # Works out which version number is older than the other
     older_version, newer_version = determine_order(versions)
@@ -122,13 +123,9 @@ def main(panel=None, versions=None, filter='green'):
     older_version_genes = get_genes(older_version_json)
     newer_version_genes = get_genes(newer_version_json)
 
-    # Compare the gene lists for each version to identify the differences
-    removed_genes = get_removed_genes(older_version_genes, newer_version_genes)
-    added_genes = get_added_genes(older_version_genes, newer_version_genes)
-
-    # Print the two lists to show the difference in panel versions
-    print("Removed genes:", removed_genes)
-    print("Added genes:", added_genes)
+    # Compare the gene lists for each version to identify the differences and print them
+    print("Removed genes:", get_removed_genes(older_version_genes, newer_version_genes))
+    print("Added genes:", get_added_genes(older_version_genes, newer_version_genes))
 
 
 def validate_panel(panel):
@@ -166,7 +163,7 @@ def argument_parser():
     
     >>> args = argument_parser()
     >>> print(args)
-    Namespace(panel='R1234', versions=[1.0, 2.0], filter='green')
+    Namespace(panel='R1234', versions=[1.0, 2.0], status_filter='green')
     """
     # Create an argument parser object
     parser = argparse.ArgumentParser(
@@ -188,9 +185,9 @@ def argument_parser():
         nargs=2,
         required=True)
 
-    # Add the filter argument, which is optional for filtering genes of differing status
+    # Add the status_filter argument, which is optional for filtering genes of differing status
     parser.add_argument(
-        '-f', '--filter',
+        '-f', '--status_filter',
         choices=["green", "amber", "all"],
         help='Filter by gene status. Green only; green and amber; or all',
         default='green')
