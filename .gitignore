@@ -6,3 +6,4 @@ test/__pycache__/
 *.bed
 *.log
 DB/
+*.pyc
