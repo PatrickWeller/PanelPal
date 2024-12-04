@@ -42,10 +42,8 @@ Notes
 import argparse
 import sys
 import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))) # Adds parent directory to sys.path
-# Custom module for VariantValidator API interaction
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from PanelPal.accessories import variant_validator_api_functions
-# Custom module for PanelApp API interaction
 from PanelPal.accessories import panel_app_api_functions
 from PanelPal.settings import get_logger
 
@@ -53,8 +51,60 @@ from PanelPal.settings import get_logger
 # Create a logger named after generate_bed
 logger = get_logger(__name__)
 
+def parse_arguments():
+    """
+    Parses command-line arguments for the script.
 
-def main(panel_id, panel_version, genome_build):
+     Parameters
+    ----------
+    panel_id : str
+        The ID of the panel (e.g., "R207").
+    panel_version : str
+        The version of the panel (e.g., "4").
+    genome_build : str
+         The genome build to be used (e.g., "GRCh38").
+    """
+    # Set up argument parsing for the command-line interface (CLI)
+    parser = argparse.ArgumentParser(
+        description='Generate a BED file and perform merge using panel details.'
+    )
+
+    # Define the panel_id argument
+    parser.add_argument('-p', '--panel_id',
+                        type=str,
+                        required=True,
+                        help='The ID of the panel, (e.g., "R207").'
+                        )
+
+    # Define the panel_version argument
+    parser.add_argument('-v', '--panel_version',
+                        type=str,
+                        required=True,
+                        help='The version of the panel (e.g., "4").'
+                        )
+
+    # Define the genome_build argument
+    parser.add_argument('-g', '--genome_build',
+                        type=str,
+                        required=True,
+                        help='The genome build (e.g., GRCh38).',
+                        choices=["GRCh37", "GRCh38"]
+                        )
+
+    # Parse the command-line arguments
+    args = parser.parse_args()
+
+    # Log the parsed arguments
+    logger.debug(
+        "Parsed command-line arguments: panel_id=%s, panel_version=%s, genome_build=%s",
+        args.panel_id,
+        args.panel_version,
+        args.genome_build
+    )
+
+    return args
+
+def main():
     """
     Main function that processes the panel data and generates the BED file.
     
@@ -73,6 +123,12 @@ def main(panel_id, panel_version, genome_build):
         If an error occurs during any part of the BED file generation process.
     """
     # Log the start of the BED generation process
+    args = parse_arguments()
+
+    panel_id = args.panel_id
+    panel_version = args.panel_version
+    genome_build = args.genome_build
+
     logger.info(
         "Starting main process for panel_id=%s, panel_version=%s, genome_build=%s", 
         panel_id,
@@ -153,49 +209,5 @@ def main(panel_id, panel_version, genome_build):
             )
         raise
 
-
-
 if __name__ == '__main__':
-    # Parses command-line arguments and calls the main function.
-
-    # Set up argument parsing for the command-line interface (CLI)
-    parser = argparse.ArgumentParser(
-        description='Generate a BED file and perform merge using panel details.'
-        )
-
-    # Define the panel_id argument
-    parser.add_argument('-p', '--panel_id',
-                        type=str,
-                        required=True,
-                        help='The ID of the panel, (e.g., "R207").'
-                        )
-
-    # Define the panel_version argument
-    parser.add_argument('-v', '--panel_version',
-                        type=str,
-                        required=True,
-                        help='The version of the panel (e.g., "4").'
-                        )
-
-    # Define the genome_build argument
-    parser.add_argument('-g', '--genome_build',
-                        type=str,
-                        required=True,
-                        help='The genome build (e.g., GRCh38).',
-                        choices=["GRCh37", "GRCh38"]
-                        )
-
-    # Parse the command-line arguments
-    args = parser.parse_args()
-    logger.debug(
-        "Parsed command-line arguments: panel_id=%s, panel_version=%s, genome_build=%s",
-        args.panel_id,
-        args.panel_version,
-        args.genome_build
-        )
-
-    # Call the main function with the parsed arguments
-    main(args.panel_id,
-         args.panel_version,
-         args.genome_build
-         )
+    main()
