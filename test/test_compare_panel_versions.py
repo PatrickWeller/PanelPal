@@ -8,6 +8,7 @@ ordering, gene list comparisons, and gene presence/absence detection.
 
 import pytest
 import argparse
+import subprocess
 import sys
 from compare_panel_versions import (
     validate_panel, 
@@ -15,7 +16,8 @@ from compare_panel_versions import (
     is_gene_absent, 
     get_removed_genes, 
     get_added_genes,
-    argument_parser
+    argument_parser,
+    main,
 )
 
 class TestArgParser:
@@ -164,3 +166,39 @@ class TestAddedGenes:
         newer_panel = ["BRCA1", "MYC", "CHEK2"]
         added = get_added_genes(older_panel, newer_panel)
         assert added == []
+
+class TestMain:    
+    def test_main_success(self, capsys):
+        sys.argv = ["compare_panel_versions.py", "--panel", "R21", "-v", "1.5", "1.9"]
+        
+        expected_output = "Removed genes: []\nAdded genes: ['LMOD1', 'MYH11', 'PAICS']"
+        
+        main()
+        
+        captured = capsys.readouterr()
+        
+        assert expected_output in captured.out
+
+    def test_main_panel_wrong(self):
+        sys.argv = ["compare_panel_versions.py", "--panel", "R2132", "-v", "1.0", "1.1"]
+        
+        with pytest.raises(SystemExit) as exc_info:
+            main()
+        
+        assert exc_info.value.code == 1
+
+    def test_main_old_version_wrong(self):
+        sys.argv = ["compare_panel_versions.py", "--panel", "R39", "-v", "1.999", "2.0"]
+        
+        with pytest.raises(SystemExit) as exc_info:
+            main()
+        
+        assert exc_info.value.code == 1
+    
+    def test_main_new_version_wrong(self):
+        sys.argv = ["compare_panel_versions.py", "--panel", "R255", "-v", "1.1", "9999.0"]
+        
+        with pytest.raises(SystemExit) as exc_info:
+            main()
+        
+        assert exc_info.value.code == 1
