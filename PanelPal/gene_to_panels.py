@@ -141,6 +141,20 @@ def add_r_codes_to_panels(panels_df, r_codes_df):
     return merged_df
 
 
+def write_panels(hgnc_symbol, df):
+
+    # Define name of output file
+    output_file = f"panels_containing_{hgnc_symbol}.csv"
+    
+    # Write dataframe to output file
+    df.to_csv(
+        output_file, 
+        columns = ["PanelApp ID","Panel Name"],
+        header = ["panelapp_id","panel_name"],
+        index = False
+    )
+
+
 def main(hgnc_symbol=None):
     """
     Main function to query PanelApp for gene information and display associated panels.
@@ -170,6 +184,10 @@ def main(hgnc_symbol=None):
     if hgnc_symbol is None:
         args = parse_arguments()
         hgnc_symbol = args.hgnc_symbol
+    
+    # Log the command and flags executed
+    logger.info(f"Command executed: gene-panels --hgnc_symbol {hgnc_symbol}")
+    print(f"Command executed: gene-panels --hgnc_symbol {hgnc_symbol}\n")
 
     try:
         # Load R codes file
@@ -191,15 +209,25 @@ def main(hgnc_symbol=None):
         panels_with_r_codes = extract_r_codes_from_disorders(panels_df)
         panels_with_r_codes.replace("N/A", "-", inplace=True)
 
-        print(f"\nPanels associated with gene {hgnc_symbol}:\n")
+        print(f"Panels associated with gene {hgnc_symbol}:\n")
         print(f"{'PanelApp ID':<15}{'R Code':<15}{'Panel Name'}")
         print("-" * 100)
+
+        # --------------------------------------------------------------
+        
+        # Add message recording command executed "gene-panels" and flags 
+
+        # --------------------------------------------------------------
 
         for _, row in panels_with_r_codes.iterrows():
             panel_id = row["PanelApp ID"]
             r_code = row["R Code"]
             panel_name = row["Panel Name"]
             print(f"{panel_id:<15}{r_code:<15}{panel_name:}")
+
+        # Write list of panels to file
+        write_panels(hgnc_symbol,panels_with_r_codes)
+        print(f"\nPanel list saved to: panels_containing_{hgnc_symbol}.csv")
 
     except requests.RequestException as e:
         logger.error(f"Error querying the API: {e}")
