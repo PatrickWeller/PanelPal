@@ -8,7 +8,7 @@ logging.basicConfig(
     # format debugging messages (timestamp, name of logger, level of log message, actual message.)
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler("../logging/DBsetup.log"), # store logs here
+        logging.FileHandler("logging/DBsetup.log"), # store logs here
         logging.StreamHandler() # print to stdout as well
     ]
 )
