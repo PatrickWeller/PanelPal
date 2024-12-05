@@ -59,10 +59,10 @@ To compare the genes on two versions of a given panel:
 
 ```bash
 #Either
-PanelPal compare-panel-versions -p R21 -v 1.0 2.0
+PanelPal compare-panel-versions -p R21 -v 1.0 2.0 -f green
 
 #Or
-python PanelPal/compare_panel_versions.py --panel R21 --versions 1.0 2.0
+python PanelPal/compare_panel_versions.py --panel R21 --versions 1.0 2.0 --status_filter green
 ```
 ### Generate Bed File
 To generate a bed file for a given panel:
