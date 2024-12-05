@@ -226,6 +226,7 @@ def main(hgnc_symbol=None):
             print(f"{panel_id:<15}{r_code:<15}{panel_name:}")
 
         # Write list of panels to file
+        logger.info(f"Writing panel list to: panels_containing_{hgnc_symbol}.csv")
         write_panels(hgnc_symbol,panels_with_r_codes)
         print(f"\nPanel list saved to: panels_containing_{hgnc_symbol}.csv")
 
