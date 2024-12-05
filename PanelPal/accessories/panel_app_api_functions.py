@@ -249,3 +249,23 @@ def get_response_old_panel_version(panel_pk, version):
         logger.error("Error fetching old panel version: %s", e)
         # Raise a custom PanelAppError with a more descriptive message
         raise PanelAppError(f"Failed to retrieve version {version} of panel {panel_pk}.") from e
+
+
+def get_response_gene(hgnc_symbol):
+    """
+    Send a GET request to the PanelApp API to retrieve information about a gene.
+
+    Parameters
+    ----------
+    hgnc_symbol : str
+        The HGNC symbol of the gene to query.
+
+    Returns
+    -------
+    requests.Response
+        The API response object.
+    """
+    url = f"https://panelapp.genomicsengland.co.uk/api/v1/genes/?entity_name={hgnc_symbol}"
+    response = requests.get(url, timeout=10)
+    response.raise_for_status()  # Raise an error for bad HTTP responses
+    return response

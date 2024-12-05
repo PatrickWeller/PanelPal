@@ -5,6 +5,7 @@ import re
 import requests
 import pandas as pd
 from settings import get_logger  # Ensure this exists or use a fallback.
+from accessories.panel_app_api_functions import get_response_gene
 
 
 def parse_arguments():
@@ -26,26 +27,6 @@ def parse_arguments():
         required=True,
     )
     return parser.parse_args()
-
-
-def get_response_gene(hgnc_symbol):
-    """
-    Send a GET request to the PanelApp API to retrieve information about a gene.
-
-    Parameters
-    ----------
-    hgnc_symbol : str
-        The HGNC symbol of the gene to query.
-
-    Returns
-    -------
-    requests.Response
-        The API response object.
-    """
-    url = f"https://panelapp.genomicsengland.co.uk/api/v1/genes/?entity_name={hgnc_symbol}"
-    response = requests.get(url, timeout=10)
-    response.raise_for_status()  # Raise an error for bad HTTP responses
-    return response
 
 
 def extract_panels(response_json):
@@ -240,3 +221,10 @@ def main(hgnc_symbol=None):
 
 if __name__ == "__main__":
     main()
+
+
+
+## To do:
+# get_response_gene() moved to panel_app_api_funtions.py - will need to write unit test for this
+# record gene confidence status within a panel and display
+# default to green only status?? option to also retrieve amber and red
