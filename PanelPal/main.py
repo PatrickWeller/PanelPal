@@ -2,7 +2,7 @@
 Main entry point for the PanelPal toolkit, which provides functionalities
 for querying and generating BED files for genomic panels.
 
-The script offers two primary subcommands:
+The script offers several primary subcommands:
 
 1. **check-panel**:
     This subcommand allows users to check panel information based on the panel ID.
