@@ -155,7 +155,7 @@ def get_name_version(response):
         raise PanelAppError("Failed to parse panel data.") from e
 
 
-def get_genes(response):
+def get_genes(response, status_filter="green"):
     """
     Extracts a list of gene symbols from the given API response.
 
@@ -163,11 +163,14 @@ def get_genes(response):
     ----------
     response : requests.Response
         The response object returned from the PanelApp API.
+    status_filter : str, optional
+        The gene status that you want to filter by E.g. green, amber or red/all
 
     Returns
     -------
     list
-        A list of HGNC symbols for each gene in the response data.
+        A list of HGNC symbols for each gene in the response data,
+        according to the gene status and above you've specified.
 
     Raises
     ------
@@ -176,6 +179,7 @@ def get_genes(response):
     requests.exceptions.HTTPError
         If the response contains an error status code.
     """
+    status_filter = status_filter.lower()
     try:
         # Raise an exception for any non-2xx HTTP status codes
         response.raise_for_status()
@@ -183,9 +187,34 @@ def get_genes(response):
         # Parse the JSON data from the response
         data = response.json()
 
-        # Extract the gene symbols from the 'genes' key
-        logger.info("Extracting data from JSON")
-        return [gene["gene_data"]["gene_symbol"] for gene in data.get("genes", [])]
+        # If filter = red or all, provide all genes
+        if status_filter in ("red", "all"):
+            logger.info("Extracting red, amber and green genes from JSON")
+            return [
+                gene["gene_data"]["gene_symbol"]
+                for gene in data.get("genes", [])
+                if gene["confidence_level"] in ("1", "2", "3")
+            ]
+        # If filter = amber, return all amber and green genes
+        if status_filter == "amber":
+            logger.info("Extracting amber and green genes from JSON")
+            return [
+                gene["gene_data"]["gene_symbol"]
+                for gene in data.get("genes", [])
+                if gene["confidence_level"] in ("2", "3")
+            ]
+        # If filter = green, return only green genes
+        if status_filter == ("green"):
+            logger.info("Extracting green genes from JSON")
+            return [
+                gene["gene_data"]["gene_symbol"]
+                for gene in data.get("genes", [])
+                if gene["confidence_level"] == "3"
+            ]
+
+        logger.error("Unknown status filter: %s", status_filter)
+        return []
+
 
     except ValueError as e:
         # Log any errors encountered while parsing the JSON data
