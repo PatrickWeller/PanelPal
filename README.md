@@ -1,19 +1,16 @@
-## API query function
+# PanelPal
 
-Function to extract the relevant panel version, ID and list of genes from the PanelApp API. 
+**Note: This piece of software is in development as a university project and as yet is not a fully functioning or tested product. Use of this software is at your own risk.**
+
+PanelPal is a python package of command line tools for helping UK labs implement the National Test Directory for rare disease. It uses API queries to get up-to-date information regarding NGS panels for germline disease.
+
 
 ## Features
 
-- Fetch information about a panel using its ID.
-- Validate panel ID format and prompt users for input.
-- Retrieve and display panel details such as name and clinical indication.
-- Generate locus dictionaries for genes based on panel data.
-- Create a BED file for a selected panel with chromosomal coordinates.
+- Fetch information about a panel using its R number ID.
+- Compare the genes on two versions of a panel. 
+- Create BED files for a genomic panels with chromosomal coordinates.
 
-## Requirements
-
-- Python 3.x
-- `requests` library
 
 ## Installation
 
@@ -41,7 +38,7 @@ To set up a conda environment for this project, you can use the provided `enviro
 
     ```bash
     cd PanelPal
-    pip install .
+    pip install -e .
     ```
 
 ## Usage
@@ -50,13 +47,23 @@ To set up a conda environment for this project, you can use the provided `enviro
 To check and retrieve panel information from the PanelApp API:
 
 ```bash
-#either
+#Either
 PanelPal check-panel --panel_id R207
 
-#or
+#Or
 python PanelPal/check_panel.py --panel_id R207
 ```
 
+### Compare Panel Versions
+To compare the genes on two versions of a given panel:
+
+```bash
+#Either
+PanelPal compare-panel-versions -p R21 -v 1.0 2.0
+
+#Or
+python PanelPal/compare_panel_versions.py --panel R21 --versions 1.0 2.0
+```
 ### Generate Bed File
 To generate a bed file for a given panel:
 
@@ -77,9 +84,10 @@ The following structure should be used going foward to keep the project director
 │   │   ├── __init__.py
 │   │   ├── panel_app_api_functions.py
 │   │   └── variant_validator_api_functions.py
-│   ├── check_panel.py 
-│   ├── generate_bed.py # This script will require restructuring to be called from main PanelPal function
-│   ├── __init__.py
+│   ├── check_panel.py
+│   ├── compare_panel_versions.py
+│   ├── generate_bed.py # This script will require restructuring to be called from 
+│   ├── __init__.py     # the main PanelPal function
 │   ├── logging
 │   │   └── panelpal.log
 │   ├── main.py
