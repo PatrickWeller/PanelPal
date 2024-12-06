@@ -16,7 +16,7 @@ import logging
 import requests
 import sys
 from PanelPal.accessories.panel_app_api_functions import get_response, get_name_version
-from settings import get_logger
+from PanelPal.settings import get_logger
 
 
 def parse_arguments():
