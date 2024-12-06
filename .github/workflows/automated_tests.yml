@@ -22,7 +22,7 @@ jobs:
     # Created the Conda environment
     - name: Create Conda environment
       run: |
-        conda env create --file PanelPal/env/environment.yml
+        conda env create --file env/environment.yml
 
     # Initialize Conda for bash and activate the environment then run tests
     - name: Activate Conda environment
