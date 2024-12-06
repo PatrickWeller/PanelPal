@@ -27,8 +27,7 @@ jobs:
     # Change directory to PanelPal and install the package in editable mode
     - name: Set up PanelPal
       run: |
-        cd PanelPal
-        pip install .
+        pip install -e .
 
     # Initialize Conda for bash and activate the environment then run tests
     - name: Activate Conda environment
