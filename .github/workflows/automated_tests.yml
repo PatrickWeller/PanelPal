@@ -24,8 +24,9 @@ jobs:
       run: |
         conda env create --file env/environment.yaml || conda env update -f environment.yml --prune
 
+    # Trouble Shooting
     - name: Print Conda Environment Location
-    run: |
+      run: |
       conda info --envs
       echo "HOME directory: $HOME"
       ls -la $HOME
