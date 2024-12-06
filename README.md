@@ -1,4 +1,5 @@
 # PanelPal
+<img src="assets/logo.jpg" width="200" height="227" />
 
 **Note: This piece of software is in development as a university project and as yet is not a fully functioning or tested product. Use of this software is at your own risk.**
 
@@ -38,7 +39,7 @@ To set up a conda environment for this project, you can use the provided `enviro
 
     ```bash
     cd PanelPal
-    pip install -e .
+    pip install .
     ```
 
 ## Usage
@@ -86,13 +87,13 @@ The following structure should be used going foward to keep the project director
 │   │   └── variant_validator_api_functions.py
 │   ├── check_panel.py
 │   ├── compare_panel_versions.py
-│   ├── generate_bed.py # This script will require restructuring to be called from 
-│   ├── __init__.py     # the main PanelPal function
+│   ├── generate_bed.py
+│   ├── __init__.py
 │   ├── logging
 │   │   └── panelpal.log
 │   ├── main.py
-│   ├── settings.py
-│   └── setup.py
+│   └── settings.py
+├── setup.py
 ├── README.md
 └── test
     ├── __init__.py

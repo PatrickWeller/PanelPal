@@ -28,10 +28,10 @@ Usage examples:
 """
 
 import argparse
-from check_panel import main as check_panel_main
-from generate_bed import main as generate_bed_main
-from compare_panel_versions import main as compare_panel_versions_main
-from compare_panel_versions import validate_panel
+from .check_panel import main as check_panel_main
+from .generate_bed import main as generate_bed_main
+from .compare_panel_versions import main as compare_panel_versions_main
+from .compare_panel_versions import validate_panel
 
 
 def main():
