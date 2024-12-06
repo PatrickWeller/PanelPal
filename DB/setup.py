@@ -43,16 +43,20 @@ logger = get_logger(__name__)
 
 def connect():
     """
-    This function connects to the SQLite database and returns a database connection object.
+    Connects to the SQLite database and returns a database connection object.
 
-    First, it attempts to establish a connection to the SQLite database, titled "panelpal.db".
+    This function attempts to establish a connection to the SQLite database, titled "panelpal.db". 
     It logs the connection attempt and any errors that occur.
 
-    Returns:
-        sqlite3.Connection: a connection object to interact with the database.
+    Returns
+    -------
+    sqlite3.Connection
+        A connection object to interact with the database.
 
-    Raises:
-        sqlite3.Error: an exception is raised and logged if the connection fails.
+    Raises
+    ------
+    sqlite3.Error
+        An exception raised and logged if the connection fails.
     """
     try:
         # connect to SQLite database "panelpal.db"
@@ -75,12 +79,14 @@ def fetch_patients():
     """
     Fetches patient records from the "panelpal" table in the SQLite database.
 
-    This function retrieves all patient records from the "panelpal" table, logging the
-    retrieval process and number of patients fetched.
+    This function connects to the SQLite database, retrieves all records from the 
+    "panelpal" table, and logs the retrieval process, including the number of 
+    patient records fetched. The database connection is safely closed after use.
 
-    Returns:
-        results: A list of tuples, where each tuple contains a patient
-        record with the following fields:
+    Returns
+    -------
+    results: list of tuple
+        A list of tuples, where each tuple contains a patient record with the following fields:
         - patient ID
         - analysis date
         - name
@@ -90,11 +96,14 @@ def fetch_patients():
         - genes
         - bed file link
 
-    Raises:
-        sqlite3.Error: If fetching data from the database fails, an exception is raised.
+    Raises
+    ------
+    sqlite3.Error
+        Raised if there is an issue fetching data from the database.
 
-    Notes:
-        This function assumes the "panelpal" table exists in the connected SQLite database.
+    Notes
+    -----
+    - This function assumes the "panelpal" table exists in the connected SQLite database.
     """
     # initialise the connection variable
     conn = None
