@@ -71,7 +71,7 @@ def test_valid_arguments():
     Test script behavior with valid arguments.
     """
     # Define temporary directory
-    temp_dir = Path("tmp/")  # You can customize this path as needed
+    temp_dir = Path("tmp/")
 
     # Ensure the directory exists
     temp_dir.mkdir(parents=True, exist_ok=True)
