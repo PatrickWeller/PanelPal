@@ -1,13 +1,13 @@
 import responses
 import pytest
 import requests
-from accessories.panel_app_api_functions import (
+from PanelPal.accessories.panel_app_api_functions import (
     get_response,
     get_name_version,
     get_genes,
     get_response_old_panel_version,
 )
-from accessories.panel_app_api_functions import PanelAppError
+from PanelPal.accessories.panel_app_api_functions import PanelAppError
 
 
 class TestGetResponse:
