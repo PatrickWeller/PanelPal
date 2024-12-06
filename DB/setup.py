@@ -40,7 +40,6 @@ from PanelPal.settings import get_logger
 # Initialise logger
 logger = get_logger(__name__)
 
-
 def connect():
     """
     Connects to the SQLite database and returns a database connection object.
