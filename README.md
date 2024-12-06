@@ -39,7 +39,7 @@ To set up a conda environment for this project, you can use the provided `enviro
 
     ```bash
     cd PanelPal
-    pip install -e .
+    pip install .
     ```
 
 ## Usage
