@@ -138,8 +138,8 @@ def fetch_panel_info(formatted_id, retries=3, delay=10):
 
         except requests.exceptions.RequestException:
             logging.warning(
-                "Attempt %d/%d: Encountered an issue with the API for panel %s, " +
-                "retrying in %d seconds...",
+                "Attempt %d/%d: Encountered an issue with the API for panel %s, "
+                + "retrying in %d seconds...",
                 attempt,
                 retries,
                 formatted_id,
@@ -149,8 +149,8 @@ def fetch_panel_info(formatted_id, retries=3, delay=10):
                 time.sleep(delay)
             else:
                 logging.error(
-                    "RequestException: API request failed for panel %s. " +
-                    "Check the network or API status.",
+                    "RequestException: API request failed for panel %s. "
+                    + "Check the network or API status.",
                     formatted_id,
                 )
                 return {}
@@ -210,5 +210,6 @@ def main(panel_id=None):
     except Exception:
         sys.exit()
 
-if __name__ == "__main__": # pragma: no cover
+
+if __name__ == "__main__":  # pragma: no cover
     main()
