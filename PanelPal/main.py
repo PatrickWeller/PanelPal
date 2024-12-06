@@ -8,38 +8,21 @@ from compare_panel_versions import validate_panel
 def print_help():
     """Print custom help message for PanelPal."""
     help_message = """
-PanelPal is a command-line toolkit designed for querying and generating genomic panel
-BED files from PanelApp. It provides functionalities to:
-  - Check panel details
-  - Generate BED files for genomic panels
-  - Compare versions of the same panel
-
-Author: Team Jenkins
-Version: 1.0.0
+PanelPal: A toolkit for panelapp queries
+version: 1.0.0 
 
 Available Commands:
-  {check-panel,generate-bed,compare-panel-versions}
-    check-panel         Check panel information for a given panel ID.
-                        Example: PanelPal check-panel --panel_id R59
+    check-panel             Check panel information for a given panel ID.
+                            Example: PanelPal check-panel --panel_id R59
 
-    generate-bed        Generate a BED file for a genomic panel. Requires the
-                        panel ID, panel version, and genome build.
-                        Example: PanelPal generate-bed --panel_id R59 --panel_version 4 --genome_build GRCh38
+    generate-bed            Generate a BED file for a genomic panel. Requires the
+                            panel ID, panel version, and genome build.
+                            Example: PanelPal generate-bed --panel_id R59 --panel_version 4 --genome_build GRCh38
 
-    compare-panel-versions
-                        Compare two versions of a genomic panel. Requires
-                        the panel ID and two version numbers. Optionally, filter by gene status.
-                        Example: PanelPal compare-panel-versions --panel R21 --versions 1.0 2.2 --status_filter green
-
-Examples of full usage:
-  - Check panel info:
-      PanelPal check-panel --panel_id R59
-
-  - Generate a BED file for a specific panel:
-      PanelPal generate-bed --panel_id R59 --panel_version 4 --genome_build GRCh38
-
-  - Compare two panel versions with a status filter:
-      PanelPal compare-panel-versions --panel R21 --versions 1.0 2.2 --status_filter green
+    compare-panel-versions  Compare two versions of a genomic panel. Requires
+                            the panel ID and two version numbers. Optionally, filter by gene status.
+                            Example: PanelPal compare-panel-versions --panel R21 --versions 1.0 2.2 --status_filter green
+    --help, -h              Prints this help message
     """
     print(help_message)
 
