@@ -9,7 +9,7 @@ import argparse
 import sys
 import pytest
 
-from compare_panel_versions import (
+from PanelPal.compare_panel_versions import (
     validate_panel,
     determine_order,
     is_gene_absent,
