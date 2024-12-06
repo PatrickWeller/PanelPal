@@ -47,8 +47,7 @@ from PanelPal.accessories import variant_validator_api_functions
 from PanelPal.accessories import panel_app_api_functions
 from PanelPal.settings import get_logger
 
-
-# Create a logger named after generate_bed
+# Set up logger
 logger = get_logger(__name__)
 
 def parse_arguments():
@@ -104,7 +103,7 @@ def parse_arguments():
 
     return args
 
-def main():
+def main(panel_id=None,panel_version=None,genome_build=None):
     """
     Main function that processes the panel data and generates the BED file.
     
@@ -122,19 +121,16 @@ def main():
     Exception
         If an error occurs during any part of the BED file generation process.
     """
+
+    # Accesses values from the command line through argument parsing if not passed directly from PanelPal main()
+    if panel_id is None or panel_version is None or genome_build is None:
+        args = parse_arguments()
+        panel_id = args.panel_id
+        panel_version = args.panel_version
+        genome_build = args.genome_build
+    
     # Log the start of the BED generation process
-    args = parse_arguments()
-
-    panel_id = args.panel_id
-    panel_version = args.panel_version
-    genome_build = args.genome_build
-
-    logger.info(
-        "Starting main process for panel_id=%s, panel_version=%s, genome_build=%s", 
-        panel_id,
-        panel_version,
-        genome_build
-        )
+    logger.info(f"Command executed: generate-bed --panel_id {panel_id} --panel_version {panel_version} --genome_build {genome_build}")
 
     try:
         # Fetch the panel data from PanelApp using the panel_id
