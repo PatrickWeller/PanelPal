@@ -93,6 +93,14 @@ def main():
         help="The HGNC symbol of the gene to query (e.g., BRCA1).",
     )
 
+    parser_gene_panels.add_argument(
+        "--confidence_status",
+        type=str,
+        default="green",
+        choices=["red", "amber", "green", "all"],
+        help="Filter panels by confidence status. Defaults to 'green'.",
+    )
+
     # Subcommand: compare-panel-versions
     parser_versions = subparsers.add_parser(
         "compare-panel-versions",
@@ -124,8 +132,10 @@ def main():
         panel_id = args.panel_id
         check_panel_main(panel_id)
     elif args.command == "gene-panels":
-        hgnc_symbol = args.hgnc_symbol
-        gene_to_panels_main(hgnc_symbol)
+        gene_to_panels_main(
+            hgnc_symbol=args.hgnc_symbol,
+            confidence_status=args.confidence_status,
+        )
     elif args.command == "generate-bed":
         panel_id=args.panel_id
         panel_version=args.panel_version,
