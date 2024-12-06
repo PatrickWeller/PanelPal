@@ -35,7 +35,7 @@ jobs:
     - name: Cache Conda Environment
       uses: actions/cache@v3
       with:
-        path: /home/runner/miniconda3/envs/PanelPal
+        path: /usr/share/miniconda/envs/PanelPal
         key: ${{ runner.os }}-conda-${{ hashFiles('environment.yml') }}
         restore-keys: |
           ${{ runner.os }}-conda-
