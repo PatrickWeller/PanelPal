@@ -27,9 +27,9 @@ jobs:
     # Trouble Shooting
     - name: Print Conda Environment Location
       run: |
-      conda info --envs
-      echo "HOME directory: $HOME"
-      ls -la $HOME
+        conda info --envs
+        echo "HOME directory: $HOME"
+        ls -la $HOME
 
     # Cache Conda environment
     - name: Cache Conda Environment
