@@ -87,8 +87,8 @@ The following structure should be used going foward to keep the project director
 │   │   └── variant_validator_api_functions.py
 │   ├── check_panel.py
 │   ├── compare_panel_versions.py
-│   ├── generate_bed.py # This script will require restructuring to be called from 
-│   ├── __init__.py     # the main PanelPal function
+│   ├── generate_bed.py
+│   ├── __init__.py
 │   ├── logging
 │   │   └── panelpal.log
 │   ├── main.py
