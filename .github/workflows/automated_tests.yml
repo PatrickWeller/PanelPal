@@ -29,17 +29,12 @@ jobs:
       run: |
         pip install .
 
-    # Initialize Conda for bash and activate the environment
-    - name: Activate Conda environment
+    # Initialize Conda for bash, activate the environment and run the tests
+    - name: Run Automated Unit and Functional Tests
       shell: bash
       run: |
         echo "Setting up Conda for bash"
         conda init bash
         source ~/.bashrc
         conda activate PanelPal
-    
-    # Run tests
-    - name: Run Unit and Functional Tests with Pytest
-      shell: bash
-      run: |
         pytest test/
