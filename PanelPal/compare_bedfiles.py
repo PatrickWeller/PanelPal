@@ -1,7 +1,33 @@
-import os
+"""
+This script compares two BED files and writes the differences to an output file.
+
+The script takes two BED files as input, compares them, and identifies the entries 
+that are present in one file but not the other. The differences are then written 
+to an output file. Each entry in the output is tagged with whether it was found 
+in the first or second file.
+
+The script expects two command-line arguments: the paths to the first and second 
+BED files. The comparison results are saved in a predefined folder called 
+'PanelPal/bedfile_comparisons', with the output file name reflecting the input 
+files.
+
+Functions
+---------
+parse_arguments() :
+    Parses command-line arguments for the script.
+main() :
+    Main entry point of the script. Parses arguments and calls the compare_bed_files 
+    function to compare the BED files.
+
+Raises
+------
+FileNotFoundError :
+    If one or both of the input files do not exist.
+"""
+
 import argparse
 from PanelPal.settings import get_logger
-from PanelPal.accessories.compare_bed_functions import read_bed_file, compare_bed_files
+from PanelPal.accessories.compare_bed_functions import compare_bed_files
 
 logger = get_logger(__name__)
 
@@ -46,6 +72,6 @@ def main():
     args = parse_arguments()
 
     compare_bed_files(args.file1, args.file2)
-    
+
 if __name__ == "__main__":
     main()
