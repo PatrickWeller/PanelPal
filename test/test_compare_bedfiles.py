@@ -1,3 +1,13 @@
+"""
+Tests for the `compare_bedfiles.py` script in the PanelPal module using
+`pytest` and `unittest.mock`.
+
+Tests include:
+
+- Handling of missing or extra arguments
+- Successful execution with different bedfiles
+- Successful execution with identical bedfiles
+"""
 import sys
 import subprocess
 from unittest import mock
