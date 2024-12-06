@@ -24,6 +24,12 @@ jobs:
       run: |
         conda env create --file env/environment.yaml || conda env update -f environment.yml --prune
 
+    - name: Print Conda Environment Location
+    run: |
+      conda info --envs
+      echo "HOME directory: $HOME"
+      ls -la $HOME
+
     # Cache Conda environment
     - name: Cache Conda Environment
       uses: actions/cache@v3
