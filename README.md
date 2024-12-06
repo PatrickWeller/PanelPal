@@ -92,8 +92,8 @@ The following structure should be used going foward to keep the project director
 │   ├── logging
 │   │   └── panelpal.log
 │   ├── main.py
-│   ├── settings.py
-│   └── setup.py
+│   └── settings.py
+├── setup.py
 ├── README.md
 └── test
     ├── __init__.py
