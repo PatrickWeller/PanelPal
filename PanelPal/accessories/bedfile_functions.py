@@ -39,29 +39,57 @@ def bed_file_exists(panel_name, panel_version, genome_build):
     """
     Check if a bed file with a certain name already exists
     """
-    # Define the expected BED file name
-    output_file = f"{panel_name}_v{panel_version}_{genome_build}.bed"
-    # Check if the file exists
-    return os.path.isfile(output_file)
+    if not all([panel_name, panel_version, genome_build]):
+        raise ValueError(
+            "Panel name, panel version, or genome build missing."
+        )
+    try:
+        # Define the expected BED file name
+        output_file = f"{panel_name}_v{panel_version}_{genome_build}.bed"
+        # Check if the file exists
+        return os.path.isfile(output_file)
+    
+    except ValueError as e:
+        logger.error("Invalid arguments provided: %s", e)
+        raise
+
+    except Exception as e:
+        logger.error("An unexpected error occurred: %s", e)
+        raise
 
 def read_bed_file(filename):
     """
     Reads a BED file, ignoring header lines starting with '#'.
     Returns a set of BED entries (start, end, and any additional columns).
     """
-    bed_entries = set()
-    with open(filename, 'r', encoding='utf-8') as file:
-        for line in file:
-            line = line.strip()
-            if not line or line.startswith('#'):
-                continue
-            fields = line.split('\t')
-            # Concatenate all columns with underscores
-            concatenated_entry = '_'.join(fields)
-            bed_entries.add(concatenated_entry)
+    if not os.path.isfile(filename):
+            raise FileNotFoundError("The file %s does not exist.", filename)
+    
+    try:
+        bed_entries = set()
+        with open(filename, 'r', encoding='utf-8') as file:
+            for line in file:
+                line = line.strip()
+                if not line or line.startswith('#'):
+                    continue
+                fields = line.split('\t')
+                # Concatenate all columns with underscores
+                concatenated_entry = '_'.join(fields)
+                bed_entries.add(concatenated_entry)
 
-    return sorted(bed_entries)
+        return sorted(bed_entries)
 
+    except FileNotFoundError as f:
+        logger.error("File not found: %s", f)
+        raise
+
+    except ValueError as v:
+        logger.error("Invalid BED file format: %s", v)
+        raise
+
+    except Exception as e:
+        logger.error("An unexpected error occurred while reading '%s': %s", filename, e)
+        raise
 
 def compare_bed_files(file1, file2):
     """
@@ -81,6 +109,11 @@ def compare_bed_files(file1, file2):
     FileNotFoundError
         If one or both of the input files do not exist.
     """
+    if not os.path.isfile(file1):
+            raise FileNotFoundError("The file %s does not exist.", file1)
+    if not os.path.isfile(file2):
+            raise FileNotFoundError("The file %s does not exist.", file2)
+    
     try:
         # Read the BED files
         bed_file1 = read_bed_file(file1)
@@ -90,8 +123,13 @@ def compare_bed_files(file1, file2):
         output_folder = "bedfile_comparisons"
 
         # Create the output folder if it does not exist
-        if not os.path.exists(output_folder):
-            os.makedirs(output_folder)
+        try:
+            if not os.path.exists(output_folder):
+                os.makedirs(output_folder)
+
+        except OSError as o:
+            logger.error("Failed to create output folder '%s': %s", output_folder, o)
+            raise
 
         # Generate the output file name based on input file names
         output_file = os.path.join(
@@ -110,29 +148,34 @@ def compare_bed_files(file1, file2):
         }
 
         # Write the differences to the output file
-        with open(output_file, 'w', encoding='utf-8') as out_file:
-            header = (f"{'Entry'.ljust(col_widths['entry'])}"
-                      f"{'Comment'.ljust(col_widths['comment'])}\n")
+        try:
+            with open(output_file, 'w', encoding='utf-8') as out_file:
+                header = (f"{'Entry'.ljust(col_widths['entry'])}"
+                        f"{'Comment'.ljust(col_widths['comment'])}\n")
 
-            # Header for readability
-            out_file.write(header)
+                # Header for readability
+                out_file.write(header)
 
-            # Add a separator line for readability
-            out_file.write("=" * (col_widths["entry"] + col_widths["comment"]) + "\n")
+                # Add a separator line for readability
+                out_file.write("=" * (col_widths["entry"] + col_widths["comment"]) + "\n")
 
-            # Write differences
-            for entry in diff_file1:
-                out_file.write(
-                    f"{entry.ljust(col_widths['entry'])}# Present in {file1} only\n"
-                    )
-            for entry in diff_file2:
-                out_file.write(
-                    f"{entry.ljust(col_widths['entry'])}# Present in {file2} only\n"
-                    )
+                # Write differences
+                for entry in diff_file1:
+                    out_file.write(
+                        f"{entry.ljust(col_widths['entry'])}# Present in {file1} only\n"
+                        )
+                for entry in diff_file2:
+                    out_file.write(
+                        f"{entry.ljust(col_widths['entry'])}# Present in {file2} only\n"
+                        )
 
-        logger.info(
-            "Comparison complete. Differences saved in %s", output_file
-            )
+            logger.info(
+                "Comparison complete. Differences saved in %s", output_file
+                )
+            
+        except IOError as e:
+            logger.error("Failed to write to output file '%s': %s", output_file, e)
+            raise
 
     except FileNotFoundError as e:
         logger.error(
