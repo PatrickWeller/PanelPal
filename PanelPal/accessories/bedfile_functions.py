@@ -46,9 +46,17 @@ def bed_file_exists(panel_name, panel_version, genome_build):
     try:
         # Define the expected BED file name
         output_file = f"{panel_name}_v{panel_version}_{genome_build}.bed"
+        logger.debug("Checking existence of BED file: %s", output_file)
+
         # Check if the file exists
-        return os.path.isfile(output_file)
-    
+        file_exists = os.path.isfile(output_file)
+
+        if file_exists:
+            logger.info("BED file exists: %s", output_file)
+        else:
+            logger.debug("BED file does not exist: %s", output_file)
+        return file_exists
+
     except ValueError as e:
         logger.error("Invalid arguments provided: %s", e)
         raise
@@ -63,9 +71,10 @@ def read_bed_file(filename):
     Returns a set of BED entries (start, end, and any additional columns).
     """
     if not os.path.isfile(filename):
-            raise FileNotFoundError("The file %s does not exist.", filename)
-    
+        raise FileNotFoundError(f"The file {filename} does not exist.")
+
     try:
+        logger.info("Reading BED file: %s", filename)
         bed_entries = set()
         with open(filename, 'r', encoding='utf-8') as file:
             for line in file:
@@ -77,6 +86,9 @@ def read_bed_file(filename):
                 concatenated_entry = '_'.join(fields)
                 bed_entries.add(concatenated_entry)
 
+        logger.info("Successfully read %d entries from file: %s",
+                    len(bed_entries),
+                    filename)
         return sorted(bed_entries)
 
     except FileNotFoundError as f:
@@ -110,12 +122,15 @@ def compare_bed_files(file1, file2):
         If one or both of the input files do not exist.
     """
     if not os.path.isfile(file1):
-            raise FileNotFoundError("The file %s does not exist.", file1)
+        logger.error("Input file does not exist: %s", file1)
+        raise FileNotFoundError(f"The file {file1} does not exist.")
     if not os.path.isfile(file2):
-            raise FileNotFoundError("The file %s does not exist.", file2)
-    
+        logger.error("Input file does not exist: %s", file2)
+        raise FileNotFoundError(f"The file {file2} does not exist.")
+
     try:
         # Read the BED files
+        logger.info("Comparing BED files: %s and %s", file1, file2)
         bed_file1 = read_bed_file(file1)
         bed_file2 = read_bed_file(file2)
 
@@ -125,6 +140,7 @@ def compare_bed_files(file1, file2):
         # Create the output folder if it does not exist
         try:
             if not os.path.exists(output_folder):
+                logger.debug("Creating output folder: %s", output_folder)
                 os.makedirs(output_folder)
 
         except OSError as o:
@@ -138,6 +154,7 @@ def compare_bed_files(file1, file2):
             )
 
         # Find the differences
+        logger.debug("Calculating differences between the BED files.")
         diff_file1 = sorted(set(bed_file1) - set(bed_file2))
         diff_file2 = sorted(set(bed_file2) - set(bed_file1))
 
@@ -172,7 +189,7 @@ def compare_bed_files(file1, file2):
             logger.info(
                 "Comparison complete. Differences saved in %s", output_file
                 )
-            
+
         except IOError as e:
             logger.error("Failed to write to output file '%s': %s", output_file, e)
             raise
