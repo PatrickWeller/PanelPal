@@ -137,7 +137,7 @@ def extract_r_codes_from_disorders(panels_df):
     return panels_df
 
 
-def write_panels(hgnc_symbol, df):
+def write_panels(hgnc_symbol, confidence_status, df):
     """
     Write panel data to a CSV file.
 
@@ -152,7 +152,7 @@ def write_panels(hgnc_symbol, df):
     -------
     None
     """
-    output_file = f"panels_containing_{hgnc_symbol}.tsv"
+    output_file = f"panels_containing_{hgnc_symbol}_{confidence_status}.tsv"
     df.to_csv(
         output_file,
         columns=["PanelApp ID","R Code", "Panel Name","Gene Status"],
@@ -186,8 +186,8 @@ def main(hgnc_symbol=None, confidence_status="green"):
         hgnc_symbol = args.hgnc_symbol
         confidence_status = args.confidence_status
 
-    logger.info(f"Command executed: gene-panels --hgnc_symbol {hgnc_symbol}")
-    print(f"Command executed: gene-panels --hgnc_symbol {hgnc_symbol}\n")
+    logger.info(f"Command executed: gene-panels --hgnc_symbol {hgnc_symbol} --confidence_status {confidence_status}")
+    print(f"Command executed: gene-panels --hgnc_symbol {hgnc_symbol} --confidence_status {confidence_status}\n")
 
     try:
         logger.info(f"Querying PanelApp API for gene: {hgnc_symbol}")
@@ -214,7 +214,7 @@ def main(hgnc_symbol=None, confidence_status="green"):
             status = row["Gene Status"]
             print(f"{panel_id:<15}{r_code:<15}{panel_name:<75}{status}")
 
-        write_panels(hgnc_symbol, panels_with_r_codes)
+        write_panels(hgnc_symbol, confidence_status, panels_with_r_codes)
 
     except requests.RequestException as e:
         logger.error(f"Error querying the API: {e}")

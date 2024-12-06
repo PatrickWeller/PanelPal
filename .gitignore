@@ -1,7 +1,7 @@
 ignore/
 PanelPal/app.log
 PanelPal/accessories/__pycache__/
-PanelPal/PanelPal.egg-info
+PanelPal/PanelPal.egg-info/
 PanelPal/__pycache__/
 test/__pycache__/
 __pycache__/
@@ -12,3 +12,5 @@ DB/
 .coverage
 .coveragerc
 *.pyc
+*.csv
+*.bed
