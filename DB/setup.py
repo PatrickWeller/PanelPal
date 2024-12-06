@@ -1,38 +1,44 @@
 """
 Module for connecting to a SQLite database and retrieving patient records.
 
-This module contains functions that establish a connection to a SQLite database, "panelpal.db",
-fetching patient data from it. Operations are logged and errors are raised if they arise.
+This module provides functionality for establishing a connection to a SQLite database
+("panelpal.db") and fetching patient records from the "panelpal" table. All database
+operations are logged, and any errors that occur during the operations are raised.
 
-Functions:
-    - Establish connection to SQLite database.
-    - Fetch patient records from the "panelpal" table, which includes fields: 
-        patient ID, analysis date, name, date of birth, NHS number, test R code, genes, 
-        bed file link.
-    - Logs of all operations and any errors that arise during database interactions. 
+Functions
+---------
+- connect
+    Establishes a connection to the SQLite database "panelpal.db".
 
-Example usage:
-    To fetch paitent records from the database, call `fetch_patients()`. 
-    All logs will be written to both the console and specified log file. 
+- fetch_patients
+    Fetches patient records from the "panelpal" table in the database. Each patient record
+    includes the following fields:
+    - patient ID
+    - analysis date
+    - name
+    - date of birth
+    - NHS number
+    - test R code
+    - genes
+    - bed file link
+
+Dependencies
+------------
+- sqlite3 : For interacting with the SQLite database to establish connections and execute queries.
+- logging : For logging the progress of operations and any errors that arise.
+
+Example Usage
+-------------
+>>> conn = connect()
+>>> patients = fetch_patients()
+
 """
 
 import sqlite3
-import logging
+from PanelPal.settings import get_logger
 
-
-# logging
-logging.basicConfig(
-    level=logging.DEBUG,
-    # format debugging messages (timestamp, name of logger, level of log message, actual message)
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.FileHandler("../logging/DBsetup.log"),  # store logs here
-        logging.StreamHandler(),  # print to stdout as well
-    ],
-)
-
-# initialise logger
-logger = logging.getLogger(__name__)
+# Initialise logger
+logger = get_logger(__name__)
 
 
 def connect():
@@ -67,17 +73,28 @@ def connect():
 
 def fetch_patients():
     """
-    Fetches the patient records from panelpal input into the SQLite database.
+    Fetches patient records from the "panelpal" table in the SQLite database.
 
-    This function retrieves all patient records from the "panelpal" table within the
-    SQLite database, logging the retrieval process and number of patients fetched.
+    This function retrieves all patient records from the "panelpal" table, logging the
+    retrieval process and number of patients fetched.
 
-    Returns: a list of patient records, including the fields:
-        patient ID, analysis date, patient name, DOB, NHS number,
-        test R code, list of genes included in the test, link to BAM file.
+    Returns:
+        results: A list of tuples, where each tuple contains a patient
+        record with the following fields:
+        - patient ID
+        - analysis date
+        - name
+        - date of birth
+        - NHS number
+        - test R code
+        - genes
+        - bed file link
 
     Raises:
-        sqlite3.Error: if fetching data from the database fails, an exception is raised.
+        sqlite3.Error: If fetching data from the database fails, an exception is raised.
+
+    Notes:
+        This function assumes the "panelpal" table exists in the connected SQLite database.
     """
     # initialise the connection variable
     conn = None

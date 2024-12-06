@@ -26,7 +26,7 @@ from unittest.mock import patch, MagicMock
 import pytest
 import requests
 import sys
-from PanelPal.check_panel import (
+from check_panel import (
     format_panel_id,
     is_valid_panel_id,
     fetch_panel_info,
@@ -234,7 +234,7 @@ def test_main_no_panel_id(mock_parse_arguments):
     - This test simulates the `parse_arguments()` function returning a mock panel ID of `'R59'`.
     - Ensures that the `main()` function correctly invokes `parse_arguments()` when no `panel_id`
       is explicitly passed.
-    
+
     Args
     ----------
     mock_parse_arguments : unittest.mock.Mock
@@ -254,4 +254,3 @@ def test_main_no_panel_id(mock_parse_arguments):
 
     # Assert that parse_arguments() was called
     mock_parse_arguments.assert_called_once()
-

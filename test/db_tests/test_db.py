@@ -41,13 +41,12 @@ class TestDatabase(unittest.TestCase):
                     nhs_number TEXT UNIQUE NOT NULL,
                     r_code TEXT NOT NULL,
                     gene_list TEXT NOT NULL,
-                    bam_file TEXT NOT NULL
+                    bed_file TEXT NOT NULL
                 );
             """
         )
         self.conn.commit()  # sends commit statement to SQL server, committing the transaction
 
-    # teardown = special method that runs immediately after calling tests
     def tearDown(self):
         """
         Close database connection after each test.

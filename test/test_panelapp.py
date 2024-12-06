@@ -1,19 +1,22 @@
 import responses
 import pytest
 import requests
-from PanelPal.accessories.panel_app_api_functions import (
+from accessories.panel_app_api_functions import (
     get_response,
     get_name_version,
     get_genes,
+    get_response_old_panel_version,
 )
+from accessories.panel_app_api_functions import PanelAppError
 
 
 class TestGetResponse:
 
     def test_get_response_success(self):
         """
-        Tests successful api requests generates both a correct json, and a 200 status code.
+        Tests successful api requests generates both a correct json, and a 200 status code
         """
+
         panel_id = "R233"
 
         # This is real data from the api from panel R233
@@ -268,10 +271,198 @@ class TestGetNameVersion:
             "version": "1.1",
         }
 
+    @responses.activate
+    def test_value_error_on_invalid_json(self):
+        """
+        Test that the function raises PanelAppError when the response JSON is invalid,
+        causing a ValueError during parsing.
+        """
+        url = "https://panelapp.genomicsengland.co.uk/api/v1/panels/123/?version=1.0"
+
+        # Mock an invalid JSON response (e.g., broken or malformed JSON)
+        responses.add(
+            responses.GET,
+            url,
+            body="invalid_json",  # Invalid JSON will trigger a ValueError
+            status=200,
+        )
+
+        # Perform the request and expect a PanelAppError to be raised
+        response = requests.get(url)
+        with pytest.raises(PanelAppError, match="Failed to parse panel data."):
+            get_name_version(response)
+
 
 class TestGetGenes:
+    @responses.activate
+    def test_get_genes_success(self):
+        """
+        Test that the function returns a list of gene symbols on success.
+        """
+        # Mock URL used for simulating the API call
+        url = "https://panelapp.genomicsengland.co.uk/api/v1/panels/R233"
+
+        # Mock a successful response with gene symbols in the JSON body
+        responses.add(
+            responses.GET,
+            url,
+            json={
+                "genes": [
+                    {"gene_data": {"gene_symbol": "BRCA1"}},
+                    {"gene_data": {"gene_symbol": "BRCA2"}},
+                ]
+            },
+            status=200,
+        )
+
+        # Send a GET request to the mocked URL
+        response = requests.get(url)
+
+        # Call the function being tested
+        genes = get_genes(response)
+
+        # Assert that the function returns the correct list of gene symbols
+        assert genes == ["BRCA1", "BRCA2"]
 
     @responses.activate
-    def test_response(self): ...
+    def test_get_genes_http_error(self):
+        """
+        Test that an HTTP error raises requests.exceptions.HTTPError.
+        """
+        # Mock URL used for simulating the API call
+        url = "https://panelapp.genomicsengland.co.uk/api/v1/panels/R233"
 
-    def test_succcess(self): ...
+        # Mock a 404 response with a 'Not found' message in the JSON body
+        responses.add(responses.GET, url, json={"detail": "Not found."}, status=404)
+
+        # Send a GET request to the mocked URL
+        response = requests.get(url)
+
+        # Assert that the function raises an HTTPError for the 404 response
+        with pytest.raises(requests.exceptions.HTTPError):
+            get_genes(response)
+
+    @responses.activate
+    def test_get_genes_json_error(self):
+        """
+        Test that a JSON parsing error raises PanelAppError.
+        """
+        # Mock URL used for simulating the API call
+        url = "https://panelapp.genomicsengland.co.uk/api/v1/panels/R233"
+
+        # Mock a response with invalid JSON content
+        responses.add(responses.GET, url, body='{"genes": [invalid_json]}', status=200)
+
+        # Send a GET request to the mocked URL
+        response = requests.get(url)
+
+        # Assert that the function raises a PanelAppError for invalid JSON
+        with pytest.raises(PanelAppError):
+            get_genes(response)
+
+
+class TestGetResponseOldPanelVersion:
+    @responses.activate
+    def test_successful_response(self):
+        """
+        Test that the function returns the response object when the request is successful.
+        """
+        panel_pk = "123"
+        version = "2.0"
+        # Construct the URL using panel_pk and version
+        url = f"https://panelapp.genomicsengland.co.uk/api/v1/panels/{panel_pk}/?version={version}"
+
+        # Mock a successful response with status 200 and a success message
+        responses.add(responses.GET, url, json={"status": "success"}, status=200)
+
+        # Call the function to test and assert expected response values
+        response = get_response_old_panel_version(panel_pk, version)
+        assert response.status_code == 200
+        assert response.json() == {"status": "success"}
+
+    @responses.activate
+    def test_get_response_old_panel_version_timeout(self):
+        """
+        Tests for Timeout Errors in get_response_old_panel_version
+        """
+        panel_pk = "123"
+        version = "1.0"
+        url = f"https://panelapp.genomicsengland.co.uk/api/v1/panels/{panel_pk}/?version={version}"
+
+        # Simulate a timeout by raising a `ConnectTimeout` when the request is made
+        responses.add(
+            responses.GET,
+            url,
+            body=requests.exceptions.ConnectTimeout(),
+        )
+
+        # Test that the correct exception is raised with the expected message
+        with pytest.raises(
+            PanelAppError,
+            match=f"Timeout: Panel {panel_pk} request exceeded the time limit. Please try again",
+        ):
+            get_response_old_panel_version(panel_pk, version)
+
+    @responses.activate
+    def test_404_error(self):
+        """
+        Test that the function raises PanelAppError for a 404 Not Found response.
+        """
+        panel_pk = "999"
+        version = "1.0"
+        # Construct the URL for a nonexistent panel version
+        url = f"https://panelapp.genomicsengland.co.uk/api/v1/panels/{panel_pk}/?version={version}"
+
+        # Mock a 404 Not Found response
+        responses.add(responses.GET, url, status=404)
+
+        # Expect a PanelAppError to be raised with the correct error message
+        with pytest.raises(
+            PanelAppError,
+            match=f"Failed to retrieve version {version} of panel {panel_pk}.",
+        ):
+            get_response_old_panel_version(panel_pk, version)
+
+    @responses.activate
+    def test_server_error(self):
+        """
+        Test that the function raises PanelAppError for a 500 Internal Server Error response.
+        """
+        panel_pk = "123"
+        version = "3.0"
+        # Construct the URL for the panel and version
+        url = f"https://panelapp.genomicsengland.co.uk/api/v1/panels/{panel_pk}/?version={version}"
+
+        # Mock a 500 Internal Server Error response
+        responses.add(responses.GET, url, status=500)
+
+        # Expect a PanelAppError to be raised for server-side issues
+        with pytest.raises(
+            PanelAppError,
+            match=f"Failed to retrieve version {version} of panel {panel_pk}.",
+        ):
+            get_response_old_panel_version(panel_pk, version)
+
+    @responses.activate
+    def test_network_error(self):
+        """
+        Test that the function raises PanelAppError for network-related issues.
+        """
+        panel_pk = "456"
+        version = "1.1"
+        # Construct the URL for the panel and version
+        url = f"https://panelapp.genomicsengland.co.uk/api/v1/panels/{panel_pk}/?version={version}"
+
+        # Simulate a network-related error such as a connection issue
+        responses.add(
+            responses.GET,
+            url,
+            body=responses.ConnectionError("Network error occurred."),
+        )
+
+        # Expect a PanelAppError to be raised due to network issues
+        with pytest.raises(
+            PanelAppError,
+            match=f"Failed to retrieve version {version} of panel {panel_pk}.",
+        ):
+            get_response_old_panel_version(panel_pk, version)
