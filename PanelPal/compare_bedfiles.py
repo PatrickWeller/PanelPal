@@ -1,7 +1,7 @@
 import os
 import argparse
 from PanelPal.settings import get_logger
-from PanelPal.accessories.compare_bed_functions import read_bed_file
+from PanelPal.accessories.compare_bed_functions import read_bed_file, compare_bed_files
 
 logger = get_logger(__name__)
 
@@ -45,54 +45,7 @@ def main():
     # Parse command-line arguments
     args = parse_arguments()
 
-    try:
-        # Read the BED files
-        bed_file1 = read_bed_file(args.file1)
-        bed_file2 = read_bed_file(args.file2)
-
-        # Specify output folder
-        output_folder = "PanelPal/bedfile_comparisons"
-
-        # Create folder if does not exist
-        if not os.path.exists(output_folder):
-            os.makedirs(output_folder)
-
-        # Specify output file path
-        output_file = os.path.join(output_folder,
-                                   f"comparison_{os.path.basename(args.file1)}_"
-                                   f"{os.path.basename(args.file2)}.bed")
-
-        # Find the differences
-        diff_file1 = sorted(set(bed_file1) - set(bed_file2))
-        diff_file2 = sorted(set(bed_file2) - set(bed_file1))
-
-        # Column widths for formatting output
-        col_widths = {
-            "entry": 60, 
-            "comment": 40
-        }
-
-        # Write the differences to the output file
-        with open(output_file, 'w', encoding='utf-8') as out_file:
-            header = (f"{'Entry'.ljust(col_widths['entry'])}"
-                      f"{'Comment'.ljust(col_widths['comment'])}\n")
-            out_file.write(header)
-            # Add a separator line for readability
-            out_file.write("=" * (col_widths["entry"] + col_widths["comment"]) + "\n")
-
-            # Write differences
-            for entry in diff_file1:
-                out_file.write(f"{entry.ljust(col_widths['entry'])}# Present in "
-                               f"{args.file1} only\n")
-            for entry in diff_file2:
-                out_file.write(f"{entry.ljust(col_widths['entry'])}# Present in "
-                               f"{args.file2} only\n")
-
-        logger.info(f"Comparison complete. Differences saved in {output_file}")
-
-    except FileNotFoundError as e:
-        logger.error(f"Error: {e}")
-        raise
-
+    compare_bed_files(args.file1, args.file2)
+    
 if __name__ == "__main__":
     main()

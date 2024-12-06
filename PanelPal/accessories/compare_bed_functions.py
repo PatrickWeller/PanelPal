@@ -23,6 +23,9 @@ True
 """
 
 import os
+from PanelPal.settings import get_logger
+
+logger = get_logger(__name__)
 
 def bed_file_exists(panel_name, panel_version, genome_build):
     """
@@ -50,3 +53,69 @@ def read_bed_file(filename):
             bed_entries.add(concatenated_entry)
 
     return sorted(bed_entries)
+
+
+def compare_bed_files(file1, file2):
+    """
+    Compare two BED files and write the differences to an output file.
+    Outputs BED entries present only in either file1 or file2.
+    Each entry will be tagged with whether it was found in file1 or file2.
+
+    Parameters
+    ----------
+    file1 : str
+        Path to the first BED file.
+    file2 : str
+        Path to the second BED file.
+
+    Raises
+    ------
+    FileNotFoundError
+        If one or both of the input files do not exist.
+    """
+    try:
+        # Read the BED files
+        bed_file1 = read_bed_file(file1)
+        bed_file2 = read_bed_file(file2)
+
+        # Specify output folder (hardcoded)
+        output_folder = "bedfile_comparisons"
+
+        # Create the output folder if it does not exist
+        if not os.path.exists(output_folder):
+            os.makedirs(output_folder)
+
+        # Generate the output file name based on input file names
+        output_file = os.path.join(output_folder, 
+                                   f"comparison_{os.path.basename(file1)}_{os.path.basename(file2)}.txt")
+
+        # Find the differences
+        diff_file1 = sorted(set(bed_file1) - set(bed_file2))
+        diff_file2 = sorted(set(bed_file2) - set(bed_file1))
+
+        # Column widths for formatting output
+        col_widths = {
+            "entry": 60, 
+            "comment": 40
+        }
+
+        # Write the differences to the output file
+        with open(output_file, 'w', encoding='utf-8') as out_file:
+            header = (f"{'Entry'.ljust(col_widths['entry'])}"
+                      f"{'Comment'.ljust(col_widths['comment'])}\n")
+            out_file.write(header)
+            
+            # Add a separator line for readability
+            out_file.write("=" * (col_widths["entry"] + col_widths["comment"]) + "\n")
+
+            # Write differences
+            for entry in diff_file1:
+                out_file.write(f"{entry.ljust(col_widths['entry'])}# Present in {file1} only\n")
+            for entry in diff_file2:
+                out_file.write(f"{entry.ljust(col_widths['entry'])}# Present in {file2} only\n")
+
+        logger.info(f"Comparison complete. Differences saved in {output_file}")
+
+    except FileNotFoundError as e:
+        logger.error(f"Error: {e}")
+        raise
