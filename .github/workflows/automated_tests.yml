@@ -23,16 +23,12 @@ jobs:
     - name: Create Conda environment
       run: |
         conda env create --file env/environment.yaml
-
-    # Set PYTHONPATH for imports
-    - name: Set PYTHONPATH
-      run: echo "PYTHONPATH=$(pwd):$PYTHONPATH" >> $GITHUB_ENV
     
     # Change directory to PanelPal and install the package in editable mode
     - name: Set up PanelPal
       run: |
         cd PanelPal
-        pip install -e .
+        pip install .
 
     # Initialize Conda for bash and activate the environment then run tests
     - name: Activate Conda environment
