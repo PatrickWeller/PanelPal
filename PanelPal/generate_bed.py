@@ -40,9 +40,12 @@ Notes
 """
 
 import argparse
-from accessories import variant_validator_api_functions
-from accessories import panel_app_api_functions
-from settings import get_logger
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from PanelPal.accessories import variant_validator_api_functions
+from PanelPal.accessories import panel_app_api_functions
+from PanelPal.settings import get_logger
 
 # Set up logger
 logger = get_logger(__name__)
