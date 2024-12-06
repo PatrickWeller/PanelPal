@@ -10,7 +10,7 @@ setup(
     python_requires=">=3.6",
     entry_points={
         'console_scripts': [
-            'PanelPal=main:main',  # Single command for all subcommands
+            'PanelPal = PanelPal.main:main',  # Single command for all subcommands
         ],
     },
 )
