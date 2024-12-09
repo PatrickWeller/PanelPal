@@ -164,7 +164,7 @@ def get_genes(response, status_filter="green"):
     response : requests.Response
         The response object returned from the PanelApp API.
     status_filter : str, optional
-        The gene status that you want to filter by E.g. green, amber or red/all
+        The gene status that you want to filter by E.g. green, amber, red, all
 
     Returns
     -------
