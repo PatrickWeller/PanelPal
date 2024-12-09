@@ -222,5 +222,5 @@ def main(panel_id=None, panel_version=None, genome_build=None, status_filter='gr
         raise
 
 
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
     main()
