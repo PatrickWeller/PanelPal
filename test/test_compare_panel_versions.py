@@ -210,12 +210,13 @@ class TestMain:
         # Specify CL arguments
         sys.argv = [
             "compare_panel_versions.py",
-            "--panel", "R21",
-            "-v", "1.5", "1.9"
+            "-p", "R21",
+            "-v", "1.5", "1.9",
+            "-f", "all"
         ]
 
         # Specify what output is expected
-        expected_output = "Removed genes: []\nAdded genes: ['LMOD1', 'MYH11', 'PAICS']"
+        expected_output = "Removed genes: []\nAdded genes: ['LMOD1', 'MYH11']"
 
         # Run main
         main()
