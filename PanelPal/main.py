@@ -34,12 +34,13 @@ To check panel information for a specific panel ID:
     $ PanelPal check-panel --panel_id R59
 
 To generate a BED file for a specific panel, version, and genome build:
-    $ PanelPal generate-bed --panel_id R59 --panel_version 4 --genome_build GRCh38 --status_filter amber
+    $ PanelPal generate-bed --panel_id R59 --panel_version 4 --genome_build GRCh38 
+        --status_filter amber
 
 To query the gene differences between two versions of a panel:
-    $ PanelPal compare-panel-versions --panel_id R21 --versions 1.0 2.2 --status_filter green
+    $ PanelPal compare-panel-versions --panel R21 --versions 1.0 2.2 --status_filter green
 """
-
+import sys
 import argparse
 from .check_panel import main as check_panel_main
 from .generate_bed import main as generate_bed_main
@@ -72,7 +73,8 @@ Available Commands:
 def main():
     """Main function which gathers arguments and passes them to the relevant PanelPal command."""
     parser = argparse.ArgumentParser(
-        description="PanelPal: A toolkit for helping UK labs implement the National Test Directory for rare disease",
+        description="PanelPal: A toolkit for helping UK labs "
+        "implement the National Test Directory for rare disease",
         epilog="For more details, visit https://github.com/PatrickWeller/PanelPal",
     )
 
@@ -156,7 +158,7 @@ def main():
 
     if not args.command:
         print_help()
-        exit(1)
+        sys.exit(1)
 
     if args.command == "check-panel":
         panel_id = args.panel_id

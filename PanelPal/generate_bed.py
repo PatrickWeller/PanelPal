@@ -41,14 +41,15 @@ Notes
 - This script assumes that the user has valid access to PanelApp and VariantValidator APIs.
 
 """
-
 import argparse
 import sys
 import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from PanelPal.accessories import variant_validator_api_functions
 from PanelPal.accessories import panel_app_api_functions
 from PanelPal.settings import get_logger
+
+# Adds parent directory to python module search path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Set up logger
 logger = get_logger(__name__)
@@ -116,7 +117,8 @@ def parse_arguments():
 
     # Log the parsed arguments
     logger.debug(
-        "Parsed command-line arguments: panel_id=%s, panel_version=%s, genome_build=%s, status_filter=%s",
+        "Parsed command-line arguments: panel_id=%s, panel_version=%s, "
+        "genome_build=%s, status_filter=%s",
         args.panel_id,
         args.panel_version,
         args.genome_build,
@@ -174,7 +176,8 @@ def main(panel_id=None, panel_version=None, genome_build=None, status_filter='gr
         logger.info("Panel data fetched successfully for panel_id=%s", panel_id)
 
         # Extract the list of genes from the panel data
-        logger.debug("Extracting gene list from panel data for panel_id=%s, status_filter=%s", panel_id, status_filter)
+        logger.debug("Extracting gene list from panel data for panel_id=%s, status_filter=%s",
+                    panel_id, status_filter)
         gene_list = panel_app_api_functions.get_genes(panelapp_data, status_filter)
         logger.info(
             "Gene list extracted successfully for panel_id=%s. Total genes found: %d",
@@ -184,7 +187,8 @@ def main(panel_id=None, panel_version=None, genome_build=None, status_filter='gr
 
         # Generate the BED file using the gene list, panel ID, panel version, and genome build
         logger.debug(
-            "Generating BED file for panel_id=%s, panel_version=%s, genome_build=%s, status_filter=%s",
+            "Generating BED file for panel_id=%s, panel_version=%s, "
+            "genome_build=%s, status_filter=%s",
             panel_id,
             panel_version,
             genome_build,
@@ -197,7 +201,8 @@ def main(panel_id=None, panel_version=None, genome_build=None, status_filter='gr
 
         # Perform bedtools merge with the provided panel details
         logger.debug(
-            "Starting bedtools merge for panel_id=%s, panel_version=%s, genome_build=%s, status_filter=%s",
+            "Starting bedtools merge for panel_id=%s, panel_version=%s, "
+            "genome_build=%s, status_filter=%s",
             panel_id,
             panel_version,
             genome_build,
@@ -206,7 +211,8 @@ def main(panel_id=None, panel_version=None, genome_build=None, status_filter='gr
         variant_validator_api_functions.bedtools_merge(
             panel_id, panel_version, genome_build
         )
-        logger.info("Bedtools merge completed successfully for panel_id=%s", panel_id) # pragma: no cover
+        logger.info("Bedtools merge completed successfully for panel_id=%s",
+                    panel_id) # pragma: no cover
 
         # Log completion of the process
         logger.info("Process completed successfully for panel_id=%s", panel_id) # pragma: no cover

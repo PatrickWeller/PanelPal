@@ -25,7 +25,7 @@ import inspect
 # Set this flag to True to enable console logging, False to disable it
 ENABLE_CONSOLE_LOGGING = True
 
-# Get the base directory of this file, 
+# Get the base directory of this file
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Define the directory where logs will be stored
