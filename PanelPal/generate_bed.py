@@ -44,12 +44,12 @@ Notes
 import argparse
 import sys
 import os
+# Adds parent directory to python module search path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from PanelPal.accessories import variant_validator_api_functions
 from PanelPal.accessories import panel_app_api_functions
 from PanelPal.settings import get_logger
 
-# Adds parent directory to python module search path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Set up logger
 logger = get_logger(__name__)
