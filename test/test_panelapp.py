@@ -295,36 +295,6 @@ class TestGetNameVersion:
 
 class TestGetGenes:
     @responses.activate
-    def test_get_genes_success(self):
-        """
-        Test that the function returns a list of gene symbols on success.
-        """
-        # Mock URL used for simulating the API call
-        url = "https://panelapp.genomicsengland.co.uk/api/v1/panels/R233"
-
-        # Mock a successful response with gene symbols in the JSON body
-        responses.add(
-            responses.GET,
-            url,
-            json={
-                "genes": [
-                    {"gene_data": {"gene_symbol": "BRCA1"}},
-                    {"gene_data": {"gene_symbol": "BRCA2"}},
-                ]
-            },
-            status=200,
-        )
-
-        # Send a GET request to the mocked URL
-        response = requests.get(url)
-
-        # Call the function being tested
-        genes = get_genes(response)
-
-        # Assert that the function returns the correct list of gene symbols
-        assert genes == ["BRCA1", "BRCA2"]
-
-    @responses.activate
     def test_get_genes_http_error(self):
         """
         Test that an HTTP error raises requests.exceptions.HTTPError.
@@ -359,6 +329,101 @@ class TestGetGenes:
         # Assert that the function raises a PanelAppError for invalid JSON
         with pytest.raises(PanelAppError):
             get_genes(response)
+
+    @responses.activate
+    def test_get_genes_green_filter(self):
+        """
+        Test that the function correctly filters green genes.
+        """
+        url = "https://panelapp.genomicsengland.co.uk/api/v1/panels/R233"
+
+        responses.add(
+            responses.GET,
+            url,
+            json={
+                "genes": [
+                    {"gene_data": {"gene_symbol": "BRCA1"}, "confidence_level": "3"},
+                    {"gene_data": {"gene_symbol": "BRCA2"}, "confidence_level": "2"},
+                ]
+            },
+            status=200,
+        )
+
+        response = requests.get(url)
+        genes = get_genes(response, status_filter="green")
+        assert genes == ["BRCA1"]
+
+    @responses.activate
+    def test_get_genes_amber_filter(self):
+        """
+        Test that the function correctly filters amber and green genes.
+        """
+        url = "https://panelapp.genomicsengland.co.uk/api/v1/panels/R233"
+
+        responses.add(
+            responses.GET,
+            url,
+            json={
+                "genes": [
+                    {"gene_data": {"gene_symbol": "BRCA1"}, "confidence_level": "3"},
+                    {"gene_data": {"gene_symbol": "BRCA2"}, "confidence_level": "2"},
+                    {"gene_data": {"gene_symbol": "TP53"}, "confidence_level": "1"},
+                ]
+            },
+            status=200,
+        )
+
+        response = requests.get(url)
+        genes = get_genes(response, status_filter="amber")
+        assert genes == ["BRCA1", "BRCA2"]
+
+    @responses.activate
+    def test_get_genes_red_or_all_filter(self):
+        """
+        Test that the function correctly filters red, amber, and green genes.
+        """
+        url = "https://panelapp.genomicsengland.co.uk/api/v1/panels/R233"
+
+        responses.add(
+            responses.GET,
+            url,
+            json={
+                "genes": [
+                    {"gene_data": {"gene_symbol": "BRCA1"}, "confidence_level": "3"},
+                    {"gene_data": {"gene_symbol": "BRCA2"}, "confidence_level": "2"},
+                    {"gene_data": {"gene_symbol": "TP53"}, "confidence_level": "1"},
+                ]
+            },
+            status=200,
+        )
+
+        response = requests.get(url)
+        genes = get_genes(response, status_filter="all")
+        assert genes == ["BRCA1", "BRCA2", "TP53"]
+
+    @responses.activate
+    def test_get_genes_unknown_filter(self):
+        """
+        Test that an unknown filter returns an empty list.
+        """
+        url = "https://panelapp.genomicsengland.co.uk/api/v1/panels/R233"
+
+        responses.add(
+            responses.GET,
+            url,
+            json={
+                "genes": [
+                    {"gene_data": {"gene_symbol": "BRCA1"}, "confidence_level": "3"},
+                    {"gene_data": {"gene_symbol": "BRCA2"}, "confidence_level": "2"},
+                    {"gene_data": {"gene_symbol": "TP53"}, "confidence_level": "1"},
+                ]
+            },
+            status=200,
+        )
+
+        response = requests.get(url)
+        genes = get_genes(response, status_filter="unknown")
+        assert genes == []
 
 
 class TestGetResponseOldPanelVersion:
