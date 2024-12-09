@@ -21,6 +21,8 @@ import pytest
 from PanelPal.accessories import variant_validator_api_functions, panel_app_api_functions
 from PanelPal.generate_bed import main, parse_arguments
 
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 #####################
 #     Unit Tests    #
 #####################
