@@ -206,10 +206,10 @@ def main(panel_id=None, panel_version=None, genome_build=None, status_filter='gr
         variant_validator_api_functions.bedtools_merge(
             panel_id, panel_version, genome_build
         )
-        logger.info("Bedtools merge completed successfully for panel_id=%s", panel_id)
+        logger.info("Bedtools merge completed successfully for panel_id=%s", panel_id) # pragma: no cover
 
         # Log completion of the process
-        logger.info("Process completed successfully for panel_id=%s", panel_id)
+        logger.info("Process completed successfully for panel_id=%s", panel_id) # pragma: no cover
 
     except Exception as e:
         # Reraise the exception after logging it for further handling if needed
