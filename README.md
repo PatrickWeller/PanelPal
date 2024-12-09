@@ -70,10 +70,10 @@ To generate a bed file for a given panel:
 
 ```bash
 #Either
-python PanelPal/generate_bed.py --panel_id R207 --panel_version 4 --genome_build GRCh38
+python PanelPal/generate_bed.py --panel_id R207 --panel_version 4 --genome_build GRCh38 --status_filter green
 
 #Or
-PanelPal generate-bed --panel_id R207 --panel_version 4 --genome_build GRCh38
+PanelPal generate-bed --panel_id R207 --panel_version 4 --genome_build GRCh38 --status_filter green
 ```
 
 ## Directory structure
