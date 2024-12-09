@@ -191,27 +191,32 @@ def get_genes(response, status_filter="green"):
         # If filter = red or all, provide all genes
         if status_filter in ("red", "all"):
             logger.info("Extracting red, amber and green genes from JSON")
-            return [
+            all_genes = [
                 gene["gene_data"]["gene_symbol"]
                 for gene in data.get("genes", [])
                 if gene["confidence_level"] in ("1", "2", "3")
             ]
+            return all_genes
+        
         # If filter = amber, return all amber and green genes
-        if status_filter == "amber":
+        if status_filter == ("amber"):
             logger.info("Extracting amber and green genes from JSON")
-            return [
+            amber_green_genes = [
                 gene["gene_data"]["gene_symbol"]
                 for gene in data.get("genes", [])
                 if gene["confidence_level"] in ("2", "3")
             ]
+            return amber_green_genes
+        
         # If filter = green, return only green genes
         if status_filter == ("green"):
             logger.info("Extracting green genes from JSON")
-            return [
+            green_genes = [
                 gene["gene_data"]["gene_symbol"]
                 for gene in data.get("genes", [])
                 if gene["confidence_level"] == "3"
             ]
+            return green_genes
 
         logger.error("Unknown status filter: %s", status_filter)
         return []
