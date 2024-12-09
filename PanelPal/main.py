@@ -138,9 +138,9 @@ def main():
     parser_versions.add_argument(
         "--status_filter",
         "-f",
-        choices=["green", "amber", "all"],
+        choices=["green", "amber", "red", "all"],
         default="green",
-        help="Filter by gene status. Green only; green and amber; or all",
+        help="Filter by gene status. Green only; green and amber; or red / all",
     )
 
     args = parser.parse_args()
