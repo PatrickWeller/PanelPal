@@ -36,10 +36,11 @@ class TestParseArguments:
         with patch.object(sys, 'argv', test_args):
             parsed_args = parse_arguments()
         
+        # Assert each argument is parsed as expected
         assert parsed_args.panel_id == "R207"
         assert parsed_args.panel_version == "4"
         assert parsed_args.genome_build == "GRCh38"
-        assert parsed_args.status_filter == "green"  # Default value
+        assert parsed_args.status_filter == "green"  # Checks default value
 
     def test_parse_arguments_missing_argument(self):
         """
@@ -47,7 +48,7 @@ class TestParseArguments:
         """
         test_args = ["script_name", "-p", "R207", "-v", "4"]  # Missing genome_build argument
         with patch.object(sys, 'argv', test_args), pytest.raises(SystemExit):
-            parse_arguments()
+            parse_arguments() # Should raise a SystemExit
 
     def test_parse_arguments_invalid_genome_build(self):
         """
@@ -55,7 +56,7 @@ class TestParseArguments:
         """
         test_args = ["script_name", "-p", "R207", "-v", "4", "-g", "INVALID_GENOME"]
         with patch.object(sys, 'argv', test_args), pytest.raises(SystemExit):
-            parse_arguments()
+            parse_arguments() # Should raise a SystemExit
 
     def test_parse_arguments_default_status_filter(self):
         """
@@ -64,7 +65,8 @@ class TestParseArguments:
         test_args = ["script_name", "-p", "R207", "-v", "4", "-g", "GRCh38"]
         with patch.object(sys, 'argv', test_args):
             parsed_args = parse_arguments()
-        
+
+         # Check that the default status_filter is correctly set.
         assert parsed_args.status_filter == "green"  # Default value
 
     def test_parse_arguments_invalid_status_filter(self):
@@ -73,7 +75,7 @@ class TestParseArguments:
         """
         test_args = ["script_name", "-p", "R207", "-v", "4", "-g", "GRCh38", "-f", "invalid"]
         with patch.object(sys, 'argv', test_args), pytest.raises(SystemExit):
-            parse_arguments()
+            parse_arguments() # Should raise a SystemExit
 
 ####################
 # Functional Tests #
@@ -84,11 +86,12 @@ def test_missing_required_arguments():
     Test script behavior when all arguments are missing.
     """
     result = subprocess.run(
-        [sys.executable, "PanelPal/generate_bed.py"],
-        capture_output=True,
-        text=True,
-        check=False
+        [sys.executable, "PanelPal/generate_bed.py"],  # Run the script without any arguments.
+        capture_output=True, # Capture stdout and stderr.
+        text=True, # Decode output to text.
+        check=False # Prevent raising an exception for non-zero exit codes.
     )
+    # Ensure the script fails and an error message about missing arguments is shown.
     assert result.returncode != 0
     assert "the following arguments are required" in result.stderr
 
@@ -99,10 +102,11 @@ def test_missing_single_argument():
     """
     result = subprocess.run(
         [sys.executable, "PanelPal/generate_bed.py", "-p", "R207", "-v", "4"],
-        capture_output=True,
-        text=True,
-        check=False
+        capture_output=True,  # Capture stdout and stderr.
+        text=True, # Decode output to text.
+        check=False # Prevent raising an exception for non-zero exit codes.
     )
+    # Ensure the script fails and the correct error message is shown.
     assert result.returncode != 0
     assert "the following arguments are required: -g/--genome_build" in result.stderr
 
@@ -118,10 +122,11 @@ def test_invalid_genome_build():
             "-v", "4",
             "-g", "INVALID_GENOME"
         ],
-        capture_output=True,
-        text=True,
-        check=False
+        capture_output=True,  # Capture stdout and stderr.
+        text=True, # Decode output to text.
+        check=False # Prevent raising an exception for non-zero exit codes.
     )
+    # Ensure the script fails and displays an error message about invalid choices.
     assert result.returncode != 0
     assert "invalid choice: 'INVALID_GENOME' (choose from 'GRCh37', 'GRCh38')" in result.stderr
 
