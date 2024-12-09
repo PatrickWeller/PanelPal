@@ -1,0 +1,9 @@
+[run]
+
+
+[report]
+omit =
+    */site-packages/*
+    test/*
+    PanelPal/settings.py
+    *__init__.py
