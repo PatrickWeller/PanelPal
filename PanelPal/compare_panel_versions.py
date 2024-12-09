@@ -120,8 +120,8 @@ def main(panel=None, versions=None, status_filter='green'):
         sys.exit(1)
 
     # Get the list of genes for each panel version
-    older_version_genes = get_genes(older_version_json, status_filter)
-    newer_version_genes = get_genes(newer_version_json, status_filter)
+    older_version_genes = get_genes(older_version_json, status_filter=status_filter)
+    newer_version_genes = get_genes(newer_version_json, status_filter=status_filter)
 
     # Compare the 2 versions for removed or added genes
     removed = get_removed_genes(older_version_genes, newer_version_genes)
@@ -253,7 +253,7 @@ def is_gene_absent(gene, gene_list):
     -------
     >>> gene = "MYC"
     >>> gene_list = ["BRCA1", "BRCA2", "TP53"]
-    >>> query_gene_against_list(gene, gene_list)
+    >>> is_gene_absent(gene, gene_list)
     True
     """
     return gene not in gene_list
