@@ -16,8 +16,9 @@ get_name_version(response)
     Extracts the name, version, and primary key of the panel from the API
     response. Raises PanelAppError if there is an issue parsing the response.
 
-get_genes(response)
+get_genes(response, status_filter)
     Extracts a list of gene symbols from the API response.
+    Filters based on lowest acceptable gene status. E.g. amber = amber and green genes.
     Raises PanelAppError if there is an error parsing the response JSON or
     requests.exceptions.HTTPError if the response contains an error status code.
 
@@ -164,7 +165,7 @@ def get_genes(response, status_filter="green"):
     response : requests.Response
         The response object returned from the PanelApp API.
     status_filter : str, optional
-        The gene status that you want to filter by E.g. green, amber, red, all
+        The lowest gene status that you want to filter by E.g. green, amber, red, all
 
     Returns
     -------
