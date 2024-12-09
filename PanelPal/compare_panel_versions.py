@@ -192,7 +192,7 @@ def argument_parser():
     # Add the status_filter argument, which is optional for filtering genes of differing status
     parser.add_argument(
         '-f', '--status_filter',
-        choices=["green", "amber", "all"],
+        choices=["green", "amber", "red", "all"],
         help='Filter by gene status. Green only; green and amber; or all',
         default='green')
 
