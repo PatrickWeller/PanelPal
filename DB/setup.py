@@ -40,11 +40,12 @@ from PanelPal.settings import get_logger
 # Initialise logger
 logger = get_logger(__name__)
 
+
 def connect():
     """
     Connects to the SQLite database and returns a database connection object.
 
-    This function attempts to establish a connection to the SQLite database, titled "panelpal.db". 
+    This function attempts to establish a connection to the SQLite database, titled "panelpal.db".
     It logs the connection attempt and any errors that occur.
 
     Returns
@@ -78,8 +79,8 @@ def fetch_patients():
     """
     Fetches patient records from the "panelpal" table in the SQLite database.
 
-    This function connects to the SQLite database, retrieves all records from the 
-    "panelpal" table, and logs the retrieval process, including the number of 
+    This function connects to the SQLite database, retrieves all records from the
+    "panelpal" table, and logs the retrieval process, including the number of
     patient records fetched. The database connection is safely closed after use.
 
     Returns
@@ -102,8 +103,9 @@ def fetch_patients():
 
     Notes
     -----
-    - This function assumes the "panelpal" table exists in the connected SQLite database.
+        This function assumes the "panelpal" table exists in the connected SQLite database.
     """
+
     # initialise the connection variable
     conn = None
     try:
