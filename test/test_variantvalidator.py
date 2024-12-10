@@ -343,49 +343,6 @@ class TestGenerateBedFile:
             generate_bed_file(['ErrorGene'], 'TestPanel', '1', 'GRCh38')
 
 class TestBedToolsMerge:
-#     def test_successful_merge(self, tmp_path):
-#         """
-#         Test bedtools_merge creates a valid merged BED file
-#         """
-#         os.chdir(tmp_path)
-        
-#         # Create a sample input BED file
-#         input_file = "test.bed"
-#         with open(input_file, 'w') as f:
-#             f.write("chr1\t100\t200\tinfo1\n")
-#             f.write("chr1\t150\t250\tinfo2\n")
-        
-#         # Perform merge operation
-#         bedtools_merge('TestPanel', '1', 'GRCh38', directory=tmp_path)
-        
-#         # Check if merged file exists
-#         merged_file = tmp_path / 'TestPanel_v1_GRCh38_merged.bed'
-#         assert merged_file.exists(), f"Expected output file {merged_file} does not exist."
-        
-#         # Verify merged file content
-#         with open(merged_file, 'r') as f:
-#             content = f.readlines()
-        
-#         assert len(content) > 0, "Merged BED file should not be empty"
-        
-#         for line in content:
-#             parts = line.strip().split('\t')
-#             assert len(parts) == 3, "Merged BED file should have 3 columns"
-
-#         with open(merged_file, 'r') as f:
-#             content = f.read()
-#         assert "chr1\t100\t250" in content 
-
-    # def test_merge_no_input_file(self, tmp_path):
-    #     """
-    #     Test bedtools_merge handles non-existent input file
-    #     """
-    #     os.chdir(tmp_path)
-        
-    #     # Attempt to merge a non-existent file
-    #     with pytest.raises(subprocess.CalledProcessError):
-    #         bedtools_merge('NonExistentPanel', '1', 'GRCh38')
-
     @patch("subprocess.run")
     @patch("PanelPal.accessories.variant_validator_api_functions.logger")
     def test_bedtools_merge_success(self, mock_logger, mock_subprocess_run):
