@@ -45,24 +45,24 @@ def bed_file_exists(panel_name, panel_version, genome_build):
         )
     try:
         # Define the expected BED file name
-        output_file = f"{panel_name}_v{panel_version}_{genome_build}.bed"
-        logger.debug("Checking existence of BED file: %s", output_file)
+        output_bed = f"{panel_name}_v{panel_version}_{genome_build}.bed"
+        logger.debug("Checking existence of BED file: %s", output_bed)
 
         # Check if the file exists
-        file_exists = os.path.isfile(output_file)
+        file_exists = os.path.isfile(output_bed)
 
         if file_exists:
-            logger.info("BED file exists: %s", output_file)
+            logger.info("BED file exists: %s", output_bed)
         else:
-            logger.debug("BED file does not exist: %s", output_file)
+            logger.debug("BED file does not exist: %s", output_bed)
         return file_exists
 
     except ValueError as e:
-        logger.error("Invalid arguments provided: %s", e)
+        logger.error("Invalid arguments provided: %s", str(e))
         raise
 
     except Exception as e:
-        logger.error("An unexpected error occurred: %s", e)
+        logger.error("An unexpected error occurred: %s", str(e))
         raise
 
 def read_bed_file(filename):
@@ -71,8 +71,9 @@ def read_bed_file(filename):
     Returns a set of BED entries (start, end, and any additional columns).
     """
     if not os.path.isfile(filename):
-        raise FileNotFoundError(f"The file {filename} does not exist.")
-
+        error_message = f"The file {filename} does not exist."
+        logger.error("File not found: %s", error_message)
+        raise FileNotFoundError(error_message)
     try:
         logger.info("Reading BED file: %s", filename)
         bed_entries = set()
@@ -91,16 +92,11 @@ def read_bed_file(filename):
                     filename)
         return sorted(bed_entries)
 
-    except FileNotFoundError as f:
-        logger.error("File not found: %s", f)
-        raise
-
-    except ValueError as v:
-        logger.error("Invalid BED file format: %s", v)
-        raise
-
     except Exception as e:
-        logger.error("An unexpected error occurred while reading '%s': %s", filename, e)
+        logger.error("An unexpected error occurred while reading '%s': %s", 
+                    filename,
+                    str(e)
+                    )
         raise
 
 def compare_bed_files(file1, file2):
@@ -121,12 +117,14 @@ def compare_bed_files(file1, file2):
     FileNotFoundError
         If one or both of the input files do not exist.
     """
-    if not os.path.isfile(file1):
-        logger.error("Input file does not exist: %s", file1)
-        raise FileNotFoundError(f"The file {file1} does not exist.")
-    if not os.path.isfile(file2):
-        logger.error("Input file does not exist: %s", file2)
-        raise FileNotFoundError(f"The file {file2} does not exist.")
+        # Check for file existence directly and log errors
+    for file in [file1, file2]:
+        if not os.path.exists(file):
+            logger.error("Input file does not exist: %s", file)
+
+    # Raise an exception if one or both files do not exist
+    if not os.path.exists(file1) or not os.path.exists(file2):
+        raise FileNotFoundError("One or both input files do not exist.")
 
     try:
         # Read the BED files
@@ -142,9 +140,8 @@ def compare_bed_files(file1, file2):
             if not os.path.exists(output_folder):
                 logger.debug("Creating output folder: %s", output_folder)
                 os.makedirs(output_folder)
-
         except OSError as o:
-            logger.error("Failed to create output folder '%s': %s", output_folder, o)
+            logger.error("Failed to create output folder '%s': %s", output_folder, str(o))
             raise
 
         # Generate the output file name based on input file names
@@ -191,11 +188,14 @@ def compare_bed_files(file1, file2):
                 )
 
         except IOError as e:
-            logger.error("Failed to write to output file '%s': %s", output_file, e)
+            logger.error("Failed to write to output file '%s': %s",
+                         output_file,
+                         str(e)
+                         )
             raise
 
     except FileNotFoundError as e:
         logger.error(
-            "Error: %s", e
+            "Error: %s", str(e)
             )
         raise
