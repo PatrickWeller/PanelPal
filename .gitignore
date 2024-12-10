@@ -14,3 +14,12 @@ DB/
 *.pyc
 *.csv
 *.bed
+build/
+dist/
+*.egg-info/
+*.egg
+*.log
+*.pyc
+*.pyo
+*.pyd
+

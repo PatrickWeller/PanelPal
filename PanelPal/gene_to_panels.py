@@ -18,20 +18,29 @@ def parse_arguments():
         Parsed arguments.
     """
     parser = argparse.ArgumentParser(
-        description="Check and retrieve panel information."
+        description="Query PanelApp for gene information and retrieve associated panels.",
+        epilog="Example usage: python gene_to_panels.py --hgnc_symbol BRCA1 --confidence_status green"
     )
     parser.add_argument(
         "--hgnc_symbol",
         type=str,
-        help="The HGNC symbol of the gene to query (e.g., BRCA1).",
+        help="The HGNC symbol of the gene to query (e.g., BRCA1). This is a required argument.",
         required=True,
     )
     parser.add_argument(
         "--confidence_status",
         type=str,
         default="green",
-        choices=["red", "amber", "green", "all"],
-        help="Filter panels by confidence status. Defaults to 'green'.",
+        choices=["red", "amber", "green", "all", "green,amber"],
+        help=(
+            "Filter panels by confidence status. Choices are 'red', 'amber', 'green', 'all', or 'green,amber'. "
+            "Defaults to 'green'."
+        ),
+    )
+    parser.add_argument(
+        "--show_all_panels",
+        action="store_true",
+        help="Include panels without R codes in the output."
     )
     return parser.parse_args()
 
@@ -55,7 +64,8 @@ def confidence_to_colour(level):
         "2": "amber",
         "3": "green",
     }
-    return mapping.get(str(level), "unknown")  # Default to 'unknown' for unexpected values
+    # Default to 'unknown' for unexpected values
+    return mapping.get(str(level), "unknown")
 
 
 def extract_panels(response_json, confidence_filter="green"):
@@ -92,7 +102,7 @@ def extract_panels(response_json, confidence_filter="green"):
                 {
                     "PanelApp ID": panel_id,
                     "Panel Name": panel_name,
-                    "Relevant Disorders": relevant_disorders,
+                    "Relevant Disorders": ", ".join(relevant_disorders) if isinstance(relevant_disorders, list) else relevant_disorders,
                     "Gene Status": confidence_colour,
                 }
             )
@@ -119,7 +129,7 @@ def extract_r_codes(disorders):
     return ", ".join(r_codes) if r_codes else "N/A"
 
 
-def extract_r_codes_from_disorders(panels_df):
+def extract_r_codes_from_disorders(panels_df, show_all_panels=False):
     """
     Add an 'R Code' column to the panels DataFrame by extracting R codes.
 
@@ -127,13 +137,18 @@ def extract_r_codes_from_disorders(panels_df):
     ----------
     panels_df : pd.DataFrame
         The DataFrame containing panel information with a 'Relevant Disorders' column.
+    show_all_panels : bool
+        Whether to include panels without R codes.
 
     Returns
     -------
     pd.DataFrame
         A DataFrame with an added 'R Code' column where extracted R codes are listed.
     """
+    panels_df = panels_df.copy()  # Ensure we are working with a copy
     panels_df["R Code"] = panels_df["Relevant Disorders"].apply(extract_r_codes)
+    if not show_all_panels:
+        panels_df = panels_df[panels_df["R Code"] != "N/A"]
     return panels_df
 
 
@@ -152,18 +167,20 @@ def write_panels(hgnc_symbol, confidence_status, df):
     -------
     None
     """
+    if confidence_status == "green,amber":
+        confidence_status = "green_amber"
     output_file = f"panels_containing_{hgnc_symbol}_{confidence_status}.tsv"
     df.to_csv(
         output_file,
-        columns=["PanelApp ID","R Code", "Panel Name","Gene Status"],
-        header=["panelapp_id", "r_code","panel_name","gene_status"],
+        columns=["PanelApp ID", "R Code", "Panel Name", "Gene Status"],
+        header=["panelapp_id", "r_code", "panel_name", "gene_status"],
         index=False,
         sep="\t",
     )
     print(f"\nPanel list saved to: {output_file}")
 
 
-def main(hgnc_symbol=None, confidence_status="green"):
+def main(hgnc_symbol=None, confidence_status="green", show_all_panels=False):
     """
     Main function to query PanelApp for gene information and display associated panels.
 
@@ -174,6 +191,8 @@ def main(hgnc_symbol=None, confidence_status="green"):
         parses command-line arguments to retrieve it.
     confidence_status : str, optional
         Filter for panels by confidence status. Defaults to "green".
+    show_all_panels : bool, optional
+        Whether to include panels without R codes. Defaults to False.
 
     Returns
     -------
@@ -185,43 +204,56 @@ def main(hgnc_symbol=None, confidence_status="green"):
         args = parse_arguments()
         hgnc_symbol = args.hgnc_symbol
         confidence_status = args.confidence_status
+        show_all_panels = args.show_all_panels
 
-    logger.info(f"Command executed: gene-panels --hgnc_symbol {hgnc_symbol} --confidence_status {confidence_status}")
-    print(f"Command executed: gene-panels --hgnc_symbol {hgnc_symbol} --confidence_status {confidence_status}\n")
+    logger.info(f"Command executed: gene-panels --hgnc_symbol {hgnc_symbol} --confidence_status {confidence_status} --show_all_panels {show_all_panels}")
+    print(f"Command executed: gene-panels --hgnc_symbol {hgnc_symbol} --confidence_status {confidence_status} --show_all_panels {show_all_panels}\n")
+
+    # Handle the new "green,amber" option
+    if confidence_status == "green,amber":
+        confidence_statuses = ["green", "amber"]
+    else:
+        confidence_statuses = [confidence_status]
 
     try:
         logger.info(f"Querying PanelApp API for gene: {hgnc_symbol}")
         response = get_response_gene(hgnc_symbol)
         response_json = response.json()
 
-        panels_df = extract_panels(response_json, confidence_filter=confidence_status)
+        panels_df_list = [extract_panels(response_json, confidence_filter=status) for status in confidence_statuses]
+        panels_df = pd.concat(panels_df_list).drop_duplicates().reset_index(drop=True)
         if panels_df.empty:
             logger.info(f"No panels found for gene {hgnc_symbol} with confidence: {confidence_status}.")
             print(f"No panels found for gene {hgnc_symbol} with confidence: {confidence_status}.")
             return
 
-        panels_with_r_codes = extract_r_codes_from_disorders(panels_df)
-        panels_with_r_codes.replace("N/A", "-", inplace=True)
+        panels_with_r_codes = extract_r_codes_from_disorders(panels_df, show_all_panels)
+        # Replace 'N/A' with '-'
+        panels_with_r_codes["R Code"] = panels_with_r_codes["R Code"].replace("N/A", "-")
 
-        print(f"Panels associated with gene {hgnc_symbol}:\n")
-        print(f"{'PanelApp ID':<15}{'R Code':<15}{'Panel Name':<75}{'Gene Status'}")
-        print("-" * 120)
+        if not panels_with_r_codes.empty:
+            print(f"Panels associated with gene {hgnc_symbol}:\n")
+            print(f"{'PanelApp ID':<15}{'R Code':<15}{'Panel Name':<75}{'Gene Status'}")
+            print("-" * 120)
 
-        for _, row in panels_with_r_codes.iterrows():
-            panel_id = row["PanelApp ID"]
-            r_code = row["R Code"]
-            panel_name = row["Panel Name"]
-            status = row["Gene Status"]
-            print(f"{panel_id:<15}{r_code:<15}{panel_name:<75}{status}")
+            for _, row in panels_with_r_codes.iterrows():
+                panel_id = row["PanelApp ID"]
+                r_code = row["R Code"]
+                panel_name = row["Panel Name"]
+                status = row["Gene Status"]
+                print(f"{panel_id:<15}{r_code:<15}{panel_name:<75}{status}")
 
-        write_panels(hgnc_symbol, confidence_status, panels_with_r_codes)
+            write_panels(hgnc_symbol, confidence_status, panels_with_r_codes)
+        else:
+            logger.info(f"No R panels found for gene {hgnc_symbol} with confidence: {confidence_status}.")
+            print(f"No R panels found for gene {hgnc_symbol} with confidence: {confidence_status}")
 
     except requests.RequestException as e:
         logger.error(f"Error querying the API: {e}")
-        print(f"Error querying the API: {e}")
-    except ValueError as ve:
-        logger.error(ve)
-        print(ve)
+    except KeyError as ke:
+        logger.error(f"Key error: {ke}")
+        print(f"Key error: {ke}")
+        print(ke)
 
 
 if __name__ == "__main__":
