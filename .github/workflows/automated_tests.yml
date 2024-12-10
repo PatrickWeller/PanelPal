@@ -1,0 +1,56 @@
+name: Automate Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Checkout the repository
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # Install Miniconda
+    - name: Set up Miniconda
+      uses: conda-incubator/setup-miniconda@v2
+      with:
+        auto-activate-base: false
+
+    # Created the Conda environment
+    - name: Create Conda environment
+      run: |
+        conda env create --file env/environment.yaml || conda env update -f environment.yml --prune
+
+    # Trouble Shooting
+    - name: Print Conda Environment Location
+      run: |
+        conda info --envs
+        echo "HOME directory: $HOME"
+        ls -la $HOME
+
+    # Cache Conda environment
+    - name: Cache Conda Environment
+      uses: actions/cache@v3
+      with:
+        path: /usr/share/miniconda/envs/PanelPal
+        key: ${{ runner.os }}-conda-${{ hashFiles('environment.yml') }}
+        restore-keys: |
+          ${{ runner.os }}-conda-
+
+    # Change directory to PanelPal and install the package in editable mode
+    - name: Set up PanelPal
+      run: |
+        pip install .
+
+    # Initialize Conda for bash, activate the environment and run the tests
+    - name: Run Automated Unit and Functional Tests
+      shell: bash
+      run: |
+        echo "Setting up Conda for bash"
+        conda init bash
+        source ~/.bashrc
+        conda activate PanelPal
+        pytest test/

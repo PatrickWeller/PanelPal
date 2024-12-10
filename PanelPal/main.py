@@ -5,39 +5,79 @@ for querying and generating BED files for genomic panels.
 The script offers several primary subcommands:
 
 1. **check-panel**:
-    This subcommand allows users to check panel information based on the panel ID.
-    It queries panel details, such as name and version, from the PanelApp API.
+   This subcommand allows users to check panel information based on the panel ID.
+   It queries panel details, such as name and version, from the PanelApp API.
 
 2. **generate-bed**:
-    This subcommand generates a BED file for a specified genomic panel.
-    It requires the panel ID, version, and genome build to generate the appropriate BED file.
+   This subcommand generates a BED file for a specified genomic panel.
+   It requires the panel ID, version, and genome build to generate the appropriate BED file.
 
-3. **compare-panel-versions**
-    This subcommand allows users to compare two versions of the same panel ID.
-    It requires the panel ID, two version numbers, and can take a filter of gene status.
+3. **compare-panel-versions**:
+   This subcommand allows users to compare two versions of the same panel ID.
+   It requires the panel ID, two version numbers, and can take a filter for gene status.
 
-Usage examples:
-    - To check panel information for a specific panel ID:
-        $ PanelPal check-panel --panel_id R59
+Parameters
+----------
+None (this is an entry point for the script, which processes commands and arguments via argparse).
 
-    - To generate a BED file for a specific panel, version, and genome build:
-        $ PanelPal generate-bed --panel_id R59 --panel_version 4 --genome_build GRCh38
+Subcommands
+-----------
+- **check-panel**: Check panel information for a given panel ID.
+- **generate-bed**: Generate a BED file for a genomic panel.
+- **compare-panel-versions**: Compare two versions of a genomic panel.
 
-    - To query the gene differences between two versions of a panel:
-        $ PanelPal compare-panel-versions --panel_id R21 --versions 1.0 2.2 --status_filter green
+Examples
+--------
+To check panel information for a specific panel ID:
+    $ PanelPal check-panel --panel_id R59
+
+To generate a BED file for a specific panel, version, and genome build:
+    $ PanelPal generate-bed --panel_id R59 --panel_version 4 --genome_build GRCh38
+
+To query the gene differences between two versions of a panel:
+    $ PanelPal compare-panel-versions --panel_id R21 --versions 1.0 2.2 --status_filter green
 """
 
 import argparse
-from check_panel import main as check_panel_main
-from generate_bed import main as generate_bed_main
-from gene_to_panels import main as gene_to_panels_main
-from compare_panel_versions import main as compare_panel_versions_main
-from compare_panel_versions import validate_panel
+import sys
+from .check_panel import main as check_panel_main
+from .generate_bed import main as generate_bed_main
+from .gene_to_panels import main as gene_to_panels_main
+from .compare_panel_versions import main as compare_panel_versions_main
+from .compare_panel_versions import validate_panel
+
+
+def print_help():
+    """Print custom help message for PanelPal."""
+    help_message = """
+PanelPal: A toolkit for panelapp queries
+version: 1.0.0 
+
+Available Commands:
+    check-panel             Check panel information for a given panel ID.
+                            Example: PanelPal check-panel --panel_id R59
+
+    generate-bed            Generate a BED file for a genomic panel. Requires the
+                            panel ID, panel version, and genome build.
+                            Example: PanelPal generate-bed --panel_id R59 --panel_version 4 --genome_build GRCh38
+
+    compare-panel-versions  Compare two versions of a genomic panel. Requires
+                            the panel ID and two version numbers. Optionally, filter by gene status.
+                            Example: PanelPal compare-panel-versions --panel R21 --versions 1.0 2.2 --status_filter green
+
+    gene-panels             List panels containing a given gene. Requires the HGNC symbol of the gene.
+    
+    --help, -h              Prints this help message
+    """
+    print(help_message)
+
 
 def main():
-    """Main function which gathers arguments and passes them to the relevant PanelPal command"""
+    """Main function which gathers arguments and passes them to the relevant PanelPal command."""
     parser = argparse.ArgumentParser(
-        description="panelpal: A toolkit for panelapp queries"
+        description="PanelPal: A toolkit for helping UK labs implement the "
+        "National Test Directory for rare disease",
+        epilog="For more details, visit https://github.com/PatrickWeller/PanelPal",
     )
 
     subparsers = parser.add_subparsers(
@@ -60,7 +100,7 @@ def main():
     # Subcommand: generate-bed
     parser_bed = subparsers.add_parser(
         "generate-bed",
-        help="Generate BED file for a panel.",
+        help="Generate a BED file for a genomic panel.",
     )
     parser_bed.add_argument(
         "--panel_id",
@@ -92,54 +132,57 @@ def main():
         required=True,
         help="The HGNC symbol of the gene to query (e.g., BRCA1).",
     )
-
     parser_gene_panels.add_argument(
         "--confidence_status",
         type=str,
         default="green",
-        choices=["red", "amber", "green", "all"],
+        choices=["red", "amber", "green", "all", "green,amber"],
         help="Filter panels by confidence status. Defaults to 'green'.",
+    )
+    parser_gene_panels.add_argument(
+        "--show_all_panels",
+        action="store_true",
+        help="Include panels without R codes in the output.",
     )
 
     # Subcommand: compare-panel-versions
     parser_versions = subparsers.add_parser(
         "compare-panel-versions",
-        help="Compare 2 versions of a panel."
+        help="Compare two versions of a genomic panel.",
     )
     parser_versions.add_argument(
-        "--panel", "-p",
+        "--panel",
+        "-p",
         type=validate_panel,
         required=True,
-        help='R number. Include the R',
+        help="R number. Include the R.",
     )
     parser_versions.add_argument(
-        "--versions", "-v",
+        "--versions",
+        "-v",
         type=float,
         nargs=2,
         required=True,
-        help='Two panel versions. E.g. 1.1 or 69.23',
+        help="Two panel versions. E.g. 1.1 or 69.23",
     )
     parser_versions.add_argument(
-        '--status_filter', "-f",
+        "--status_filter",
+        "-f",
         choices=["green", "amber", "all"],
-        default='green',
-        help='Filter by gene status. Green only; green and amber; or all',
+        default="green",
+        help="Filter by gene status. Green only; green and amber; or all",
     )
 
     args = parser.parse_args()
 
+    if not args.command:
+        print_help()
+        sys.exit(1)
+
     if args.command == "check-panel":
         panel_id = args.panel_id
         check_panel_main(panel_id)
-    elif args.command == "gene-panels":
-        gene_to_panels_main(
-            hgnc_symbol=args.hgnc_symbol,
-            confidence_status=args.confidence_status,
-        )
     elif args.command == "generate-bed":
-        panel_id=args.panel_id
-        panel_version=args.panel_version,
-        genome_build=args.genome_build
         generate_bed_main(
             panel_id=args.panel_id,
             panel_version=args.panel_version,
@@ -151,8 +194,14 @@ def main():
             versions=args.versions,
             status_filter=args.status_filter,
         )
+    elif args.command == "gene-panels":
+        gene_to_panels_main(
+            hgnc_symbol=args.hgnc_symbol,
+            confidence_status=args.confidence_status,
+            show_all_panels=args.show_all_panels,
+        )
     else:
-        parser.print_help()
+        print_help()
 
 
 if __name__ == "__main__":

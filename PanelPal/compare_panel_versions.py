@@ -28,11 +28,11 @@ output any genes that have been added or removed.
 
 import argparse
 import sys
-from accessories.panel_app_api_functions import (
+from PanelPal.accessories.panel_app_api_functions import (
     get_response, get_name_version, get_response_old_panel_version, get_genes,
 )
-from accessories.panel_app_api_functions import PanelAppError
-from settings import get_logger
+from PanelPal.accessories.panel_app_api_functions import PanelAppError
+from PanelPal.settings import get_logger
 
 logger = get_logger(__name__)
 

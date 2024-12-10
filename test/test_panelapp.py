@@ -1,8 +1,13 @@
 import responses
 import pytest
 import requests
-from accessories.panel_app_api_functions import get_response, get_name_version, get_genes, get_response_old_panel_version
-from accessories.panel_app_api_functions import PanelAppError
+from PanelPal.accessories.panel_app_api_functions import (
+    get_response,
+    get_name_version,
+    get_genes,
+    get_response_old_panel_version,
+)
+from PanelPal.accessories.panel_app_api_functions import PanelAppError
 
 
 class TestGetResponse:
@@ -18,93 +23,80 @@ class TestGetResponse:
         # It is only one gene so was chosen for brevity.
         # The null values were changed for None for python compatibility.
         # If this test ever fails:
-            # it may be because the panel is updated
-            # but it may be because the api has changed what data it provides
+        # it may be because the panel is updated
+        # but it may be because the api has changed what data it provides
         # either way, this will require investigation by software devs
         real_json = {
-                        "id": 1208,
-                        "hash_id": None,
-                        "name": "Agammaglobulinaemia with absent BTK expression",
-                        "disease_group": "",
-                        "disease_sub_group": "",
-                        "status": "public",
-                        "version": "1.1",
-                        "version_created": "2023-09-14T12:48:53.836747Z",
-                        "relevant_disorders": [
-                            "R233"
-                        ],
-                        "stats": {
-                            "number_of_genes": 1,
-                            "number_of_strs": 0,
-                            "number_of_regions": 0
-                        },
-                        "types": [
-                            {
-                            "name": "GMS Rare Disease",
-                            "slug": "gms-rare-disease",
-                            "description": "This panel type is used for GMS panels that are not virtual (i.e. could be a wet lab test)"
-                            },
-                            {
-                            "name": "GMS signed-off",
-                            "slug": "gms-signed-off",
-                            "description": "This panel has undergone review by a NHSE GMS disease specialist group and processes to be signed-off for use within the GMS."
-                            }
-                        ],
-                        "genes": [
-                            {
-                            "gene_data": {
-                                "alias": [
-                                "ATK",
-                                "XLA",
-                                "PSCTK1"
-                                ],
-                                "biotype": "protein_coding",
-                                "hgnc_id": "HGNC:1133",
-                                "gene_name": "Bruton tyrosine kinase",
-                                "omim_gene": [
-                                "300300"
-                                ],
-                                "alias_name": [
-                                "Bruton's tyrosine kinase"
-                                ],
-                                "gene_symbol": "BTK",
-                                "hgnc_symbol": "BTK",
-                                "hgnc_release": "2017-11-03",
-                                "ensembl_genes": {
-                                "GRch37": {
-                                    "82": {
+            "id": 1208,
+            "hash_id": None,
+            "name": "Agammaglobulinaemia with absent BTK expression",
+            "disease_group": "",
+            "disease_sub_group": "",
+            "status": "public",
+            "version": "1.1",
+            "version_created": "2023-09-14T12:48:53.836747Z",
+            "relevant_disorders": ["R233"],
+            "stats": {
+                "number_of_genes": 1,
+                "number_of_strs": 0,
+                "number_of_regions": 0,
+            },
+            "types": [
+                {
+                    "name": "GMS Rare Disease",
+                    "slug": "gms-rare-disease",
+                    "description": "This panel type is used for GMS panels that are not virtual (i.e. could be a wet lab test)",
+                },
+                {
+                    "name": "GMS signed-off",
+                    "slug": "gms-signed-off",
+                    "description": "This panel has undergone review by a NHSE GMS disease specialist group and processes to be signed-off for use within the GMS.",
+                },
+            ],
+            "genes": [
+                {
+                    "gene_data": {
+                        "alias": ["ATK", "XLA", "PSCTK1"],
+                        "biotype": "protein_coding",
+                        "hgnc_id": "HGNC:1133",
+                        "gene_name": "Bruton tyrosine kinase",
+                        "omim_gene": ["300300"],
+                        "alias_name": ["Bruton's tyrosine kinase"],
+                        "gene_symbol": "BTK",
+                        "hgnc_symbol": "BTK",
+                        "hgnc_release": "2017-11-03",
+                        "ensembl_genes": {
+                            "GRch37": {
+                                "82": {
                                     "location": "X:100604435-100641183",
-                                    "ensembl_id": "ENSG00000010671"
-                                    }
-                                },
-                                "GRch38": {
-                                    "90": {
-                                    "location": "X:101349447-101390796",
-                                    "ensembl_id": "ENSG00000010671"
-                                    }
+                                    "ensembl_id": "ENSG00000010671",
                                 }
-                                },
-                                "hgnc_date_symbol_changed": "1986-01-01"
                             },
-                            "entity_type": "gene",
-                            "entity_name": "BTK",
-                            "confidence_level": "3",
-                            "penetrance": None,
-                            "mode_of_pathogenicity": "",
-                            "publications": [],
-                            "evidence": [
-                                "NHS GMS",
-                                "Expert Review Green"
-                            ],
-                            "phenotypes": [],
-                            "mode_of_inheritance": "X-LINKED: hemizygous mutation in males, monoallelic mutations in females may cause disease (may be less severe, later onset than males)",
-                            "tags": [],
-                            "transcript": None
-                            }
-                        ],
-                        "strs": [],
-                        "regions": []
-                        }
+                            "GRch38": {
+                                "90": {
+                                    "location": "X:101349447-101390796",
+                                    "ensembl_id": "ENSG00000010671",
+                                }
+                            },
+                        },
+                        "hgnc_date_symbol_changed": "1986-01-01",
+                    },
+                    "entity_type": "gene",
+                    "entity_name": "BTK",
+                    "confidence_level": "3",
+                    "penetrance": None,
+                    "mode_of_pathogenicity": "",
+                    "publications": [],
+                    "evidence": ["NHS GMS", "Expert Review Green"],
+                    "phenotypes": [],
+                    "mode_of_inheritance": "X-LINKED: hemizygous mutation in males, monoallelic mutations in females may cause disease (may be less severe, later onset than males)",
+                    "tags": [],
+                    "transcript": None,
+                }
+            ],
+            "strs": [],
+            "regions": [],
+        }
 
         # Runs the function to access the API
         response = get_response(panel_id)
@@ -113,8 +105,7 @@ class TestGetResponse:
         assert response.status_code == 200
         # Performs the test that the json accessed matches the one above
         assert response.json() == real_json
-    
-    
+
     @responses.activate
     def test_get_response_timeout(self):
         """
@@ -131,9 +122,10 @@ class TestGetResponse:
         )
 
         # Test that a corresponding exception is raised with the correct message
-        with pytest.raises(PanelAppError, match="Timeout: Panel R293 request exceeded the time limit."):
+        with pytest.raises(
+            PanelAppError, match="Timeout: Panel R293 request exceeded the time limit."
+        ):
             get_response(panel_id)
-
 
     @responses.activate
     def test_get_response_not_found(self):
@@ -151,7 +143,6 @@ class TestGetResponse:
         with pytest.raises(Exception, match=f"Panel {panel_id} not found."):
             get_response(panel_id)
 
-
     @responses.activate
     def test_get_response_server_error(self):
         """
@@ -164,9 +155,10 @@ class TestGetResponse:
         responses.add(responses.GET, url, status=500)
 
         # Test that a corresponding exception is raised.
-        with pytest.raises(Exception, match="Server error: The server failed to process the request."):
+        with pytest.raises(
+            Exception, match="Server error: The server failed to process the request."
+        ):
             get_response(panel_id)
-
 
     @responses.activate
     def test_get_response_service_unavailable(self):
@@ -180,7 +172,9 @@ class TestGetResponse:
         responses.add(responses.GET, url, status=503)
 
         # Test that a corresponding exception is raised.
-        with pytest.raises(Exception, match="Service unavailable: Please try again later."):
+        with pytest.raises(
+            Exception, match="Service unavailable: Please try again later."
+        ):
             get_response(panel_id)
 
     @responses.activate
@@ -191,10 +185,10 @@ class TestGetResponse:
         panel_id = "R400"
         # Define the URL for the mock API call
         url = f"https://panelapp.genomicsengland.co.uk/api/v1/panels/{panel_id}"
-        
+
         # Mock the API response with a 400 status code and a response body
         responses.add(responses.GET, url, status=400, body="Bad Request")
-        
+
         # Assert that the function raises a PanelAppError with the correct message
         with pytest.raises(PanelAppError, match="Error: 400 - Bad Request"):
             get_response(panel_id)
@@ -207,12 +201,18 @@ class TestGetResponse:
         panel_id = "R999"
         # Define the URL for the mock API call
         url = f"https://panelapp.genomicsengland.co.uk/api/v1/panels/{panel_id}"
-        
+
         # Mock the API response with a connection error
-        responses.add(responses.GET, url, body=requests.exceptions.ConnectionError("Connection error"))
-        
+        responses.add(
+            responses.GET,
+            url,
+            body=requests.exceptions.ConnectionError("Connection error"),
+        )
+
         # Assert that the function raises a PanelAppError with the correct message
-        with pytest.raises(PanelAppError, match=f"Failed to retrieve data for panel {panel_id}."):
+        with pytest.raises(
+            PanelAppError, match=f"Failed to retrieve data for panel {panel_id}."
+        ):
             get_response(panel_id)
 
 
@@ -227,20 +227,16 @@ class TestGetNameVersion:
         url = "https://panelapp.genomicsengland.co.uk/api/v1/panels/R233"
 
         # Mock a 404 response with a 'Not found' message in the JSON body
-        responses.add(
-            responses.GET, url,
-            json={"detail": "Not found."},
-            status=404
-        )
+        responses.add(responses.GET, url, json={"detail": "Not found."}, status=404)
 
         # Send a GET request to the mocked URL
         response = requests.get(url)
-        
+
         # Call the function being tested
         result = get_name_version(response)
-        
+
         # Assert that the result contains default 'N/A' values
-        assert result == {'name': 'N/A', 'panel_pk': 'N/A', 'version': 'N/A'}
+        assert result == {"name": "N/A", "panel_pk": "N/A", "version": "N/A"}
 
     @responses.activate
     def test_success(self):
@@ -252,25 +248,27 @@ class TestGetNameVersion:
 
         # Mock a successful API response with valid panel data
         responses.add(
-            responses.GET, url, status=200,
+            responses.GET,
+            url,
+            status=200,
             json={
                 "id": 1208,
                 "name": "Agammaglobulinaemia with absent BTK expression",
-                "version": "1.1"
-            }
+                "version": "1.1",
+            },
         )
 
         # Send a GET request to the mocked URL
         response = requests.get(url)
-        
+
         # Call the function being tested
         result = get_name_version(response)
-        
+
         # Assert that the result matches the mocked data
         assert result == {
             "name": "Agammaglobulinaemia with absent BTK expression",
             "panel_pk": 1208,
-            "version": "1.1"
+            "version": "1.1",
         }
 
     @responses.activate
@@ -280,12 +278,13 @@ class TestGetNameVersion:
         causing a ValueError during parsing.
         """
         url = "https://panelapp.genomicsengland.co.uk/api/v1/panels/123/?version=1.0"
-        
+
         # Mock an invalid JSON response (e.g., broken or malformed JSON)
         responses.add(
-            responses.GET, url,
-            body='invalid_json',  # Invalid JSON will trigger a ValueError
-            status=200
+            responses.GET,
+            url,
+            body="invalid_json",  # Invalid JSON will trigger a ValueError
+            status=200,
         )
 
         # Perform the request and expect a PanelAppError to be raised
@@ -305,17 +304,23 @@ class TestGetGenes:
 
         # Mock a successful response with gene symbols in the JSON body
         responses.add(
-            responses.GET, url,
-            json={"genes": [{"gene_data": {"gene_symbol": "BRCA1"}}, {"gene_data": {"gene_symbol": "BRCA2"}}]},
-            status=200
+            responses.GET,
+            url,
+            json={
+                "genes": [
+                    {"gene_data": {"gene_symbol": "BRCA1"}},
+                    {"gene_data": {"gene_symbol": "BRCA2"}},
+                ]
+            },
+            status=200,
         )
 
         # Send a GET request to the mocked URL
         response = requests.get(url)
-        
+
         # Call the function being tested
         genes = get_genes(response)
-        
+
         # Assert that the function returns the correct list of gene symbols
         assert genes == ["BRCA1", "BRCA2"]
 
@@ -328,15 +333,11 @@ class TestGetGenes:
         url = "https://panelapp.genomicsengland.co.uk/api/v1/panels/R233"
 
         # Mock a 404 response with a 'Not found' message in the JSON body
-        responses.add(
-            responses.GET, url,
-            json={"detail": "Not found."},
-            status=404
-        )
+        responses.add(responses.GET, url, json={"detail": "Not found."}, status=404)
 
         # Send a GET request to the mocked URL
         response = requests.get(url)
-        
+
         # Assert that the function raises an HTTPError for the 404 response
         with pytest.raises(requests.exceptions.HTTPError):
             get_genes(response)
@@ -350,15 +351,11 @@ class TestGetGenes:
         url = "https://panelapp.genomicsengland.co.uk/api/v1/panels/R233"
 
         # Mock a response with invalid JSON content
-        responses.add(
-            responses.GET, url,
-            body='{"genes": [invalid_json]}',
-            status=200
-        )
+        responses.add(responses.GET, url, body='{"genes": [invalid_json]}', status=200)
 
         # Send a GET request to the mocked URL
         response = requests.get(url)
-        
+
         # Assert that the function raises a PanelAppError for invalid JSON
         with pytest.raises(PanelAppError):
             get_genes(response)
@@ -376,18 +373,13 @@ class TestGetResponseOldPanelVersion:
         url = f"https://panelapp.genomicsengland.co.uk/api/v1/panels/{panel_pk}/?version={version}"
 
         # Mock a successful response with status 200 and a success message
-        responses.add(
-            responses.GET, url,
-            json={"status": "success"},
-            status=200
-        )
+        responses.add(responses.GET, url, json={"status": "success"}, status=200)
 
         # Call the function to test and assert expected response values
         response = get_response_old_panel_version(panel_pk, version)
         assert response.status_code == 200
         assert response.json() == {"status": "success"}
-    
-    
+
     @responses.activate
     def test_get_response_old_panel_version_timeout(self):
         """
@@ -405,7 +397,10 @@ class TestGetResponseOldPanelVersion:
         )
 
         # Test that the correct exception is raised with the expected message
-        with pytest.raises(PanelAppError, match=f"Timeout: Panel {panel_pk} request exceeded the time limit. Please try again"):
+        with pytest.raises(
+            PanelAppError,
+            match=f"Timeout: Panel {panel_pk} request exceeded the time limit. Please try again",
+        ):
             get_response_old_panel_version(panel_pk, version)
 
     @responses.activate
@@ -419,13 +414,13 @@ class TestGetResponseOldPanelVersion:
         url = f"https://panelapp.genomicsengland.co.uk/api/v1/panels/{panel_pk}/?version={version}"
 
         # Mock a 404 Not Found response
-        responses.add(
-            responses.GET, url,
-            status=404
-        )
+        responses.add(responses.GET, url, status=404)
 
         # Expect a PanelAppError to be raised with the correct error message
-        with pytest.raises(PanelAppError, match=f"Failed to retrieve version {version} of panel {panel_pk}."):
+        with pytest.raises(
+            PanelAppError,
+            match=f"Failed to retrieve version {version} of panel {panel_pk}.",
+        ):
             get_response_old_panel_version(panel_pk, version)
 
     @responses.activate
@@ -437,15 +432,15 @@ class TestGetResponseOldPanelVersion:
         version = "3.0"
         # Construct the URL for the panel and version
         url = f"https://panelapp.genomicsengland.co.uk/api/v1/panels/{panel_pk}/?version={version}"
-        
+
         # Mock a 500 Internal Server Error response
-        responses.add(
-            responses.GET, url,
-            status=500
-        )
+        responses.add(responses.GET, url, status=500)
 
         # Expect a PanelAppError to be raised for server-side issues
-        with pytest.raises(PanelAppError, match=f"Failed to retrieve version {version} of panel {panel_pk}."):
+        with pytest.raises(
+            PanelAppError,
+            match=f"Failed to retrieve version {version} of panel {panel_pk}.",
+        ):
             get_response_old_panel_version(panel_pk, version)
 
     @responses.activate
@@ -460,10 +455,14 @@ class TestGetResponseOldPanelVersion:
 
         # Simulate a network-related error such as a connection issue
         responses.add(
-            responses.GET, url,
-            body=responses.ConnectionError("Network error occurred.")
+            responses.GET,
+            url,
+            body=responses.ConnectionError("Network error occurred."),
         )
 
         # Expect a PanelAppError to be raised due to network issues
-        with pytest.raises(PanelAppError, match=f"Failed to retrieve version {version} of panel {panel_pk}."):
+        with pytest.raises(
+            PanelAppError,
+            match=f"Failed to retrieve version {version} of panel {panel_pk}.",
+        ):
             get_response_old_panel_version(panel_pk, version)

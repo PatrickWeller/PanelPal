@@ -40,7 +40,7 @@ Notes
 This module requires the `requests` library to fetch data from the PanelApp API.
 """
 import requests
-from settings import get_logger
+from PanelPal.settings import get_logger
 
 # Create a logger named after panel_app_api_functions
 logger = get_logger(__name__)
