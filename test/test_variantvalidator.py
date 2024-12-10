@@ -3,6 +3,8 @@ import requests
 #from unittest.mock import patch
 from PanelPal.accessories.variant_validator_api_functions import extract_exon_info
 
+class TestGetGeneTranscriptData:
+    ...
 
 class TestExtractExonInfo:
     def test_extract_exon_info_valid_data(self):
@@ -127,3 +129,10 @@ class TestExtractExonInfo:
         # Call the function and check the output
         result = extract_exon_info(mock_gene_transcript_data)
         assert result == expected_output
+
+class TestGenerateBedFile:
+    ...
+
+
+class TestBedToolsMerge:
+    ...
