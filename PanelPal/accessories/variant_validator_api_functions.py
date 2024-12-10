@@ -332,46 +332,42 @@ def bedtools_merge(panel_name, panel_version, genome_build):
         raise
 
 
-def main():
-    """
-    Dummy variables for testing purposes.
-    """
-    # Set panel id and version
-    panel_name = "R207"
-    panel_version = "4"
-    gene_list = [
-        "BRCA1",
-        "BRCA2",
-        "BRIP1",
-        "MLH1",
-        "MSH2",
-        "MSH6",
-        "PALB2",
-        "RAD51C",
-        "RAD51D",
-        "PMS2",
-        "AR",
-        "ATM",
-        "BARD1",
-        "CDH1",
-        "CHEK2",
-        "EPCAM",
-        "ESR1",
-        "MUTYH",
-        "NBN",
-        "PPM1D",
-        "PTEN",
-        "RAD54L",
-        "RRAS2",
-        "STK11",
-        "TP53",
-        "XRCC2",
-    ]
-    genome_build = "GRCh38"
+# def main():
+#     """
+#     Dummy variables for testing purposes.
+#     """
+#     # Set panel id and version
+#     panel_name = "R207"
+#     panel_version = "4"
+#     gene_list = [
+#         "BRCA1",
+#         "BRCA2",
+#         "BRIP1",
+#         "MLH1",
+#         "MSH2",
+#         "MSH6",
+#         "PALB2",
+#         "RAD51C",
+#         "RAD51D",
+#         "PMS2",
+#         "AR",
+#         "ATM",
+#         "BARD1",
+#         "CDH1",
+#         "CHEK2",
+#         "EPCAM",
+#         "ESR1",
+#         "MUTYH",
+#         "NBN",
+#         "PPM1D",
+#         "PTEN",
+#         "RAD54L",
+#         "RRAS2",
+#         "STK11",
+#         "TP53",
+#         "XRCC2",
+#     ]
+#     genome_build = "GRCh38"
 
-    # Generate bed files
-    generate_bed_file(gene_list, panel_name, panel_version, genome_build)
-    bedtools_merge(panel_name, panel_version, genome_build)
-
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()
