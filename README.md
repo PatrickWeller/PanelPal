@@ -69,7 +69,11 @@ python PanelPal/compare_panel_versions.py --panel R21 --versions 1.0 2.0
 To generate a bed file for a given panel:
 
 ```bash
+#Either
 python PanelPal/generate_bed.py --panel_id R207 --panel_version 4 --genome_build GRCh38
+
+#Or
+PanelPal generate-bed --panel_id R207 --panel_version 4 --genome_build GRCh38
 ```
 
 ## Directory structure
@@ -93,8 +97,8 @@ The following structure should be used going foward to keep the project director
 │   │   └── panelpal.log
 │   ├── main.py
 │   └── settings.py
-├── setup.py
 ├── README.md
+├── setup.py
 └── test
     ├── __init__.py
     └── test_*.py

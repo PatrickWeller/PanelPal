@@ -10,6 +10,6 @@ CREATE TABLE IF NOT EXISTS panelpal (
     nhs_number TEXT UNIQUE NOT NULL,
     r_code TEXT NOT NULL,
     gene_list TEXT NOT NULL,
-    bam_file TEXT NOT NULL
+    bed_file TEXT NOT NULL
 );
 

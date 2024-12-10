@@ -1,5 +1,6 @@
 ignore/
 PanelPal/PanelPal.egg-info
+PanelPal.egg-info/
 PanelPal/app.log
 PanelPal/accessories/__pycache__/
 PanelPal/__pycache__/
