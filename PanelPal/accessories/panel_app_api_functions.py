@@ -91,7 +91,7 @@ def get_response(panel_id):
             "Request timed out while fetching panel data for panel %s: %s", panel_id, e
         )
         sys.exit(
-            f"Timeout error: Panel {panel_id} request exceeded the time limit."
+            f"Timeout error: Panel {panel_id} request exceeded the time limit. "
             "Exiting program."
         )
 

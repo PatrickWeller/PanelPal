@@ -125,7 +125,8 @@ class TestGetResponse:
         with pytest.raises(SystemExit) as exc_info:
             get_response(panel_id)
 
-        assert str(exc_info.value) == "Timeout error: Panel R293 request exceeded the time limit. Exiting program."
+        assert str(exc_info.value) == ("Timeout error: Panel R293 request exceeded the time limit. "
+                                       "Exiting program.")
 
     @responses.activate
     def test_get_response_not_found(self):
