@@ -2,7 +2,9 @@ import time
 import responses
 import pytest
 import requests
-#from unittest.mock import patch
+import os
+import subprocess
+from unittest.mock import patch
 from PanelPal.accessories.variant_validator_api_functions import (
     get_gene_transcript_data, extract_exon_info, generate_bed_file, bedtools_merge
 )
@@ -259,9 +261,161 @@ class TestExtractExonInfo:
         result = extract_exon_info(mock_gene_transcript_data)
         assert result == expected_output
 
-class TestGenerateBedFile:
-    ...
+# Sample transcript data for mocking
+MOCK_TRANSCRIPT_DATA = [
+    {
+        "current_symbol": "BRCA1",
+        "transcripts": [
+            {
+                "annotations": {"chromosome": "17"},
+                "reference": "NM_007294.4",
+                "genomic_spans": {
+                    "NC_000017.11": {
+                        "exon_structure": [
+                            {
+                                "exon_number": 1,
+                                "genomic_start": 43044294,
+                                "genomic_end": 43044685
+                            },
+                            {
+                                "exon_number": 2,
+                                "genomic_start": 43045685,
+                                "genomic_end": 43045913
+                            }
+                        ]
+                    }
+                }
+            }
+        ]
+    }
+]
 
+class TestGenerateBedFile:
+    @patch('PanelPal.accessories.variant_validator_api_functions.get_gene_transcript_data')
+    def test_successful_bed_file_generation(self, mock_get_transcript_data, tmp_path):
+        """
+        Test generate_bed_file creates a valid BED file with correct content
+        """
+        # Set up the mock to return predefined transcript data
+        mock_get_transcript_data.return_value = MOCK_TRANSCRIPT_DATA
+        
+        # Change the current working directory to the temporary directory
+        os.chdir(tmp_path)
+        
+        # Define test parameters
+        gene_list = ['BRCA1']
+        panel_name = 'TestPanel'
+        panel_version = '1'
+        genome_build = 'GRCh38'
+        
+        # Call the function
+        generate_bed_file(gene_list, panel_name, panel_version, genome_build)
+        
+        # Check if the file was created
+        output_file = f"{panel_name}_v{panel_version}_{genome_build}.bed"
+        assert os.path.exists(output_file)
+        
+        # Read and verify file contents
+        with open(output_file, 'r') as f:
+            content = f.readlines()
+        
+        assert len(content) > 0, "BED file should not be empty"
+        
+        # Verify specific aspects of the generated BED file
+        for line in content:
+            parts = line.strip().split('\t')
+            assert len(parts) == 4, "BED file should have 4 columns"
+            assert parts[0] == '17'  # Chromosome from mock data
+            assert int(parts[1]) >= 0  # Start position should be non-negative
+            assert int(parts[2]) > int(parts[1])  # End position should be greater than start
+            assert '|' in parts[3]  # Concatenated info column
+
+    @patch('PanelPal.accessories.variant_validator_api_functions.get_gene_transcript_data')
+    def test_error_handling(self, mock_get_transcript_data):
+        """
+        Test generate_bed_file handles API errors gracefully
+        """
+        # Mock get_gene_transcript_data to raise an exception
+        mock_get_transcript_data.side_effect = Exception("API Error")
+        
+        # Expect the function to raise a SystemExit
+        with pytest.raises(SystemExit):
+            generate_bed_file(['ErrorGene'], 'TestPanel', '1', 'GRCh38')
 
 class TestBedToolsMerge:
-    ...
+#     def test_successful_merge(self, tmp_path):
+#         """
+#         Test bedtools_merge creates a valid merged BED file
+#         """
+#         os.chdir(tmp_path)
+        
+#         # Create a sample input BED file
+#         input_file = "test.bed"
+#         with open(input_file, 'w') as f:
+#             f.write("chr1\t100\t200\tinfo1\n")
+#             f.write("chr1\t150\t250\tinfo2\n")
+        
+#         # Perform merge operation
+#         bedtools_merge('TestPanel', '1', 'GRCh38', directory=tmp_path)
+        
+#         # Check if merged file exists
+#         merged_file = tmp_path / 'TestPanel_v1_GRCh38_merged.bed'
+#         assert merged_file.exists(), f"Expected output file {merged_file} does not exist."
+        
+#         # Verify merged file content
+#         with open(merged_file, 'r') as f:
+#             content = f.readlines()
+        
+#         assert len(content) > 0, "Merged BED file should not be empty"
+        
+#         for line in content:
+#             parts = line.strip().split('\t')
+#             assert len(parts) == 3, "Merged BED file should have 3 columns"
+
+#         with open(merged_file, 'r') as f:
+#             content = f.read()
+#         assert "chr1\t100\t250" in content 
+
+    # def test_merge_no_input_file(self, tmp_path):
+    #     """
+    #     Test bedtools_merge handles non-existent input file
+    #     """
+    #     os.chdir(tmp_path)
+        
+    #     # Attempt to merge a non-existent file
+    #     with pytest.raises(subprocess.CalledProcessError):
+    #         bedtools_merge('NonExistentPanel', '1', 'GRCh38')
+
+    @patch("subprocess.run")
+    @patch("PanelPal.accessories.variant_validator_api_functions.logger")
+    def test_bedtools_merge_success(self, mock_logger, mock_subprocess_run):
+        # Arrange
+        panel_name = "R59"
+        panel_version = "2"
+        genome_build = "GRCh38"
+        bed_file = f"{panel_name}_v{panel_version}_{genome_build}.bed"
+        merged_bed_file = f"{panel_name}_v{panel_version}_{genome_build}_merged.bed"
+        expected_command = f"bedtools sort -i {bed_file} | bedtools merge > {merged_bed_file}"
+
+        # Act
+        bedtools_merge(panel_name, panel_version, genome_build)
+
+        # Assert
+        mock_subprocess_run.assert_called_once_with(expected_command, shell=True, check=True)
+        mock_logger.info.assert_called_once_with("Successfully sorted and merged BED file to %s", merged_bed_file)
+
+
+    @patch("subprocess.run", side_effect=subprocess.CalledProcessError(1, "bedtools merge"))
+    @patch("PanelPal.accessories.variant_validator_api_functions.logger")
+    def test_bedtools_merge_failure(self, mock_logger, mock_subprocess_run):
+        # Arrange
+        panel_name = "R59"
+        panel_version = "2"
+        genome_build = "GRCh38"
+
+        # Act & Assert
+        with pytest.raises(subprocess.CalledProcessError):
+            bedtools_merge(panel_name, panel_version, genome_build)
+
+        mock_logger.error.assert_called_once()
+        assert "Error during bedtools operation" in mock_logger.error.call_args[0][0]

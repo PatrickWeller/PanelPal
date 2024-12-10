@@ -35,7 +35,7 @@ Example Usage
 >>> generate_bed_file(gene_list, panel_name, panel_version, genome_build)
 >>> bedtools_merge(panel_name, panel_version, genome_build)
 """
-
+import sys
 import time
 import subprocess
 import requests
@@ -277,9 +277,9 @@ def generate_bed_file(gene_list, panel_name, panel_version, genome_build="GRCh38
                 # log addition of exon data for each gene
                 logger.info("Added exon data for %s to the BED file.", gene)
 
-            except requests.exceptions.RequestException as e:
+            except Exception as e:
                 logger.error("Error processing %s: %s", gene, e)
-                raise
+                sys.exit(f"Error processing {gene}: {e}")
 
         # log message indicating that BED file has been successfully saved
         logger.info("Data saved to %s", output_file)
@@ -329,6 +329,7 @@ def bedtools_merge(panel_name, panel_version, genome_build):
     # If an error is encountered log the error
     except subprocess.CalledProcessError as e:
         logger.error("Error during bedtools operation: %s", e)
+        raise
 
 
 # def main():
@@ -371,9 +372,6 @@ def bedtools_merge(panel_name, panel_version, genome_build):
 #     # Generate bed files
 #     generate_bed_file(gene_list, panel_name, panel_version, genome_build)
 #     bedtools_merge(panel_name, panel_version, genome_build)
-
-def main():
-    print(get_gene_transcript_data("BRCAasdasd", "GRCh38"))
 
 if __name__ == "__main__":
     main()
