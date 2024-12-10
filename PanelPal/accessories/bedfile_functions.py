@@ -93,7 +93,7 @@ def read_bed_file(filename):
         return sorted(bed_entries)
 
     except Exception as e:
-        logger.error("An unexpected error occurred while reading '%s': %s", 
+        logger.error("An unexpected error occurred while reading '%s': %s",
                     filename,
                     str(e)
                     )
@@ -187,15 +187,16 @@ def compare_bed_files(file1, file2):
                 "Comparison complete. Differences saved in %s", output_file
                 )
 
-        except IOError as e:
+        except OSError as e:
             logger.error("Failed to write to output file '%s': %s",
                          output_file,
                          str(e)
                          )
             raise
 
-    except FileNotFoundError as e:
+    except Exception as e:
         logger.error(
             "Error: %s", str(e)
             )
         raise
+

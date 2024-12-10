@@ -353,3 +353,77 @@ class TestsCompareBedFunction:
         mock_logger.error.assert_any_call(
             "Input file does not exist: %s", "non_existent_file2.bed"
         )
+
+    @patch("builtins.open", side_effect=OSError("Disk full"))
+    @patch("os.path.exists", return_value=True)  # Prevent FileNotFoundError
+    @patch("PanelPal.accessories.bedfile_functions.logger")
+    def test_os_error_handling(self, mock_logger, mock_exists, mock_open, temp_bed_files):
+        """
+        Test handling of OSError when writing to the output file, using real temporary BED files.
+        """
+        file1, file2 = temp_bed_files
+
+        # Mock read_bed_file to return some dummy data without actually opening the file
+        with patch("PanelPal.accessories.bedfile_functions.read_bed_file") as mock_read_bed_file:
+            mock_read_bed_file.side_effect = [
+                [frozenset([("chrom", "chr1"), ("start", 100), ("end", 200)])],
+                [frozenset([("chrom", "chr2"), ("start", 150), ("end", 250)])],
+            ]
+
+            # Test that OSError is raised during the comparison process
+            with pytest.raises(OSError, match="Disk full"):
+                compare_bed_files(str(file1), str(file2))
+
+            # Verify that both expected error log calls were made
+            mock_logger.error.assert_any_call(
+                "Failed to write to output file '%s': %s",
+                'bedfile_comparisons/comparison_file1.bed_file2.bed.txt',
+                'Disk full'
+            )
+
+            mock_logger.error.assert_any_call(
+                'Error: %s', 'Disk full'
+            )
+
+    @patch("os.path.exists",
+           side_effect=lambda path: path in ["tmp/file1.bed", "tmp/file2.bed"])
+    @patch("os.makedirs", return_value=None)  # Simulate successful folder creation
+    @patch("PanelPal.accessories.bedfile_functions.logger")
+    def test_create_output_folder_success(self, mock_logger, mock_makedirs,
+                                          mock_exists, temp_bed_files):
+        """
+        Test that the function successfully creates the output folder if it does not exist.
+        """
+        file1, file2 = temp_bed_files  # Extract temporary BED files
+
+        # Call the function
+        compare_bed_files(str(file1), str(file2))
+
+        # Verify folder creation was attempted
+        mock_makedirs.assert_called_once_with("bedfile_comparisons")
+        mock_logger.debug.assert_any_call("Creating output folder: %s",
+                                          "bedfile_comparisons")
+
+    @patch("os.path.exists", # file exists, folder does not
+           side_effect=lambda path: path in ["tmp/file1.bed", "tmp/file2.bed"])
+    @patch("os.makedirs", side_effect=OSError("Permission denied"))
+    @patch("PanelPal.accessories.bedfile_functions.logger")
+    def test_create_output_folder_failure(self, mock_logger, mock_makedirs,
+                                          mock_exists, temp_bed_files):
+        """
+        Test that the function handles errors when folder creation fails due to OSError.
+        """
+        file1, file2 = temp_bed_files  # Extract temporary BED files
+
+        # Call the function and ensure an OSError is raised
+        with pytest.raises(OSError, match="Permission denied"):
+            compare_bed_files(str(file1), str(file2))
+
+        # Verify that the error was logged
+        mock_logger.error.assert_any_call(
+            "Failed to create output folder '%s': %s", "bedfile_comparisons", "Permission denied"
+        )
+
+        mock_logger.error.assert_any_call(
+                'Error: %s', 'Permission denied'
+            )
