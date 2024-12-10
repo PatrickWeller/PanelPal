@@ -39,6 +39,7 @@ Notes
 -----
 This module requires the `requests` library to fetch data from the PanelApp API.
 """
+import sys
 import requests
 from PanelPal.settings import get_logger
 
@@ -83,35 +84,36 @@ def get_response(panel_id):
         logger.info("Panel App API response successful")
         return response
 
-    # Handle errors if the API request times out
     except requests.exceptions.Timeout as e:
         # Log error if the API request times out
         logger.error("Request timed out while fetching panel data for panel %s", panel_id)
-        # Raise a custom PanelAppError with a descriptive message
-        raise PanelAppError(f"Timeout: Panel {panel_id} request exceeded the time limit. "
-                            "Please try again") from e
+        sys.exit(f"Timeout error: Panel {panel_id} request exceeded the time limit. Exiting program.")  # Gracefully exit
 
     except requests.exceptions.HTTPError as e:
         # Handle specific HTTP error codes
         if response.status_code == 404:
             logger.error("Error occurred while fetching panel data for panel %s: %s", panel_id, e)
-            raise PanelAppError(f"Panel {panel_id} not found.") from e
+            sys.exit(f"Panel {panel_id} not found. Exiting program.")  # Gracefully exit
         if response.status_code == 500:
             logger.error("Error occurred while fetching panel data for panel %s: %s", panel_id, e)
-            raise PanelAppError("Server error: The server failed to process the request.") from e
+            sys.exit("Server error: The server failed to process the request. Exiting program.")  # Gracefully exit
         if response.status_code == 503:
             logger.error("Error occurred while fetching panel data for panel %s: %s", panel_id, e)
-            raise PanelAppError("Service unavailable: Please try again later.") from e
+            sys.exit("Service unavailable: Please try again later. Exiting program.")  # Gracefully exit
 
-        # For other non-successful status codes, raise a general error
+        # For other non-successful status codes
         logger.error("Error occurred while fetching panel data for panel %s: %s", panel_id, e)
-        raise PanelAppError(f"Error: {response.status_code} - {response.text}") from e
+        sys.exit(f"Error: {response.status_code} - {response.text}. Exiting program.")  # Gracefully exit
 
-    except requests.exceptions.RequestException as e:
+    except requests.RequestException as e:
         # Catch all other types of request exceptions (network errors, etc.)
         logger.error("Error occurred while fetching panel data for panel %s: %s", panel_id, e)
-        # Raise a custom PanelAppError with a more general message
-        raise PanelAppError(f"Failed to retrieve data for panel {panel_id}.") from e
+        sys.exit(f"Failed to retrieve data for panel {panel_id}. Exiting program.")  # Gracefully exit
+
+    except Exception as e:
+        # Catch any unexpected exceptions
+        logger.error(f"Unexpected error occurred: {str(e)}")
+        sys.exit(f"Unexpected error occurred: {str(e)}. Exiting program.") 
 
 
 def get_name_version(response):
