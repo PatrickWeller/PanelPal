@@ -66,6 +66,9 @@ Available Commands:
                             Example: PanelPal compare-panel-versions --panel R21 --versions 1.0 2.2 --status_filter green
 
     gene-panels             List panels containing a given gene. Requires the HGNC symbol of the gene.
+                            Default confidence status is 'green'. Optional arguments include 'confidence_status' 
+                            (green, amber, red, green & amber). Use 'show_all_panels' to include panels without R codes.
+                            Example: PanelPal gene-panels --hgnc_symbol BRCA1 --confidence_status green --show_all_panels
     
     --help, -h              Prints this help message
     """
