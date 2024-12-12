@@ -136,6 +136,10 @@ def fetch_panel_info(formatted_id, retries=3, delay=10):
                 )
                 return {}
 
+        except requests.exceptions.HTTPError:
+            logging.error("404 Error: Panel with R code %s not found.", formatted_id)
+            sys.exit(1)
+
         except requests.exceptions.RequestException:
             logging.warning(
                 "Attempt %d/%d: Encountered an issue with the API for panel %s, "
