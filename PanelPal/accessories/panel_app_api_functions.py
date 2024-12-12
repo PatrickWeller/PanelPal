@@ -73,43 +73,37 @@ def get_response(panel_id):
 
     try:
         # Send the GET request to the API
-        logger.info("Sending request to Panel App API")
+        logger.info("Sending request to Panel App API for Panel %s", panel_id)
         response = requests.get(url, timeout=10)
 
         # Raise an exception for any non-2xx HTTP status codes
         response.raise_for_status()
 
         # If the request was successful, return the response object
-        logger.info("Panel App API response successful")
+        logger.info("Panel App API response successful for Panel %s", panel_id)
         return response
 
     # Handle errors if the API request times out
     except requests.exceptions.Timeout as e:
         # Log error if the API request times out
-        logger.error("Request timed out while fetching panel data for panel %s", panel_id)
+        logger.error("Request timed out while fetching panel data for Panel %s.", panel_id)
         # Raise a custom PanelAppError with a descriptive message
         raise PanelAppError(f"Timeout: Panel {panel_id} request exceeded the time limit. "
-                            "Please try again") from e
+                            "Please try again.") from e
 
     except requests.exceptions.HTTPError as e:
+        logger.error("HTTP Error occurred while fetching panel data for Panel %s: %s", panel_id, e)
         # Handle specific HTTP error codes
         if response.status_code == 404:
-            logger.error("Error occurred while fetching panel data for panel %s: %s", panel_id, e)
-            raise PanelAppError(f"Panel {panel_id} not found.") from e
-        if response.status_code == 500:
-            logger.error("Error occurred while fetching panel data for panel %s: %s", panel_id, e)
-            raise PanelAppError("Server error: The server failed to process the request.") from e
-        if response.status_code == 503:
-            logger.error("Error occurred while fetching panel data for panel %s: %s", panel_id, e)
-            raise PanelAppError("Service unavailable: Please try again later.") from e
-
-        # For other non-successful status codes, raise a general error
-        logger.error("Error occurred while fetching panel data for panel %s: %s", panel_id, e)
-        raise PanelAppError(f"Error: {response.status_code} - {response.text}") from e
+            # Raise a HTTP Error if 404 only - as this is likely user input error.
+            raise requests.exceptions.HTTPError(f"404 Error: Panel {panel_id} not found.") from e
+        else:
+            # For other non-successful status codes, raise a general error
+            raise PanelAppError(f"HTTP Error: {response.status_code} - {response.text}") from e
 
     except requests.exceptions.RequestException as e:
         # Catch all other types of request exceptions (network errors, etc.)
-        logger.error("Error occurred while fetching panel data for panel %s: %s", panel_id, e)
+        logger.error("Error occurred while fetching panel data for Panel %s: %s", panel_id, e)
         # Raise a custom PanelAppError with a more general message
         raise PanelAppError(f"Failed to retrieve data for panel {panel_id}.") from e
 
@@ -200,7 +194,7 @@ def get_genes(response):
         raise
 
 
-def get_response_old_panel_version(panel_pk, version):
+def get_response_old_panel_version(panel_pk, version, panel):
     """
     Fetches the response from the PanelApp API for a specific panel and version.
 
@@ -225,27 +219,39 @@ def get_response_old_panel_version(panel_pk, version):
 
     try:
         # Send the GET request to the API
-        logger.info("Sending request to Panel App API")
+        logger.info("Sending request to Panel App API for Panel %s V%s", panel, version)
         response = requests.get(url, timeout=10)
 
         # Raise an exception for any non-2xx HTTP status codes
         response.raise_for_status()
 
         # If the request was successful, return the response object
-        logger.info("Request to Panel App API was successful")
+        logger.info("Request to Panel App API was successful for Panel %s V%s", panel, version)
         return response
 
     # Handle errors if the API request times out
     except requests.exceptions.Timeout as e:
         # Log error if the API request times out
-        logger.error("Request timed out while fetching panel data for panel"
-                     "with primary key %s", panel_pk)
+        logger.error("Request timed out while fetching panel data for Panel %s V%s", panel, version)
         # Raise a custom PanelAppError with a descriptive message
-        raise PanelAppError(f"Timeout: Panel {panel_pk} request exceeded the time limit. "
-                            "Please try again") from e
+        raise PanelAppError from e
+
+    except requests.exceptions.HTTPError as e:
+        logger.error("HTTP Error occurred while fetching panel data for Panel %s: %s", panel_id, e)
+        if response.status_code == 404:
+            # Raise a HTTP Error if 404 only - as this is likely user input error.
+            raise requests.exceptions.HTTPError(f"404 Error: Panel {panel} or Version {version} not found") from e
+        else:
+            # For other non-successful status codes, raise a general error
+            raise PanelAppError(f"HTTP Error: {response.status_code} - {response.text}") from e
 
     except requests.exceptions.RequestException as e:
         # Log any errors encountered during the request
-        logger.error("Error fetching old panel version: %s", e)
-        # Raise a custom PanelAppError with a more descriptive message
-        raise PanelAppError(f"Failed to retrieve version {version} of panel {panel_pk}.") from e
+        logger.error("Encountered a Request Exception")
+        # Raise a custom PanelAppError
+        raise PanelAppError from e
+
+def main():
+    get_response("R233")
+
+main()

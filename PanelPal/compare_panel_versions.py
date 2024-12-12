@@ -28,6 +28,7 @@ output any genes that have been added or removed.
 
 import argparse
 import sys
+import requests
 from PanelPal.accessories.panel_app_api_functions import (
     get_response, get_name_version, get_response_old_panel_version, get_genes,
 )
@@ -97,7 +98,10 @@ def main(panel=None, versions=None, status_filter='green'):
         panel_json = get_response(panel)
     # Exit the program if that panel does not exist
     except PanelAppError:
-        logger.error("Panel %s is incorrect", panel)
+        logger.error("Error using Panel App API: %s", e)
+        sys.exit(1)
+    except requests.exceptions.HTTPError:
+        logger.error("404 Error: Please check that R code %s is correct.", panel)
         sys.exit(1)
 
     # Access and store the primary key of that panel from the Panel APP database
@@ -106,17 +110,26 @@ def main(panel=None, versions=None, status_filter='green'):
 
     # Send API request for the older panel version
     try:
-        older_version_json = get_response_old_panel_version(panel_pk, older_version)
-    # Exit the program if that version does not exist
-    except PanelAppError:
-        logger.error("Panel %s v%s may not exist, please check and try again", panel, older_version)
+        older_version_json = get_response_old_panel_version(panel_pk, older_version, panel)
+    # Exit the program if there was any Panel APP Error Exception
+    except PanelAppError as e:
+        logger.error("Error using Panel App API: %s", e)
         sys.exit(1)
+    # Exit the program if the version does not exist.
+    except requests.exceptions.HTTPError:
+        logger.error("404 Error: Please check Version %s exists for Panel %s.", older_version, panel)
+        sys.exit(1)
+
     # Send API request for the newer panel version
     try:
-        newer_version_json = get_response_old_panel_version(panel_pk, newer_version)
-    # Exit the program if that version does not exist
-    except PanelAppError:
-        logger.error("Panel %s v%s may not exist, please check and try again", panel, newer_version)
+        newer_version_json = get_response_old_panel_version(panel_pk, newer_version, panel)
+    # Exit the program if there was any Panel APP Error Exception
+    except PanelAppError as e:
+        logger.error("Error using Panel App API: %s.", e)
+        sys.exit(1)
+    # Exit the program if the version does not exist.
+    except requests.exceptions.HTTPError:
+        logger.error("404 Error: Please check Version %s exists for Panel %s.", newer_version, panel)
         sys.exit(1)
 
     # Get the list of genes for each panel version
