@@ -7,5 +7,6 @@ dependencies:
   - python==3.12.4  # Specify your desired Python version
   - pip
   - bedtools==2.31.1
+  - sqlalchemy==2.0.34
   - pip:
       - -r requirements.txt

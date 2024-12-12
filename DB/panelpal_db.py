@@ -1,8 +1,9 @@
 """
 SQLalchemy object-relational configuration.
 
-This script defines ORM (Object-Relational Mapping) classes using SQLAlchemy for managing
-a database with tables for patient information, BED file metadata, and panel information.
+This script defines the database schema using ORM (Object-Relational Mapping) classes 
+in SQLAlchemy for managing a database with three tables for patient details, 
+BED file metadata, and panel information.
 
 The script uses `declarative_base()` to create a base class from which all ORM classes
 inherit, enabling the declaration of tables and their relationships in Python class format.
@@ -42,7 +43,6 @@ Notes:
 """
 
 import sqlalchemy
-
 from sqlalchemy import create_engine, Column, Integer, String, Date, JSON, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
@@ -51,12 +51,14 @@ from PanelPal.settings import get_logger
 # Initialise logger
 logger = get_logger(__name__)
 
-# base class defined here. This allows all ORM classes below to inherit its methods.
+# Define base class - this allows all ORM classes below to inherit its methods.
 Base = declarative_base()
 
 
-# patient information table. NHS number used as primary key
 class Patient(Base):
+    """
+    patient information table. NHS number = primary key
+    """
     __tablename__ = "patients"
 
     nhs_number = Column(String, primary_key=True)
@@ -74,46 +76,66 @@ class Patient(Base):
         )
 
 
-# Bedfiles and metadata
 class BedFile(Base):
+    """
+    Store bedfiles and their metadata. 
+    """
     __tablename__ = "bed_files"
 
     id = Column(Integer, primary_key=True)
     analysis_date = Column(Date, nullable=False)
     bed_file_path = Column(String, nullable=False)
-    patient_id = Column(String, ForeignKey("patients.nhs_number"), nullable=False)
+    patient_id = Column(String, ForeignKey(
+        "patients.nhs_number"), nullable=False)
 
-    # Relationship to Patient
+    # Relationship to Patient table
     patient = relationship("Patient", back_populates="bed_files")
 
-    # Relationship to GeneList
-    gene_lists = relationship("GeneList", back_populates="bed_file")
+    # Relationship to PanelInfo table
+    panels = relationship("PanelInfo", back_populates="bed_file")
 
     def __repr__(self):
         return f"<BedFile(analysis_date={self.analysis_date}, bed_file_path={self.bed_file_path})>"
 
 
-# Panel information. Foreign key to bed file
 class PanelInfo(Base):
-    __tablename__ = "gene_list"
+    """
+    Panel information. Foreign key = BED file. 
+    """
+    __tablename__ = "panel_info"
 
     id = Column(Integer, primary_key=True)
     bed_file_id = Column(Integer, ForeignKey("bed_files.id"), nullable=False)
     panel_data = Column(JSON, nullable=False)  # store data in JSON format
 
     # Relationship to bed file
-    bed_file = relationship("BedFile", back_populates="gene_lists")
+    bed_file = relationship("BedFile", back_populates="panels")
 
     def __repr__(self):
         return (
-            f"<GeneList(bed_file_id={self.bed_file_id}, panel_data={self.panel_data})>"
+            f"<PanelInfo(bed_file_id={self.bed_file_id}, panel_data={
+                self.panel_data})>"
         )
 
 
-# create engine that links to the SQLite DB
+# URL that links to the SQLite database
 DATABASE_URL = "sqlite:///panelpal.db"
+
 # an object of Engine class is instantiated using create_engine
 engine = create_engine(DATABASE_URL, echo=True)
 
 # create session
 Session = sessionmaker(bind=engine)
+
+
+def create_database():
+    """
+    Creates the database and tables if they don't exist yet.
+    """
+    try:
+        # Create tables in the database
+        Base.metadata.create_all(engine)
+        logger.info("Database and tables created successfully.")
+    except Exception as e:
+        logger.error(f"Error creating database tables: {e}")
+        raise
