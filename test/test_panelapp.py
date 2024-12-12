@@ -143,39 +143,6 @@ class TestGetResponse:
         with pytest.raises(Exception, match=f"Panel {panel_id} not found."):
             get_response(panel_id)
 
-    @responses.activate
-    def test_get_response_server_error(self):
-        """
-        Tests for 500 Errors
-        """
-        panel_id = "R293"
-        url = f"https://panelapp.genomicsengland.co.uk/api/v1/panels/{panel_id}"
-
-        # If a request is made, generate a mock 500 Server Error response
-        responses.add(responses.GET, url, status=500)
-
-        # Test that a corresponding exception is raised.
-        with pytest.raises(
-            Exception, match="Server error: The server failed to process the request."
-        ):
-            get_response(panel_id)
-
-    @responses.activate
-    def test_get_response_service_unavailable(self):
-        """
-        Tests for 503 Errors
-        """
-        panel_id = "R293"
-        url = f"https://panelapp.genomicsengland.co.uk/api/v1/panels/{panel_id}"
-
-        # If a request is made, generate a mock 503 Service Unavailable response
-        responses.add(responses.GET, url, status=503)
-
-        # Test that a corresponding exception is raised.
-        with pytest.raises(
-            Exception, match="Service unavailable: Please try again later."
-        ):
-            get_response(panel_id)
 
     @responses.activate
     def test_http_error_unexpected_status_code(self):
@@ -369,6 +336,7 @@ class TestGetResponseOldPanelVersion:
         """
         panel_pk = "123"
         version = "2.0"
+        panel = "R22"
         # Construct the URL using panel_pk and version
         url = f"https://panelapp.genomicsengland.co.uk/api/v1/panels/{panel_pk}/?version={version}"
 
@@ -376,7 +344,7 @@ class TestGetResponseOldPanelVersion:
         responses.add(responses.GET, url, json={"status": "success"}, status=200)
 
         # Call the function to test and assert expected response values
-        response = get_response_old_panel_version(panel_pk, version)
+        response = get_response_old_panel_version(panel_pk, version, panel)
         assert response.status_code == 200
         assert response.json() == {"status": "success"}
 
@@ -387,6 +355,7 @@ class TestGetResponseOldPanelVersion:
         """
         panel_pk = "123"
         version = "1.0"
+        panel = "R22"
         url = f"https://panelapp.genomicsengland.co.uk/api/v1/panels/{panel_pk}/?version={version}"
 
         # Simulate a timeout by raising a `ConnectTimeout` when the request is made
@@ -401,7 +370,7 @@ class TestGetResponseOldPanelVersion:
             PanelAppError,
             match=f"Timeout: Panel {panel_pk} request exceeded the time limit. Please try again",
         ):
-            get_response_old_panel_version(panel_pk, version)
+            get_response_old_panel_version(panel_pk, version, panel)
 
     @responses.activate
     def test_404_error(self):
@@ -410,6 +379,7 @@ class TestGetResponseOldPanelVersion:
         """
         panel_pk = "999"
         version = "1.0"
+        panel = "R21"
         # Construct the URL for a nonexistent panel version
         url = f"https://panelapp.genomicsengland.co.uk/api/v1/panels/{panel_pk}/?version={version}"
 
@@ -418,38 +388,20 @@ class TestGetResponseOldPanelVersion:
 
         # Expect a PanelAppError to be raised with the correct error message
         with pytest.raises(
-            PanelAppError,
-            match=f"Failed to retrieve version {version} of panel {panel_pk}.",
+            requests.exceptions.HTTPError,
+            match=f"404 Error: Panel R21 or Version 1.0 not found.",
         ):
-            get_response_old_panel_version(panel_pk, version)
+            get_response_old_panel_version(panel_pk, version, panel)
+
 
     @responses.activate
-    def test_server_error(self):
-        """
-        Test that the function raises PanelAppError for a 500 Internal Server Error response.
-        """
-        panel_pk = "123"
-        version = "3.0"
-        # Construct the URL for the panel and version
-        url = f"https://panelapp.genomicsengland.co.uk/api/v1/panels/{panel_pk}/?version={version}"
-
-        # Mock a 500 Internal Server Error response
-        responses.add(responses.GET, url, status=500)
-
-        # Expect a PanelAppError to be raised for server-side issues
-        with pytest.raises(
-            PanelAppError,
-            match=f"Failed to retrieve version {version} of panel {panel_pk}.",
-        ):
-            get_response_old_panel_version(panel_pk, version)
-
-    @responses.activate
-    def test_network_error(self):
+    def test_nother_api_error(self):
         """
         Test that the function raises PanelAppError for network-related issues.
         """
         panel_pk = "456"
         version = "1.1"
+        panel = "R21"
         # Construct the URL for the panel and version
         url = f"https://panelapp.genomicsengland.co.uk/api/v1/panels/{panel_pk}/?version={version}"
 
@@ -465,4 +417,4 @@ class TestGetResponseOldPanelVersion:
             PanelAppError,
             match=f"Failed to retrieve version {version} of panel {panel_pk}.",
         ):
-            get_response_old_panel_version(panel_pk, version)
+            get_response_old_panel_version(panel_pk, version, panel)

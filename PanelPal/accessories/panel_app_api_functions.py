@@ -234,13 +234,14 @@ def get_response_old_panel_version(panel_pk, version, panel):
         # Log error if the API request times out
         logger.error("Request timed out while fetching panel data for Panel %s V%s", panel, version)
         # Raise a custom PanelAppError with a descriptive message
-        raise PanelAppError from e
+        raise PanelAppError (f"Timeout: Panel {panel_pk} request exceeded the time limit. "
+                            "Please try again") from e
 
     except requests.exceptions.HTTPError as e:
-        logger.error("HTTP Error occurred while fetching panel data for Panel %s: %s", panel_id, e)
+        logger.error("HTTP Error occurred while fetching panel data for Panel %s: %s", panel, e)
         if response.status_code == 404:
             # Raise a HTTP Error if 404 only - as this is likely user input error.
-            raise requests.exceptions.HTTPError(f"404 Error: Panel {panel} or Version {version} not found") from e
+            raise requests.exceptions.HTTPError(f"404 Error: Panel {panel} or Version {version} not found.") from e
         else:
             # For other non-successful status codes, raise a general error
             raise PanelAppError(f"HTTP Error: {response.status_code} - {response.text}") from e
@@ -249,7 +250,7 @@ def get_response_old_panel_version(panel_pk, version, panel):
         # Log any errors encountered during the request
         logger.error("Encountered a Request Exception")
         # Raise a custom PanelAppError
-        raise PanelAppError from e
+        raise PanelAppError (f"Failed to retrieve version {version} of panel {panel_pk}.") from e
 
 def main():
     get_response("R233")
