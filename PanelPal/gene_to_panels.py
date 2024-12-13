@@ -47,7 +47,6 @@ def parse_arguments():
         "--hgnc_symbol",
         type=str,
         help="The HGNC symbol of the gene to query (e.g., BRCA1). This is a required argument.",
-        help="The HGNC symbol of the gene to query (e.g., BRCA1). This is a required argument.",
         required=True,
     )
     parser.add_argument(
@@ -160,7 +159,6 @@ def extract_r_codes(disorders):
 
 
 def extract_r_codes_from_disorders(panels_df, show_all_panels=False):
-def extract_r_codes_from_disorders(panels_df, show_all_panels=False):
     """
     Add an 'R Code' column to the panels DataFrame by extracting R codes.
 
@@ -210,15 +208,12 @@ def write_panels(hgnc_symbol, confidence_status, df):
         output_file,
         columns=["PanelApp ID", "R Code", "Panel Name", "Gene Status"],
         header=["panelapp_id", "r_code", "panel_name", "gene_status"],
-        columns=["PanelApp ID", "R Code", "Panel Name", "Gene Status"],
-        header=["panelapp_id", "r_code", "panel_name", "gene_status"],
         index=False,
         sep="\t",
     )
     print(f"\nPanel list saved to: {output_file}")
 
 
-def main(hgnc_symbol=None, confidence_status="green", show_all_panels=False):
 def main(hgnc_symbol=None, confidence_status="green", show_all_panels=False):
     """
     Main function to query PanelApp for gene information and display associated panels.

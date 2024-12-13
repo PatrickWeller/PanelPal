@@ -1,4 +1,6 @@
 """
+PanelPal toolkit: Query and generate BED files for genomic panels.
+
 Main entry point for the PanelPal toolkit, which provides functionalities
 for querying and generating BED files for genomic panels.
 
