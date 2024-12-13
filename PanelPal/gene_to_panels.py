@@ -193,6 +193,7 @@ def write_panels(hgnc_symbol, confidence_status, df):
     -------
     None
     """
+    confidence_status = confidence_status.replace(",", "_")
     output_file = f"panels_containing_{hgnc_symbol}_{confidence_status}.tsv"
     df.to_csv(
         output_file,
