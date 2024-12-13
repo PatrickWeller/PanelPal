@@ -39,7 +39,7 @@ Example Usage
 import time
 import subprocess
 import requests
-from settings import get_logger
+from PanelPal.settings import get_logger
 
 logger = get_logger(__name__)
 
@@ -257,7 +257,7 @@ def generate_bed_file(gene_list, panel_name, panel_version, genome_build="GRCh38
                     exon["exon_end"] += 10
 
                     # Concatenate exon number, reference, and gene symbol in one column
-                    concat_info = f"{exon['exon_number']}|{exon['reference']}|{exon['gene_symbol']}"
+                    concat_info = f"exon{exon['exon_number']}|{exon['reference']}|{exon['gene_symbol']}"
 
                     # Each line in the BED file corresponds to an exon and its relevant details
                     bed_file.write(
