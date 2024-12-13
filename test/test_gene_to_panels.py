@@ -12,45 +12,57 @@ from PanelPal.gene_to_panels import (
     extract_r_codes_from_disorders,
     parse_arguments,
     main,
-    write_panels
+    write_panels,
+    process_panels,
+    log_and_print_command,
+    log_and_print_no_panels,
+    display_panels
 )
 
-# Test data
+# Sample response data for testing
 SAMPLE_RESPONSE = {
     "results": [
         {
             "confidence_level": "3", 
             "panel": {
-                "id": "123",
-                "name": "Test Panel 1",
-                "relevant_disorders": ["R1234", "Some disorder"],
+                "id": "55",
+                "name": "Breast cancer pertinent cancer susceptibility",
+                "relevant_disorders": ["Breast"],
             },
         },
         {
             "confidence_level": "2",
             "panel": {
-                "id": "456", 
-                "name": "Test Panel 2",
-                "relevant_disorders": ["Another disorder"],
+                "id": "508", 
+                "name": "Confirmed Fanconi anaemia or Bloom syndrome",
+                "relevant_disorders": [
+                    "R229",
+                    "R258",
+                    "Confirmed Fanconi anaemia or Bloom syndrome - mutation testing"
+                ],
+            },
+        },
+        {
+            "confidence_level": "1",
+            "panel": {
+                "id": "398", 
+                "name": "Primary immunodeficiency or monogenic inflammatory bowel disease",
+                "relevant_disorders": [
+                    "Primary immunodeficiency disorders",
+                    "A- or hypo-gammaglobulinaemia",
+                    "Congenital neutropaenia",
+                    "Agranulocytosis",
+                    "Combined B and T cell defect",
+                    "Inherited complement deficiency",
+                    "R15"
+                ],
             },
         },
     ]
 }
 
+# Test for parsing command line arguments
 def test_parse_arguments():
-    """
-    Test the parse_arguments function.
-
-    This test verifies that the parse_arguments function correctly parses the provided arguments.
-
-    Parameters
-    ----------
-    None
-
-    Returns
-    -------
-    None
-    """
     with patch('argparse.ArgumentParser.parse_args',
               return_value=argparse.Namespace(
                   hgnc_symbol='BRCA1',
@@ -61,6 +73,7 @@ def test_parse_arguments():
         assert args.confidence_status == 'green'
         assert args.show_all_panels == False
 
+# Parametrized test for extracting panels based on confidence status
 @pytest.mark.parametrize(
     "confidence_filter,expected_status",
     [
@@ -70,70 +83,25 @@ def test_parse_arguments():
     ]
 )
 def test_extract_panels_confidence_status(confidence_filter, expected_status):
-    """
-    Test the extract_panels function for filtering by confidence status.
-
-    Parameters
-    ----------
-    confidence_filter : str
-        The confidence level to filter the panels.
-    expected_status : str
-        The expected gene status after filtering.
-
-    Returns
-    -------
-    None
-    """
     result = extract_panels(SAMPLE_RESPONSE, confidence_filter)
     if not result.empty:
         assert result.iloc[0]["Gene Status"] == expected_status
 
+# Test for extracting panels with specific confidence filter
 def test_extract_panels_confidence_filter():
-    """
-    Test the extract_panels function with different confidence filters.
-
-    Parameters
-    ----------
-    None
-
-    Returns
-    -------
-    None
-    """
-    # Test with confidence filter 'green' (should match one panel)
+    confidence_filter = "green"
     result = extract_panels(SAMPLE_RESPONSE, confidence_filter="green")
     assert len(result) == 1
-    assert result.iloc[0]["Gene Status"] == "green"
 
-    # Test with confidence filter 'amber' (should match one panel)
     result = extract_panels(SAMPLE_RESPONSE, confidence_filter="amber")
     assert len(result) == 1
-    assert result.iloc[0]["Gene Status"] == "amber"
 
-    # Test with confidence filter 'red' (should match no panels)
     result = extract_panels(SAMPLE_RESPONSE, confidence_filter="red")
-    assert result.empty
+    assert len(result) == 1
 
-    # Test with confidence filter 'all' (should match all panels)
-    result = extract_panels(SAMPLE_RESPONSE, confidence_filter="all")
-    assert len(result) == 2
-    assert set(result["Gene Status"].unique()) == {"green", "amber"}
-
-
+# Test for writing panels to CSV
 @patch('pandas.DataFrame.to_csv')
 def test_write_panels(mock_to_csv):
-    """
-    Test the write_panels function to ensure it writes the panel information to a CSV file.
-
-    Parameters
-    ----------
-    mock_to_csv : unittest.mock.Mock
-        Mock object for pandas DataFrame to_csv method.
-
-    Returns
-    -------
-    None
-    """
     df = pd.DataFrame({
         "PanelApp ID": ["123"],
         "R Code": ["R456"],
@@ -143,74 +111,34 @@ def test_write_panels(mock_to_csv):
     write_panels("BRCA1", "green", df)
     mock_to_csv.assert_called_once()
 
+# Test for main function when no panels are found
 @patch('requests.get')
 def test_main_no_panels(mock_get):
-    """
-    Test the main function with no panels found for the specified gene.
-
-    Parameters
-    ----------
-    mock_get : unittest.mock.Mock
-        Mock object for requests.get method.
-
-    Returns
-    -------
-    None
-    """
     mock_response = Mock()
     mock_response.json.return_value = {"results": []}
     mock_get.return_value = mock_response
     
     main(hgnc_symbol="TEST", confidence_status="green", show_all_panels=False)
 
+# Test for extracting panels with multiple confidence levels
 def test_extract_panels_multiple_confidence_levels():
-    """
-    Test the extract_panels function with multiple confidence levels.
-
-    Parameters
-    ----------
-    None
-
-    Returns
-    -------
-    None
-    """
     result = extract_panels(SAMPLE_RESPONSE, confidence_filter="all")
-    assert len(result) == 2
-    assert set(result["Gene Status"].unique()) == {"green", "amber"}
+    assert len(result) == 3
+    assert set(result["Gene Status"].unique()) == {"green", "amber", "red"}
 
+# Test for extracting R codes from an empty dataframe
 def test_extract_r_codes_from_disorders_empty_df():
-    """
-    Test the extract_r_codes_from_disorders function with an empty dataframe.
-
-    Parameters
-    ----------
-    None
-
-    Returns
-    -------
-    None
-    """
     empty_df = pd.DataFrame(columns=["Relevant Disorders"])
     result = extract_r_codes_from_disorders(empty_df)
     assert len(result) == 0
 
+# Test for extracting multiple R codes from disorders
 def test_extract_r_codes_multiple_codes():
-    """
-    Test the extract_r_codes function with a disorder string containing multiple R codes.
-
-    Parameters
-    ----------
-    None
-
-    Returns
-    -------
-    None
-    """
     disorders = "R123, R456, R789, Some disease"
     result = extract_r_codes(disorders)
     assert result == "R123, R456, R789"
 
+# Parametrized test for extracting R codes from disorders with filtering
 @pytest.mark.parametrize(
     "input_df,expected_len",
     [
@@ -220,23 +148,10 @@ def test_extract_r_codes_multiple_codes():
     ]
 )
 def test_extract_r_codes_from_disorders_filtering(input_df, expected_len):
-    """
-    Test the extract_r_codes_from_disorders function with different input dataframes.
-
-    Parameters
-    ----------
-    input_df : pandas.DataFrame
-        Input dataframe containing a 'Relevant Disorders' column with disorder descriptions.
-    expected_len : int
-        Expected number of R codes that should be extracted from the input.
-
-    Returns
-    -------
-    None
-    """
     result = extract_r_codes_from_disorders(input_df, show_all_panels=False)
     assert len(result) == expected_len
 
+# Parametrized test for converting confidence level to colour
 @pytest.mark.parametrize(
     "level,expected_colour",
     [
@@ -251,98 +166,34 @@ def test_extract_r_codes_from_disorders_filtering(input_df, expected_len):
     ]
 )
 def test_confidence_to_colour(level, expected_colour):
-    """
-    Test the confidence_to_colour function.
-
-    Parameters
-    ----------
-    level : int or str
-        The confidence level to be tested.
-    expected_colour : str
-        The expected colour corresponding to the confidence level.
-
-    Returns
-    -------
-    None
-    """
     assert confidence_to_colour(level) == expected_colour
 
+# Test for extracting panels from an empty response
 def test_extract_panels_empty_response():
-    """
-    Test the extract_panels function with an empty response.
-
-    Parameters
-    ----------
-    None
-
-    Returns
-    -------
-    None
-    """
     empty_response = {"results": []}
     result = extract_panels(empty_response, confidence_filter="green")
     assert result.empty
 
+# Test for extracting R codes when no codes are present
 def test_extract_r_codes_no_codes():
-    """
-    Test the extract_r_codes function with a disorder string that contains no R codes.
-
-    Parameters
-    ----------
-    None
-
-    Returns
-    -------
-    None
-    """
     disorders = "GI tract tumours"
     result = extract_r_codes(disorders)
     assert result == "N/A"
 
+# Test for extracting a single R code from disorders
 def test_extract_r_codes_single_code():
-    """
-    Test the extract_r_codes function with a disorder string containing a single R code.
-
-    Parameters
-    ----------
-    None
-
-    Returns
-    -------
-    None
-    """
     disorders = "Familial ovarian cancer, R207"
     result = extract_r_codes(disorders)
     assert result == "R207"
 
+# Test for extracting multiple R codes from disorders
 def test_extract_r_codes_multiple_codes():
-    """
-    Test the extract_r_codes function with a disorder string containing multiple R codes.
-
-    Parameters
-    ----------
-    None
-
-    Returns
-    -------
-    None
-    """
     disorders = "R229, R258, Confirmed Fanconi anaemia or Bloom syndrome - mutation testing"
     result = extract_r_codes(disorders)
     assert result == "R229, R258"
 
+# Test for main function with parsed arguments
 def test_main_parse_arguments():
-    """
-    Test the main function to ensure it correctly parses command-line arguments.
-
-    Parameters
-    ----------
-    None
-
-    Returns
-    -------
-    None
-    """
     with patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(
         hgnc_symbol='BRCA1',
         confidence_status='green',
@@ -350,18 +201,8 @@ def test_main_parse_arguments():
     )):
         main(hgnc_symbol=None)
 
+# Test for main function when no panels are found
 def test_main_no_panels_found():
-    """
-    Test the main function with no panels found for the specified gene.
-
-    Parameters
-    ----------
-    None
-
-    Returns
-    -------
-    None
-    """
     with patch('requests.get') as mock_get:
         mock_response = Mock()
         mock_response.json.return_value = {"results": []}
@@ -369,18 +210,8 @@ def test_main_no_panels_found():
 
         main(hgnc_symbol="TEST", confidence_status="green", show_all_panels=False)
     
+# Test for main function with multiple confidence levels
 def test_main_multiple_confidence_levels():
-    """
-    Test the main function with multiple confidence levels.
-
-    Parameters
-    ----------
-    None
-
-    Returns
-    -------
-    None
-    """
     with patch('requests.get') as mock_get:
         mock_response = Mock()
         mock_response.json.return_value = SAMPLE_RESPONSE
@@ -388,18 +219,8 @@ def test_main_multiple_confidence_levels():
 
         main(hgnc_symbol="TEST", confidence_status="all", show_all_panels=False)
 
+# Test for main function with show_all_panels set to True
 def test_main_show_all_panels():
-    """
-    Test the main function with show_all_panels set to True.
-
-    Parameters
-    ----------
-    None
-
-    Returns
-    -------
-    None
-    """
     with patch('requests.get') as mock_get:
         mock_response = Mock()
         mock_response.json.return_value = SAMPLE_RESPONSE
@@ -407,18 +228,8 @@ def test_main_show_all_panels():
 
         main(hgnc_symbol="TEST", confidence_status="green", show_all_panels=True)
 
+# Test for main function command execution
 def test_main_command_executed():
-    """
-    Test the main function to ensure the correct command is logged.
-
-    Parameters
-    ----------
-    None
-
-    Returns
-    -------
-    None
-    """
     with patch('argparse.ArgumentParser.parse_args', return_value=argparse.Namespace(
         hgnc_symbol='BRCA1',
         confidence_status='green',
@@ -426,18 +237,8 @@ def test_main_command_executed():
     )):
         main(hgnc_symbol=None)
 
+# Test for main function with green and amber confidence statuses
 def test_main_confidence_status_green_amber():
-    """
-    Test the main function with confidence_status set to "green,amber".
-
-    Parameters
-    ----------
-    None
-
-    Returns
-    -------
-    None
-    """
     with patch('requests.get') as mock_get:
         mock_response = Mock()
         mock_response.json.return_value = SAMPLE_RESPONSE
@@ -445,19 +246,8 @@ def test_main_confidence_status_green_amber():
 
         main(hgnc_symbol="TEST", confidence_status="green,amber", show_all_panels=False)
 
-# Additional tests
+# Test for extracting panels with no confidence level
 def test_extract_panels_no_confidence_level():
-    """
-    Test the extract_panels function with a response that has no confidence level.
-
-    Parameters
-    ----------
-    None
-
-    Returns
-    -------
-    None
-    """
     response = {
         "results": [
             {
@@ -472,18 +262,8 @@ def test_extract_panels_no_confidence_level():
     result = extract_panels(response, confidence_filter="green")
     assert result.empty
 
+# Test for extracting panels with invalid confidence level
 def test_extract_panels_invalid_confidence_level():
-    """
-    Test the extract_panels function with a response that has an invalid confidence level.
-
-    Parameters
-    ----------
-    None
-
-    Returns
-    -------
-    None
-    """
     response = {
         "results": [
             {
@@ -499,68 +279,64 @@ def test_extract_panels_invalid_confidence_level():
     result = extract_panels(response, confidence_filter="green")
     assert result.empty
 
+# Test for extracting R codes from mixed content
 def test_extract_r_codes_mixed_content():
-    """
-    Test the extract_r_codes function with a disorder string containing mixed content.
-
-    Parameters
-    ----------
-    None
-
-    Returns
-    -------
-    None
-    """
     disorders = "R123, Some disorder, R456, Another disorder"
     result = extract_r_codes(disorders)
     assert result == "R123, R456"
 
+# Test for extracting R codes when no disorders are present
 def test_extract_r_codes_no_disorders():
-    """
-    Test the extract_r_codes function with no disorders.
-
-    Parameters
-    ----------
-    None
-
-    Returns
-    -------
-    None
-    """
     disorders = None
     result = extract_r_codes(disorders)
     assert result == "N/A"
 
+# Test for extracting R codes from an empty string
 def test_extract_r_codes_empty_string():
-    """
-    Test the extract_r_codes function with an empty string.
-
-    Parameters
-    ----------
-    None
-
-    Returns
-    -------
-    None
-    """
     disorders = ""
     result = extract_r_codes(disorders)
     assert result == "N/A"
 
+# Test for extracting R codes from disorders including all panels
 def test_extract_r_codes_from_disorders_include_all():
-    """
-    Test the extract_r_codes_from_disorders function with show_all_panels set to True.
-
-    Parameters
-    ----------
-    None
-
-    Returns
-    -------
-    None
-    """
     input_df = pd.DataFrame({"Relevant Disorders": ["R229", "No R code disorder"]})
     result = extract_r_codes_from_disorders(input_df, show_all_panels=True)
     assert len(result) == 2
     assert result.iloc[0]["R Code"] == "R229"
     assert result.iloc[1]["R Code"] == "N/A"
+
+# Test for processing panels
+def test_process_panels():
+    response_json = SAMPLE_RESPONSE
+    confidence_statuses = ["green"]
+    result = process_panels(response_json, confidence_statuses, show_all_panels=True)
+    assert len(result) == 1
+
+# Test for logging and printing command
+@patch('PanelPal.gene_to_panels.get_logger')
+def test_log_and_print_command(mock_get_logger):
+    mock_logger = Mock()
+    mock_get_logger.return_value = mock_logger
+    log_and_print_command("BRCA1", "green", False)
+    mock_logger.info.assert_called_once()
+
+# Test for logging and printing when no panels are found
+@patch('PanelPal.gene_to_panels.get_logger')
+def test_log_and_print_no_panels(mock_get_logger):
+    mock_logger = Mock()
+    mock_get_logger.return_value = mock_logger
+    log_and_print_no_panels("BRCA1", "green")
+    mock_logger.info.assert_called_once()
+
+# Test for displaying panels
+def test_display_panels(capsys):
+    df = pd.DataFrame({
+        "PanelApp ID": ["123"],
+        "R Code": ["R456"],
+        "Panel Name": ["Test Panel"],
+        "Gene Status": ["green"]
+    })
+    display_panels("BRCA1", df)
+    captured = capsys.readouterr()
+    assert "Panels associated with gene BRCA1" in captured.out
+    assert "Test Panel" in captured.out
