@@ -39,7 +39,7 @@ Example Usage
 import time
 import subprocess
 import requests
-from PanelPal.settings import get_logger
+from settings import get_logger
 
 logger = get_logger(__name__)
 
