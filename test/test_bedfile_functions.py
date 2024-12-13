@@ -1,3 +1,4 @@
+import os
 from unittest.mock import patch
 from pathlib import Path
 import pytest
@@ -21,7 +22,10 @@ class TestBedFileExists:
             panel_version = "4"
             genome_build = "GRCh38"
             bed_file = temp_dir / f"{panel_name}_v{panel_version}_{genome_build}.bed"
-            bed_file.touch()  # Create an empty file
+            bed_file.write_text("dummy content")  # Writing content to the file
+
+            original_cwd = Path(os.getcwd())  # Save the current working directory
+            os.chdir(temp_dir)  # Change to the temp directory
 
             # Verify the file is detected
             assert bed_file_exists(panel_name, panel_version, genome_build) is True, \
@@ -32,10 +36,10 @@ class TestBedFileExists:
                 "Non-existent file was incorrectly detected."
 
         finally:
-            # Clean up
-            if bed_file.exists():
+            os.chdir(original_cwd)
+            
+        if bed_file.exists():
                 bed_file.unlink()
-            temp_dir.rmdir()
 
     def test_bed_file_exists_missing_parameters(self):
         """ 
