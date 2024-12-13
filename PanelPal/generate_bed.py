@@ -42,10 +42,10 @@ Notes
 import argparse
 import sys
 import os
-from accessories import variant_validator_api_functions
-from accessories import panel_app_api_functions
-from accessories.bedfile_functions import bed_file_exists
-from check_panel import is_valid_panel_id
+from PanelPal.accessories import variant_validator_api_functions
+from PanelPal.accessories import panel_app_api_functions
+from PanelPal.accessories.bedfile_functions import bed_file_exists
+from PanelPal.check_panel import is_valid_panel_id
 from settings import get_logger
 
 # Set up logger

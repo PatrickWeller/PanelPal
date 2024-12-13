@@ -26,7 +26,7 @@ FileNotFoundError :
 """
 
 import argparse
-from settings import get_logger
+from PanelPal.settings import get_logger
 from accessories.bedfile_functions import compare_bed_files
 
 logger = get_logger(__name__)

@@ -31,7 +31,7 @@ Comparison complete. Differences saved in bedfile_comparisons/comparison_file1.b
 """
 
 import os
-from settings import get_logger
+from PanelPal.settings import get_logger
 
 logger = get_logger(__name__)
 
