@@ -47,6 +47,7 @@ def parse_arguments():
         "--hgnc_symbol",
         type=str,
         help="The HGNC symbol of the gene to query (e.g., BRCA1). This is a required argument.",
+        help="The HGNC symbol of the gene to query (e.g., BRCA1). This is a required argument.",
         required=True,
     )
     parser.add_argument(
@@ -87,6 +88,8 @@ def confidence_to_colour(level):
         "2": "amber",
         "3": "green",
     }
+    # Default to 'unknown' for unexpected values
+    return mapping.get(str(level), "unknown")
     # Default to 'unknown' for unexpected values
     return mapping.get(str(level), "unknown")
 
@@ -157,6 +160,7 @@ def extract_r_codes(disorders):
 
 
 def extract_r_codes_from_disorders(panels_df, show_all_panels=False):
+def extract_r_codes_from_disorders(panels_df, show_all_panels=False):
     """
     Add an 'R Code' column to the panels DataFrame by extracting R codes.
 
@@ -173,7 +177,10 @@ def extract_r_codes_from_disorders(panels_df, show_all_panels=False):
         A DataFrame with an added 'R Code' column where extracted R codes are listed.
     """
     panels_df = panels_df.copy()  # Ensure we are working with a copy
+    panels_df = panels_df.copy()  # Ensure we are working with a copy
     panels_df["R Code"] = panels_df["Relevant Disorders"].apply(extract_r_codes)
+    if not show_all_panels:
+        panels_df = panels_df[panels_df["R Code"] != "N/A"]
     if not show_all_panels:
         panels_df = panels_df[panels_df["R Code"] != "N/A"]
     return panels_df
@@ -196,9 +203,13 @@ def write_panels(hgnc_symbol, confidence_status, df):
     """
     if confidence_status == "green,amber":
         confidence_status = "green_amber"
+    if confidence_status == "green,amber":
+        confidence_status = "green_amber"
     output_file = f"panels_containing_{hgnc_symbol}_{confidence_status}.tsv"
     df.to_csv(
         output_file,
+        columns=["PanelApp ID", "R Code", "Panel Name", "Gene Status"],
+        header=["panelapp_id", "r_code", "panel_name", "gene_status"],
         columns=["PanelApp ID", "R Code", "Panel Name", "Gene Status"],
         header=["panelapp_id", "r_code", "panel_name", "gene_status"],
         index=False,
@@ -207,6 +218,7 @@ def write_panels(hgnc_symbol, confidence_status, df):
     print(f"\nPanel list saved to: {output_file}")
 
 
+def main(hgnc_symbol=None, confidence_status="green", show_all_panels=False):
 def main(hgnc_symbol=None, confidence_status="green", show_all_panels=False):
     """
     Main function to query PanelApp for gene information and display associated panels.
@@ -218,6 +230,8 @@ def main(hgnc_symbol=None, confidence_status="green", show_all_panels=False):
         parses command-line arguments to retrieve it.
     confidence_status : str, optional
         Filter for panels by confidence status. Defaults to "green".
+    show_all_panels : bool, optional
+        Whether to include panels without R codes. Defaults to False.
     show_all_panels : bool, optional
         Whether to include panels without R codes. Defaults to False.
 
@@ -281,6 +295,12 @@ def main(hgnc_symbol=None, confidence_status="green", show_all_panels=False):
             print(f"{'PanelApp ID':<15}{'R Code':<15}{'Panel Name':<75}{'Gene Status'}")
             print("-" * 120)
 
+            for _, row in panels_with_r_codes.iterrows():
+                panel_id = row["PanelApp ID"]
+                r_code = row["R Code"]
+                panel_name = row["Panel Name"]
+                status = row["Gene Status"]
+                print(f"{panel_id:<15}{r_code:<15}{panel_name:<75}{status}")
             for _, row in panels_with_r_codes.iterrows():
                 panel_id = row["PanelApp ID"]
                 r_code = row["R Code"]
