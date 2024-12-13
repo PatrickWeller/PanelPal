@@ -126,8 +126,8 @@ def test_format_panel_id_edge_cases():
 
 
 # --- Tests for fetch_panel_info ---
-@patch("check_panel.get_response")
-@patch("check_panel.get_name_version")
+@patch("PanelPal.check_panel.get_response")
+@patch("PanelPal.check_panel.get_name_version")
 def test_fetch_panel_info(mock_get_name_version, _):
     """
     Test fetching panel information from a valid panel ID.
@@ -148,8 +148,8 @@ def test_fetch_panel_info(mock_get_name_version, _):
     assert result == {"name": "PanelName", "version": "1.0"}
 
 
-@patch("check_panel.get_response")
-@patch("check_panel.get_name_version")
+@patch("PanelPal.check_panel.get_response")
+@patch("PanelPal.check_panel.get_name_version")
 def test_fetch_panel_info_edge_cases(mock_get_name_version, mock_get_response):
     """
     Test edge cases for fetching panel information.
@@ -178,8 +178,8 @@ def test_fetch_panel_info_edge_cases(mock_get_name_version, mock_get_response):
     assert result == {}  # Handles connection error
 
 
-@patch("check_panel.get_response")
-@patch("check_panel.get_name_version")
+@patch("PanelPal.check_panel.get_response")
+@patch("PanelPal.check_panel.get_name_version")
 def test_fetch_panel_info_slow_response(_, mock_get_response):
     """
     Test handling of slow API responses with retries.
@@ -200,8 +200,8 @@ def test_fetch_panel_info_slow_response(_, mock_get_response):
     assert result == {}  # Should return empty dictionary
 
 
-@patch("check_panel.get_response")
-@patch("check_panel.get_name_version")
+@patch("PanelPal.check_panel.get_response")
+@patch("PanelPal.check_panel.get_name_version")
 def test_fetch_panel_info_max_retries(_, mock_get_response):
     """
     Test maximum retry logic for API request failures.
@@ -224,7 +224,7 @@ def test_fetch_panel_info_max_retries(_, mock_get_response):
 
 
 # --- Tests for main() function ---
-@patch("check_panel.parse_arguments")
+@patch("PanelPal.check_panel.parse_arguments")
 def test_main_no_panel_id(mock_parse_arguments):
     """
     Test behavior of `main()` when `panel_id` is retrieved from command-line arguments.

@@ -35,11 +35,11 @@ Example Usage
 >>> generate_bed_file(gene_list, panel_name, panel_version, genome_build)
 >>> bedtools_merge(panel_name, panel_version, genome_build)
 """
-
+import sys
 import time
 import subprocess
 import requests
-from settings import get_logger
+from PanelPal.settings import get_logger
 
 logger = get_logger(__name__)
 
@@ -75,6 +75,13 @@ def get_gene_transcript_data(
     base_url = (
         "https://rest.variantvalidator.org/VariantValidator/tools/gene2transcripts_v2/"
     )
+
+    if genome_build not in ["GRCh37", "GRCh38", "all"]:
+        logger.error(
+            "Genome build %s is not valid input. Please use GRCh37 or GRCh38", genome_build
+        )
+        raise ValueError(f"{genome_build} is not a valid genome build. Use GRCh37 or GRCh38.")
+
 
     # Construct the URL with the given gene name and genome build
     url = (
@@ -270,9 +277,9 @@ def generate_bed_file(gene_list, panel_name, panel_version, genome_build="GRCh38
                 # log addition of exon data for each gene
                 logger.info("Added exon data for %s to the BED file.", gene)
 
-            except requests.exceptions.RequestException as e:
+            except Exception as e:
                 logger.error("Error processing %s: %s", gene, e)
-                raise
+                sys.exit(f"Error processing {gene}: {e}")
 
         # log message indicating that BED file has been successfully saved
         logger.info("Data saved to %s", output_file)
@@ -322,49 +329,45 @@ def bedtools_merge(panel_name, panel_version, genome_build):
     # If an error is encountered log the error
     except subprocess.CalledProcessError as e:
         logger.error("Error during bedtools operation: %s", e)
+        raise
 
 
-def main():
-    """
-    Dummy variables for testing purposes.
-    """
-    # Set panel id and version
-    panel_name = "R207"
-    panel_version = "4"
-    gene_list = [
-        "BRCA1",
-        "BRCA2",
-        "BRIP1",
-        "MLH1",
-        "MSH2",
-        "MSH6",
-        "PALB2",
-        "RAD51C",
-        "RAD51D",
-        "PMS2",
-        "AR",
-        "ATM",
-        "BARD1",
-        "CDH1",
-        "CHEK2",
-        "EPCAM",
-        "ESR1",
-        "MUTYH",
-        "NBN",
-        "PPM1D",
-        "PTEN",
-        "RAD54L",
-        "RRAS2",
-        "STK11",
-        "TP53",
-        "XRCC2",
-    ]
-    genome_build = "GRCh38"
+# def main():
+#     """
+#     Dummy variables for testing purposes.
+#     """
+#     # Set panel id and version
+#     panel_name = "R207"
+#     panel_version = "4"
+#     gene_list = [
+#         "BRCA1",
+#         "BRCA2",
+#         "BRIP1",
+#         "MLH1",
+#         "MSH2",
+#         "MSH6",
+#         "PALB2",
+#         "RAD51C",
+#         "RAD51D",
+#         "PMS2",
+#         "AR",
+#         "ATM",
+#         "BARD1",
+#         "CDH1",
+#         "CHEK2",
+#         "EPCAM",
+#         "ESR1",
+#         "MUTYH",
+#         "NBN",
+#         "PPM1D",
+#         "PTEN",
+#         "RAD54L",
+#         "RRAS2",
+#         "STK11",
+#         "TP53",
+#         "XRCC2",
+#     ]
+#     genome_build = "GRCh38"
 
-    # Generate bed files
-    generate_bed_file(gene_list, panel_name, panel_version, genome_build)
-    bedtools_merge(panel_name, panel_version, genome_build)
-
-
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()

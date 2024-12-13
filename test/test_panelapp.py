@@ -1,13 +1,13 @@
 import responses
 import pytest
 import requests
-from accessories.panel_app_api_functions import (
+from PanelPal.accessories.panel_app_api_functions import (
     get_response,
     get_name_version,
     get_genes,
     get_response_old_panel_version,
 )
-from accessories.panel_app_api_functions import PanelAppError
+from PanelPal.accessories.panel_app_api_functions import PanelAppError
 
 
 class TestGetResponse:
@@ -121,27 +121,29 @@ class TestGetResponse:
             body=requests.exceptions.ConnectTimeout(),
         )
 
-        # Test that a corresponding exception is raised with the correct message
-        with pytest.raises(
-            PanelAppError, match="Timeout: Panel R293 request exceeded the time limit."
-        ):
+        # Test that sys.exit() is called with the correct message
+        with pytest.raises(SystemExit) as exc_info:
             get_response(panel_id)
+
+        assert str(exc_info.value) == ("Timeout error: Panel R293 request exceeded the time limit. "
+                                       "Exiting program.")
 
     @responses.activate
     def test_get_response_not_found(self):
         """
         Tests for 404 errors
         """
-
         panel_id = "R293"
         url = f"https://panelapp.genomicsengland.co.uk/api/v1/panels/{panel_id}"
 
         # If a request is made, generate a mock 404 Not Found response
         responses.add(responses.GET, url, status=404)
 
-        # Test that a corresponding exception is raised.
-        with pytest.raises(Exception, match=f"Panel {panel_id} not found."):
+        # Test that sys.exit() is called with the correct message
+        with pytest.raises(SystemExit) as exc_info:
             get_response(panel_id)
+
+        assert str(exc_info.value) == "Panel R293 not found. Exiting program."
 
     @responses.activate
     def test_get_response_server_error(self):
@@ -154,11 +156,11 @@ class TestGetResponse:
         # If a request is made, generate a mock 500 Server Error response
         responses.add(responses.GET, url, status=500)
 
-        # Test that a corresponding exception is raised.
-        with pytest.raises(
-            Exception, match="Server error: The server failed to process the request."
-        ):
+        # Test that sys.exit() is called with the correct message
+        with pytest.raises(SystemExit) as exc_info:
             get_response(panel_id)
+
+        assert str(exc_info.value) == "Server error: The server failed to process the request. Exiting program."
 
     @responses.activate
     def test_get_response_service_unavailable(self):
@@ -171,11 +173,11 @@ class TestGetResponse:
         # If a request is made, generate a mock 503 Service Unavailable response
         responses.add(responses.GET, url, status=503)
 
-        # Test that a corresponding exception is raised.
-        with pytest.raises(
-            Exception, match="Service unavailable: Please try again later."
-        ):
+        # Test that sys.exit() is called with the correct message
+        with pytest.raises(SystemExit) as exc_info:
             get_response(panel_id)
+
+        assert str(exc_info.value) == "Service unavailable: Please try again later. Exiting program."
 
     @responses.activate
     def test_http_error_unexpected_status_code(self):
@@ -189,9 +191,11 @@ class TestGetResponse:
         # Mock the API response with a 400 status code and a response body
         responses.add(responses.GET, url, status=400, body="Bad Request")
 
-        # Assert that the function raises a PanelAppError with the correct message
-        with pytest.raises(PanelAppError, match="Error: 400 - Bad Request"):
+        # Test that sys.exit() is called with the correct message
+        with pytest.raises(SystemExit) as exc_info:
             get_response(panel_id)
+
+        assert str(exc_info.value) == "Error: 400 - Bad Request. Exiting program."
 
     @responses.activate
     def test_request_exception(self):
@@ -209,11 +213,11 @@ class TestGetResponse:
             body=requests.exceptions.ConnectionError("Connection error"),
         )
 
-        # Assert that the function raises a PanelAppError with the correct message
-        with pytest.raises(
-            PanelAppError, match=f"Failed to retrieve data for panel {panel_id}."
-        ):
+        # Test that sys.exit() is called with the correct message
+        with pytest.raises(SystemExit) as exc_info:
             get_response(panel_id)
+
+        assert str(exc_info.value) == "Failed to retrieve data for panel R999. Exiting program."
 
 
 class TestGetNameVersion:
