@@ -42,10 +42,12 @@ Notes
 import argparse
 import sys
 import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from PanelPal.accessories import variant_validator_api_functions
-from PanelPal.accessories import panel_app_api_functions
+from PanelPal.accessories.variant_validator_api_functions import generate_bed_file, bedtools_merge
+from PanelPal.accessories.panel_app_api_functions import get_genes, get_response
+from PanelPal.accessories.bedfile_functions import bed_file_exists
+from PanelPal.check_panel import is_valid_panel_id
 from PanelPal.settings import get_logger
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 
 # Create a logger named after generate_bed
@@ -129,6 +131,16 @@ def main():
     panel_version = args.panel_version
     genome_build = args.genome_build
 
+    if not is_valid_panel_id(panel_id):
+        logger.error(
+            "Invalid panel_id '%s'. Panel ID must start with 'R' followed "
+            "by digits (e.g., 'R207').", panel_id
+            )
+        raise ValueError(
+            f"Invalid panel_id '{args.panel_id}'. Panel ID must start with "
+            "'R' followed by digits (e.g., 'R207')."
+            )
+
     logger.info(
         "Starting main process for panel_id=%s, panel_version=%s, genome_build=%s", 
         panel_id,
@@ -136,13 +148,28 @@ def main():
         genome_build
         )
 
+    if bed_file_exists(panel_id, panel_version, genome_build):
+        logger.warning(
+            "Process stopping: BED file already exists for panel_id=%s, "
+            "panel_version=%s, genome_build=%s.",
+            panel_id,
+            panel_version,
+            genome_build,
+            )
+        print(
+            f"PROCESS STOPPED: A BED file for the panel '{panel_id}' "
+            f"(version {panel_version}, build {genome_build}) already exists."
+            )
+    else:
+        logger.debug("No existing BED file found. Proceeding with generation.")
+
     try:
         # Fetch the panel data from PanelApp using the panel_id
         logger.debug(
             "Requesting panel data for panel_id=%s", 
             panel_id
             )
-        panelapp_data = panel_app_api_functions.get_response(panel_id)
+        panelapp_data = get_response(panel_id)
         logger.info(
             "Panel data fetched successfully for panel_id=%s",
             panel_id
@@ -153,7 +180,7 @@ def main():
             "Extracting gene list from panel data for panel_id=%s",
             panel_id
             )
-        gene_list = panel_app_api_functions.get_genes(panelapp_data)
+        gene_list = get_genes(panelapp_data)
         logger.info(
             "Gene list extracted successfully for panel_id=%s. Total genes found: %d",
             panel_id,
@@ -167,11 +194,11 @@ def main():
             panel_version,
             genome_build
             )
-        variant_validator_api_functions.generate_bed_file(gene_list,
-                                                          panel_id,
-                                                          panel_version,
-                                                          genome_build
-                                                          )
+        generate_bed_file(gene_list,
+                          panel_id,
+                          panel_version,
+                          genome_build
+                          )
         logger.info(
             "BED file generated successfully for panel_id=%s",
             panel_id
@@ -184,10 +211,10 @@ def main():
             panel_version,
             genome_build
             )
-        variant_validator_api_functions.bedtools_merge(panel_id,
-                                                       panel_version,
-                                                       genome_build
-                                                       )
+        bedtools_merge(panel_id,
+                       panel_version,
+                       genome_build
+                       )
         logger.info(
             "Bedtools merge completed successfully for panel_id=%s",
             panel_id
