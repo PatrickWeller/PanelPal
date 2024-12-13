@@ -1,14 +1,18 @@
+"""
+Query DB
+A suite of commands to quickly query the DB without needing SQL commands.
+
+"""
+
 from PanelPal.settings import get_logger
 from DB.panelpal_db import Session, Patient, BedFile, PanelInfo
 from DB.create_db import create_database
 from sqlalchemy.exc import OperationalError
-from sqlalchemy import and_
 from datetime import datetime
 
-
-# Initialise logger
 logger = get_logger(__name__)
 
+#### ACCESSORY FUNCTIONS ####
 
 def setup_db(force=False):
     """
@@ -70,3 +74,29 @@ def query_patient(patient_name):
 
     except Exception as e:
         logger.error(f"Failed to retrieve patient information for {patient_name}: {e}")
+
+
+#### MAIN (to be imported into main.py) ####
+
+def main():
+    """
+    interacting with DB
+    
+    Parameters
+    ----------
+    
+    Raises
+    ------
+
+    Exits
+    -----
+
+    Notes
+    -----
+
+    Examples
+    --------
+    """
+
+def argument_parser():
+    pass
