@@ -43,6 +43,7 @@ from .check_panel import main as check_panel_main
 from .generate_bed import main as generate_bed_main
 from .compare_panel_versions import main as compare_panel_versions_main
 from .compare_panel_versions import validate_panel
+from .query_db import setup_db, query_patient
 
 
 def print_help():
@@ -63,8 +64,33 @@ Available Commands:
                             the panel ID and two version numbers. Optionally, filter by gene status.
                             Example: PanelPal compare-panel-versions --panel R21 --versions 1.0 2.2 --status_filter green
     --help, -h              Prints this help message
+
+Database Operations:
+    db query-patient        Query a patient's data by name from the database
+
+    db setup-db             Set up the database (if not already set up)
+
     """
     print(help_message)
+
+
+def setup_db_subcommands(parser_db):
+    """
+    Set up subcommands related to database functionality.
+    """
+    db_subparsers = parser_db.add_subparsers(dest='db_command')
+
+    # Add a command for setting up the database
+    setup_parser = db_subparsers.add_parser(
+        'setup-db', help="Set up the database")
+    setup_parser.add_argument(
+        '--force', action='store_true', help='Force setup even if database exists')
+
+    # Add a command for querying the database
+    query_parser = db_subparsers.add_parser(
+        'query-patient', help="Query the database")
+    query_parser.add_argument(
+        '--name', type=str, nargs='+', required=True, help='Patient name to search for')
 
 
 def main():
@@ -143,15 +169,45 @@ def main():
         help="Filter by gene status. Green only; green and amber; or all",
     )
 
+    # subcommand group: Database-related operations
+    parser_db = subparsers.add_parser(
+        "db",
+        help="Database operations that query different information.",
+    )
+
+    # subcommand: query patient
+    db_subparsers = parser_db.add_subparsers(
+        dest="db_command",  # destination
+        title="DB Subcommands",
+    )
+
+    # subcommand for setup-db and query-patient
+    parser_setup_db = db_subparsers.add_parser(
+        "setup-db", help="Set up the database")
+    parser_setup_db.add_argument(
+        '--force', action='store_true', help="Force setup even if database exists"
+    )
+
+    parser_query_patient = db_subparsers.add_parser(
+        "query-patient",
+        help="Query patient information from the database by name."
+    )
+    parser_query_patient.add_argument(
+        "--patient_name",
+        type=str,
+        required=True,
+        help="Patient name to query, e.g., 'John Doe'."
+    )
+
     args = parser.parse_args()
 
     if not args.command:
         print_help()
         exit(1)
 
+    # Execute corresponding subcommands
     if args.command == "check-panel":
-        panel_id = args.panel_id
-        check_panel_main(panel_id)
+        check_panel_main(args.panel_id)
     elif args.command == "generate-bed":
         generate_bed_main(
             panel_id=args.panel_id,
@@ -164,6 +220,14 @@ def main():
             versions=args.versions,
             status_filter=args.status_filter,
         )
+    elif args.command == "db":
+        if args.db_command == "setup-db":
+            force = args.force
+            setup_db(force=force)
+        elif args.db_command == "query-patient":
+            patient_name = args.patient_name
+            setup_db()  # Ensure the DB is set up before querying
+            query_patient(patient_name)
     else:
         print_help()
 

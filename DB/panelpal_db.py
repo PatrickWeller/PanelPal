@@ -2,7 +2,7 @@
 SQLalchemy object-relational configuration.
 
 This script defines the database schema using ORM (Object-Relational Mapping) classes 
-in SQLAlchemy for managing a database with three tables for patient details, 
+in SQLAlchemy for managing a database with three tables for patient information, 
 BED file metadata, and panel information.
 
 The script uses `declarative_base()` to create a base class from which all ORM classes
@@ -46,13 +46,15 @@ import sqlalchemy
 from sqlalchemy import create_engine, Column, Integer, String, Date, JSON, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
-from PanelPal.settings import get_logger
+from PanelPal.settings import get_logger, log_database_startup
 
 # Initialise logger
 logger = get_logger(__name__)
 
 # Define base class - this allows all ORM classes below to inherit its methods.
 Base = declarative_base()
+
+# Define the tables within the database (patient, bedfile and panelinfo):
 
 
 class Patient(Base):
@@ -122,7 +124,7 @@ class PanelInfo(Base):
 DATABASE_URL = "sqlite:///panelpal.db"
 
 # an object of Engine class is instantiated using create_engine
-engine = create_engine(DATABASE_URL, echo=True)
+engine = create_engine(DATABASE_URL, echo=False)
 
 # create session
 Session = sessionmaker(bind=engine)
@@ -135,7 +137,10 @@ def create_database():
     try:
         # Create tables in the database
         Base.metadata.create_all(engine)
-        logger.info("Database and tables created successfully.")
+
+        # Log database startup success using your custom logger
+        logger.info("Database initialised successfully.")
+
     except Exception as e:
         logger.error(f"Error creating database tables: {e}")
         raise

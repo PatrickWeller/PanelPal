@@ -39,7 +39,7 @@ Notes
 
 """
 
-from PanelPal.DB.panelpal_db import Session, Patient
+from DB.panelpal_db import Session, Patient
 from PanelPal.settings import get_logger
 from PanelPal.accessories import panel_app_api_functions
 from PanelPal.accessories import variant_validator_api_functions
@@ -178,9 +178,9 @@ def patient_info_prompt():
     }
 
 
-def add_patient_to_db(patient_info):
+def add_patient_to_db(patient_info, bed_file_info, panel_info_data):
     """
-    Inserts the patient information collected into the database.
+    Inserts the patient information and related bed_file and panel_info into the database.
 
     Parameters
     ----------
@@ -189,10 +189,19 @@ def add_patient_to_db(patient_info):
         - "patient_id": str
         - "patient_name": str
         - "dob": datetime.date
+    bed_file_info : dict
+        Dictionary containing bed file information with keys:
+        - "analysis_date": str
+        - "bed_file_path": str
+        - "patient_id": str
+    panel_info_data : dict
+        Dictionary containing panel info data with keys:
+        - "bed_file_id": int
+        - "panel_data": dict (JSON)
     """
     session = Session()
     try:
-        # Create and add a new patient record
+        # Insert patient information
         new_patient = Patient(
             nhs_number=patient_info["patient_id"],
             patient_name=patient_info["patient_name"],
@@ -200,11 +209,29 @@ def add_patient_to_db(patient_info):
         )
         session.add(new_patient)
         session.commit()
-        logger.info(
-            f"Patient information for {patient_info['patient_name']} added to database.")
+
+        # Insert bed file information
+        new_bed_file = BedFile(
+            analysis_date=bed_file_info["analysis_date"],
+            bed_file_path=bed_file_info["bed_file_path"],
+            patient_id=bed_file_info["patient_id"]
+        )
+        session.add(new_bed_file)
+        session.commit()
+
+        # Insert panel info data
+        new_panel_info = PanelInfo(
+            bed_file_id=new_bed_file.id,
+            panel_data=panel_info_data["panel_data"]
+        )
+        session.add(new_panel_info)
+        session.commit()
+
+        logger.info(f"Patient and related data for {
+                    patient_info['patient_name']} added to database.")
     except Exception as e:
         # Log and rollback in case of errors
-        logger.error(f"Failed to add patient: {e}")
+        logger.error(f"Failed to add patient and related data: {e}")
         session.rollback()
     finally:
         session.close()

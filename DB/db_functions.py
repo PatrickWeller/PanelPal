@@ -1,6 +1,5 @@
 from PanelPal.DB.panelpal_db import Session, Patient, BedFile, GeneList
 from PanelPal.settings import get_logger
-from datetime import datetime
 
 # Initialize logger
 logger = get_logger(__name__)
@@ -65,10 +64,9 @@ def fetch_patient_by_nhs_number(nhs_number):
         session.close()
 
 
-def add_bed_file(patient_nhs_number, bed_file_path):
+def add_bed_file(patient_nhs_number, bed_file_path, analysis_date):
     """
-    Adds a bed file record for a specific patient with the 
-    current date automatically stored as the analysis date.
+    Adds a bed file record for a specific patient.
 
     Parameters
     ----------
@@ -76,12 +74,11 @@ def add_bed_file(patient_nhs_number, bed_file_path):
         The NHS number of the patient.
     bed_file_path : str
         The path to the bed file.
+    analysis_date : datetime
+        The date the analysis was performed.
     """
     session = Session()
     try:
-        # Get the current date as the analysis date
-        analysis_date = datetime.now().date()
-
         # Fetch the patient by NHS number
         patient = session.query(Patient).filter_by(
             nhs_number=patient_nhs_number).first()
@@ -105,7 +102,7 @@ def add_bed_file(patient_nhs_number, bed_file_path):
         session.commit()
 
         logger.info(f"Bed file for patient {
-                    patient_nhs_number} added to database with analysis date {analysis_date}.")
+                    patient_nhs_number} added to database.")
     except Exception as e:
         logger.error(f"Error adding bed file for patient {
                      patient_nhs_number}: {e}")
