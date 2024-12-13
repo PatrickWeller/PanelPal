@@ -16,6 +16,7 @@ import logging
 import requests
 import sys
 from PanelPal.accessories.panel_app_api_functions import get_response, get_name_version
+from PanelPal.accessories.panel_app_api_functions import PanelAppError
 from PanelPal.settings import get_logger
 
 
@@ -54,7 +55,9 @@ def is_valid_panel_id(input_id):
     bool
         True if the ID is valid, False otherwise.
     """
-    return re.fullmatch(r"R\d+$", input_id) is not None
+    # Use regex to ensure the ID starts with 'R' followed by one or more digits
+    # ^ start of string, R is literal 'R', \d+ means one or more digits, $ end of string
+    return re.fullmatch(r"^R\d+$", input_id) is not None
 
 
 def format_panel_id(input_id):
@@ -76,9 +79,12 @@ def format_panel_id(input_id):
     ValueError
         If the ID format is invalid.
     """
+    # Remove any leading/trailing white space, and convert to upper case
     panel_id = input_id.strip().upper()
+    # Add R prefix if not already present
     if not panel_id.startswith("R"):
         panel_id = "R" + panel_id
+    # Validate the formatted panel ID
     if not is_valid_panel_id(panel_id):
         raise ValueError("Panel ID must be 'R' followed by digits (e.g., 'R59').")
     return panel_id
@@ -100,32 +106,45 @@ def fetch_panel_info(formatted_id, retries=3, delay=10):
     Returns
     -------
     dict
-        A dictionary containing the panel's 'name' and 'version'.
+        A dictionary containing the panel's 'name' and 'version',
+        or an empty dictionary if retrieval fails after all retry attempts.
 
-    Raises
-    ------
-    RuntimeError
-        If the API request fails after retries.
-    KeyError
-        If expected keys ('name', 'version') are missing in the response.
+    Notes
+    -----
+    - Handles various API request exceptions with retry mechanism
+    - Logs warnings and errors for different failure scenarios
+    - Returns an empty dictionary if:
+      - Connection errors persist
+      - Request exceptions occur
+      - Expected keys are missing in the response
     """
+    # Attempt to fetchpanel information with try mechanism
     for attempt in range(1, retries + 1):
         try:
+            # Retrieve API response
             response = get_response(formatted_id)
+            # Extract name and version from response
             panel_info = get_name_version(response)
 
-            missing_keys = [key for key in ["name", "version"] if key not in panel_info]
-            if missing_keys:
-                raise KeyError
-
+            # Validate that both 'name' and 'version' are present
+            # Change this to be more strict about returning an empty dict
+            if not panel_info or not all(key in panel_info for key in ["name", "version"]):
+                logging.error(
+                    "Incomplete panel information for panel %s",
+                    formatted_id
+                )
+                return {}
+            # Return the successfully retrieved panel information
             return panel_info
 
         except requests.exceptions.ConnectionError:
+            # Log network connectivity issues
             logging.warning(
                 "ConnectionError: Unable to reach API for panel %s, retrying in %d seconds...",
                 formatted_id,
                 delay,
             )
+            # Retry if attempts remain, otherwise log error and return empty dictionary
             if attempt < retries:
                 time.sleep(delay)
             else:
@@ -140,7 +159,8 @@ def fetch_panel_info(formatted_id, retries=3, delay=10):
             logging.error("404 Error: Panel with R code %s not found.", formatted_id)
             sys.exit(1)
 
-        except requests.exceptions.RequestException:
+        except (requests.exceptions.RequestException):
+            # Handle other request-related exceptions (e.g. timeout)
             logging.warning(
                 "Attempt %d/%d: Encountered an issue with the API for panel %s, "
                 + "retrying in %d seconds...",
@@ -149,6 +169,7 @@ def fetch_panel_info(formatted_id, retries=3, delay=10):
                 formatted_id,
                 delay,
             )
+            # Retry if attempts remain, otherwise log error and return empty dict
             if attempt < retries:
                 time.sleep(delay)
             else:
@@ -160,13 +181,16 @@ def fetch_panel_info(formatted_id, retries=3, delay=10):
                 return {}
 
         except KeyError:
+            # Handle cases where response is missing expected fields
             logging.error(
                 "Unexpected API response for panel %s: Missing expected fields.",
                 formatted_id,
             )
-            return {}
+            # Return an empty dictionary
+            return{}
 
-    return {}
+    # If all retry attempts fail, return an empty dictionary
+    raise PanelAppError from None
 
 
 def main(panel_id=None):
@@ -180,40 +204,34 @@ def main(panel_id=None):
     panel_id : str, optional
         The panel ID to check. If not provided, it is parsed from arguments.
 
-    Raises
-    ------
-    ValueError
-        If the panel ID is invalid or doesn't follow the correct format.
-    KeyError
-        If the API response is missing expected keys ('name' or 'version').
-    RuntimeError
-        If the API request fails after multiple attempts or encounters network issues.
-    Exception
-        For any other unexpected errors.
     """
 
     # Create a logger, named after this module, e.g. check_panel
     logger = get_logger(__name__)
 
+    # Use command-line arguments if called from command-line.
     if panel_id is None:
         args = parse_arguments()
         panel_id = args.panel_id
 
     try:
+        # Format panel ID to ensure correct format
         formatted_id = format_panel_id(panel_id)
         logger.debug("Formatted Panel ID: %s", formatted_id)
 
+        # Fetch panel information
         panel_info = fetch_panel_info(formatted_id)
 
+        # Print panel details if information is retrieved
         print(
             f"Panel ID: {formatted_id}\n"
             f"Clinical Indication: {panel_info['name']}\n"
             f"Latest Version: {panel_info['version']}"
         )
 
-    except Exception:
-        sys.exit()
-
+    except Exception as e:
+        logger.error(f"Unexpected error: {e}")
+        sys.exit(1)
 
 if __name__ == "__main__":  # pragma: no cover
     main()

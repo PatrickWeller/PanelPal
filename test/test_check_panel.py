@@ -164,19 +164,31 @@ def test_fetch_panel_info_edge_cases(mock_get_name_version, mock_get_response):
     Returns:
         None
     """
-
-    mock_get_response.return_value = None  # Nonexistent panel
-    result = fetch_panel_info("R999999")
-    assert result == {}  # Should handle missing panels gracefully
-
-    mock_get_name_version.return_value = {}  # Incomplete response
+    # Simulate the API response as an incomplete dictionary
+    mock_get_response.return_value = {"panel_pk": 402}
+    # Simulate an incomplete name/version processing
+    mock_get_name_version.return_value = {}
+    
+    # Call the function under test
     result = fetch_panel_info("R59")
+    
+    # Validate that the function handles incomplete data gracefully
     assert result == {}
 
     mock_get_response.side_effect = requests.exceptions.ConnectionError
     result = fetch_panel_info("R59")
     assert result == {}  # Handles connection error
 
+def test_fetch_panel_info_404_exit():
+    """
+    Test that 404 Errors lead to a sys.exit as the user input is clearly wrong
+    """
+    # Use pytest.raises to check for SystemExit
+    with pytest.raises(SystemExit) as exc_info:
+        fetch_panel_info("R123456789")
+
+    # Assert the exit code is 1
+    assert exc_info.value.code == 1
 
 @patch("PanelPal.check_panel.get_response")
 @patch("PanelPal.check_panel.get_name_version")

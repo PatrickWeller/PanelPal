@@ -101,11 +101,18 @@ def get_response(panel_id):
             # For other non-successful status codes, raise a general error
             raise PanelAppError(f"HTTP Error: {response.status_code} - {response.text}") from e
 
+    except requests.exceptions.ConnectionError as e:
+        # Catch connection errors
+        logger.error("Connection Error while fetching panel data for Panel %s: %s", panel_id, e)
+        # Reraise the error
+        raise PanelAppError(f"Connection error retrieving data for panel {panel_id}.") from None
+
     except requests.exceptions.RequestException as e:
         # Catch all other types of request exceptions (network errors, etc.)
         logger.error("Error occurred while fetching panel data for Panel %s: %s", panel_id, e)
-        # Raise a custom PanelAppError with a more general message
+        # Raise a custom PanelAppError
         raise PanelAppError(f"Failed to retrieve data for panel {panel_id}.") from e
+    
 
 
 def get_name_version(response):

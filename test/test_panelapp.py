@@ -178,7 +178,7 @@ class TestGetResponse:
 
         # Assert that the function raises a PanelAppError with the correct message
         with pytest.raises(
-            PanelAppError, match=f"Failed to retrieve data for panel {panel_id}."
+            PanelAppError, match=f"Connection error retrieving data for panel {panel_id}."
         ):
             get_response(panel_id)
 
@@ -393,9 +393,29 @@ class TestGetResponseOldPanelVersion:
         ):
             get_response_old_panel_version(panel_pk, version, panel)
 
+    @responses.activate
+    def test_non_404_http_error(self):
+        """
+        Test that the function raises PanelAppError for non-404 HTTP errors.
+        """
+        panel_pk = "789"
+        version = "3.0"
+        panel = "R23"
+        # Construct the URL
+        url = f"https://panelapp.genomicsengland.co.uk/api/v1/panels/{panel_pk}/?version={version}"
+
+        # Mock a non-404 HTTP error, e.g., 500 Internal Server Error
+        responses.add(responses.GET, url, status=500, json={"error": "Internal Server Error"})
+
+        # Expect a PanelAppError to be raised with the correct error message
+        with pytest.raises(
+            PanelAppError,
+            match=r"HTTP Error: 500 - .*Internal Server Error.*",
+        ):
+            get_response_old_panel_version(panel_pk, version, panel)
 
     @responses.activate
-    def test_nother_api_error(self):
+    def test_other_api_error(self):
         """
         Test that the function raises PanelAppError for network-related issues.
         """
