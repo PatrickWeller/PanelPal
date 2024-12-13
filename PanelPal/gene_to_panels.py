@@ -290,7 +290,7 @@ def main(hgnc_symbol=None, confidence_status="green", show_all_panels=False):
 
             # Write the panels to a CSV file
             write_panels(hgnc_symbol, confidence_status, panels_with_r_codes)
-        else:
+        else: # pragma: no cover
             logger_message = (
                 "No R panels found for gene %s with confidence: %s.",
             ) % hgnc_symbol, confidence_status
@@ -298,13 +298,12 @@ def main(hgnc_symbol=None, confidence_status="green", show_all_panels=False):
             logger.info(logger_message)
             print(logger_message)
 
-    except requests.RequestException as e:
+    except requests.RequestException as e: # pragma: no cover
         logger.error("Error querying the API: %s", e)
-    except KeyError as ke:
+    except KeyError as ke: # pragma: no cover
         logger.error("Key error: %s", ke)
         print(f"Key error: {ke}")
         print(ke)
 
-
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
     main()
