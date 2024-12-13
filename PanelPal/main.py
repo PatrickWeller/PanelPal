@@ -76,26 +76,6 @@ Database Operations:
     print(help_message)
 
 
-def setup_db_subcommands(parser_db):
-    """
-    Set up subcommands related to database functionality.
-    """
-    # Subcommand for querying patient
-    parser_db.add_argument(
-        "--query-patient",
-        type=str,
-        nargs='+',  # Allow multi-word input (e.g., "John Doe")
-        help="Patient name to query from the database, e.g., 'John Doe'."
-    )
-
-    # Subcommand for setting up the DB
-    parser_db.add_argument(
-        "--setup-db",
-        action='store_true',
-        help="Set up the database if not already set up."
-    )
-
-
 def main():
     """Main function which gathers arguments and passes them to the relevant PanelPal command."""
     parser = argparse.ArgumentParser(
@@ -172,18 +152,24 @@ def main():
         help="Filter by gene status. Green only; green and amber; or all",
     )
 
-    #### SUBCOMMANDS FOR DB #####
+    # Subcommand: db
     parser_db = subparsers.add_parser(
         "db",
         help="Database operations to query different information."
     )
-
-    # Set up the db related subcommands
-    setup_db_subcommands(parser_db) 
+    parser_db.add_argument(
+        "--query-patient",
+        type=str,
+        nargs='+',  # Allow multi-word input for fore + surname
+        help="Patient name to query from the database e.g. 'John Doe'."
+    )
+    parser_db.add_argument(
+        "--setup-db",
+        action='store_true',
+        help="Set up the database if not already set up."
+    )
     
     args = parser.parse_args()
-
-    ##############################
 
     if not args.command:
         print_help()
@@ -210,8 +196,7 @@ def main():
         elif args.query_patient:
             # Join the name into a single string
             patient_name = " ".join(args.query_patient) 
-            # Ensure db has been set up before querying
-            setup_db()  
+            setup_db() # run to ensure the DB was setup beforehand
             query_patient(patient_name)
         else:
             print_help()
