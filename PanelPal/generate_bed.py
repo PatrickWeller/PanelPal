@@ -47,7 +47,6 @@ from PanelPal.accessories import panel_app_api_functions
 from PanelPal.accessories.bedfile_functions import bed_file_exists
 from PanelPal.check_panel import is_valid_panel_id
 from PanelPal.settings import get_logger
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 
 # Create a logger named after generate_bed

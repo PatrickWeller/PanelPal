@@ -16,9 +16,11 @@ import subprocess
 import sys
 from pathlib import Path
 from unittest import mock
+from unittest.mock import patch
 import pytest
 from PanelPal.accessories import variant_validator_api_functions, panel_app_api_functions
 from PanelPal.generate_bed import main
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 class TestGenerateBedArguments:
     '''
@@ -103,7 +105,8 @@ class TestGenerateBedArguments:
                 ],
                 capture_output=True,
                 text=True,
-                check=False
+                check=False,
+                env={**os.environ, "PYTHONPATH": str(original_cwd)}
             )
 
             # Assert successful execution, print error if not
@@ -145,7 +148,7 @@ class TestGenerateBedExceptionHandling:
         """
         # Mocking the function that parses command-line arguments to simulate arguments passed
         with mock.patch('PanelPal.generate_bed.parse_arguments', return_value=mock.MagicMock(
-            panel_id="R207", panel_version="4", genome_build="GRCh38")):
+            panel_id="R219", panel_version="1", genome_build="GRCh38")):
 
             # Mocking the functions used inside main() to simulate errors
             with mock.patch.object(
@@ -167,7 +170,7 @@ class TestGenerateBedExceptionHandling:
                     main()
 
                 # Check that the function that raised the error was called once
-                mock_get_response.assert_called_once_with('R207')
+                mock_get_response.assert_called_once_with('R219')
 
                 # Ensure other functions were not called after the exception
                 mock_get_genes.assert_not_called()
@@ -229,3 +232,148 @@ class TestGenerateBedExceptionHandling:
 
                 # Check that the bedtools_merge function raised the error as expected
                 mock_bedtools_merge.assert_called_once()
+
+class TestValidPanelCheck:
+    def test_invalid_panel_id(self):
+        """
+        Test that the script raises a ValueError and logs an error for an invalid panel_id.
+        """
+        panel_id = "X123"  # Invalid panel_id
+        panel_version = "4"
+        genome_build = "GRCh38"
+        
+        result = subprocess.run(
+            [
+                sys.executable,
+                "PanelPal/generate_bed.py",
+                "-p", panel_id,
+                "-v", panel_version,
+                "-g", genome_build
+            ],
+            capture_output=True,
+            text=True,
+            check=False
+        )
+
+        # Ensure that the script exits with an error code
+        assert result.returncode != 0
+
+        # Ensure that the error message for invalid panel_id is present in stderr
+        assert f"Invalid panel_id '{panel_id}'" in result.stderr
+
+class TestBedFileExists:
+
+    def test_bed_file_exists(self):
+        """
+        Test that the script stops when the BED file exists.
+        """
+        panel_id = "R219"
+        panel_version = "1"
+        genome_build = "GRCh38"
+
+        temp_dir = Path("tmp/")  # Temporary directory for bed files
+
+        # Ensure the temporary directory exists
+        temp_dir.mkdir(parents=True, exist_ok=True)
+
+        # Define the bed file path
+        bed_file_path = temp_dir / f"{panel_id}_v{panel_version}_{genome_build}.bed"
+        bed_merged_path = temp_dir / f"{panel_id}_v{panel_version}_{genome_build}_merged.bed"
+        
+        # Create a dummy BED file to simulate it already exists
+        bed_file_path.write_text("Dummy content") 
+
+        # Save the current working directory
+        original_cwd = Path(os.getcwd())
+        script_path = Path(original_cwd) / "PanelPal/generate_bed.py"
+
+        try:
+            # Change the working directory to the temporary directory
+            os.chdir(temp_dir)
+
+            # Run the script and capture its output
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(script_path),
+                    "-p", panel_id,
+                    "-v", panel_version,
+                    "-g", genome_build
+                ],
+                capture_output=True,
+                text=True,
+                check=False,
+                env={**os.environ, "PYTHONPATH": str(original_cwd)}
+            )
+
+            # Ensure that the script exits with a warning
+            assert result.returncode == 0
+            assert "PROCESS STOPPED: A BED file for the panel" in result.stdout
+
+        finally:
+            # Restore the original working directory
+            os.chdir(original_cwd)
+
+        # Clean up the dummy BED file if it exists
+        if bed_file_path.exists():
+            bed_file_path.unlink()
+
+        if bed_merged_path.exists():
+            bed_merged_path.unlink()
+
+    def test_bed_file_does_not_exist(self):
+        """
+        Test that the script proceeds to generate a BED file when it does not exist.
+        """
+        panel_id = "R219"
+        panel_version = "1"
+        genome_build = "GRCh37"
+
+        # Ensure the temporary directory exists
+        temp_dir = Path("tmp/")  # Temporary directory for bed files
+        temp_dir.mkdir(parents=True, exist_ok=True)
+
+        # Define the bed file path
+        bed_file_path = temp_dir / f"{panel_id}_v{panel_version}_{genome_build}.bed"
+        bed_merged_path = temp_dir / f"{panel_id}_v{panel_version}_{genome_build}_merged.bed"
+        
+        # Ensure the BED file does not exist
+        if bed_file_path.exists():
+            bed_file_path.unlink()
+
+        # Save the current working directory
+        original_cwd = Path(os.getcwd())
+        script_path = Path(original_cwd) / "PanelPal/generate_bed.py"
+
+        try:
+            # Change the working directory to the temporary directory
+            os.chdir(temp_dir)
+
+            # Run the script and capture its output
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(script_path),
+                    "-p", panel_id,
+                    "-v", panel_version,
+                    "-g", genome_build
+                ],
+                capture_output=True,
+                text=True,
+                check=False,
+                env={**os.environ, "PYTHONPATH": str(original_cwd)}
+            )
+
+            # Ensure that the script exits successfully
+            assert result.returncode == 0
+
+        finally:
+            # Restore the original working directory
+            os.chdir(original_cwd)
+            
+        # Clean up the dummy BED file if it exists
+        if bed_file_path.exists():
+            bed_file_path.unlink()
+
+        if bed_merged_path.exists():
+            bed_merged_path.unlink()
