@@ -26,7 +26,7 @@ from unittest.mock import patch, MagicMock
 import pytest
 import requests
 import sys
-from check_panel import (
+from PanelPal.check_panel import (
     format_panel_id,
     is_valid_panel_id,
     fetch_panel_info,

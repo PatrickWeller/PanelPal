@@ -71,10 +71,10 @@ def main():
     # Parse command-line arguments
     args = parse_arguments()
 
-    logger.info(f"Comparing BED files: {args.file1} and {args.file2}")
+    logger.info("Comparing BED files: %s and %s", args.file1, args.file2)
 
     compare_bed_files(args.file1, args.file2)
-    
+
     logger.info("BED file comparison completed successfully.")
 
 if __name__ == "__main__":

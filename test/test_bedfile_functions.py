@@ -1,3 +1,39 @@
+"""
+Module for testing functions related to BED file handling in the 
+PanelPal package.
+
+This module contains tests for various functions that manage and 
+manipulate BED files. The tests ensure the correctness of functions 
+that check for the existence of BED files, read BED files, and compare 
+the contents of two BED files.
+
+Tested Functions:
+-----------------
+1. `bed_file_exists`: Tests for existence of a BED file based on panel 
+   name, version, and genome build.
+2. `read_bed_file`: Tests for reading a BED file and parsing its content.
+3. `compare_bed_files`: Tests for comparing two BED files and outputting 
+   their differences.
+
+Classes:
+--------
+- `TestBedFileExists`: Contains tests for the `bed_file_exists` function.
+- `TestsReadBedFile`: Contains tests for the `read_bed_file` function.
+- `TestsCompareBedFunction`: Contains tests for the `compare_bed_files` 
+   function.
+
+Testing Scenarios:
+------------------
+- Verifying that the `bed_file_exists` function detects existing files 
+  and handles missing parameters.
+- Testing the correct reading and parsing of a BED file with the 
+  `read_bed_file` function.
+- Comparing the contents of two BED files using the `compare_bed_files` 
+  function, including handling differences and identical files.
+- Handling various edge cases such as missing files, file reading errors, 
+  and folder creation failures.
+"""
+
 import os
 from unittest.mock import patch
 from pathlib import Path
@@ -37,7 +73,7 @@ class TestBedFileExists:
 
         finally:
             os.chdir(original_cwd)
-            
+
         if bed_file.exists():
                 bed_file.unlink()
 

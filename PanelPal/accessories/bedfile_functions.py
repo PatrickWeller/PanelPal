@@ -199,4 +199,3 @@ def compare_bed_files(file1, file2):
             "Error: %s", str(e)
             )
         raise
-

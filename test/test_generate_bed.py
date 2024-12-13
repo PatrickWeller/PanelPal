@@ -16,7 +16,6 @@ import subprocess
 import sys
 from pathlib import Path
 from unittest import mock
-from unittest.mock import patch
 import pytest
 from PanelPal.accessories import variant_validator_api_functions, panel_app_api_functions
 from PanelPal.generate_bed import main
@@ -234,6 +233,9 @@ class TestGenerateBedExceptionHandling:
                 mock_bedtools_merge.assert_called_once()
 
 class TestValidPanelCheck:
+    '''
+    Test that the logic works for checking the panel_id is valid.
+    '''
     def test_invalid_panel_id(self):
         """
         Test that the script raises a ValueError and logs an error for an invalid panel_id.
@@ -241,7 +243,7 @@ class TestValidPanelCheck:
         panel_id = "X123"  # Invalid panel_id
         panel_version = "4"
         genome_build = "GRCh38"
-        
+
         result = subprocess.run(
             [
                 sys.executable,
@@ -262,7 +264,10 @@ class TestValidPanelCheck:
         assert f"Invalid panel_id '{panel_id}'" in result.stderr
 
 class TestBedFileExists:
-
+    '''
+    Tests for the logic that checks if a bed file exists, and stops if
+    it does or continues if it does not.
+    '''
     def test_bed_file_exists(self):
         """
         Test that the script stops when the BED file exists.
@@ -279,9 +284,9 @@ class TestBedFileExists:
         # Define the bed file path
         bed_file_path = temp_dir / f"{panel_id}_v{panel_version}_{genome_build}.bed"
         bed_merged_path = temp_dir / f"{panel_id}_v{panel_version}_{genome_build}_merged.bed"
-        
+
         # Create a dummy BED file to simulate it already exists
-        bed_file_path.write_text("Dummy content") 
+        bed_file_path.write_text("Dummy content")
 
         # Save the current working directory
         original_cwd = Path(os.getcwd())
@@ -336,7 +341,7 @@ class TestBedFileExists:
         # Define the bed file path
         bed_file_path = temp_dir / f"{panel_id}_v{panel_version}_{genome_build}.bed"
         bed_merged_path = temp_dir / f"{panel_id}_v{panel_version}_{genome_build}_merged.bed"
-        
+
         # Ensure the BED file does not exist
         if bed_file_path.exists():
             bed_file_path.unlink()
@@ -370,7 +375,7 @@ class TestBedFileExists:
         finally:
             # Restore the original working directory
             os.chdir(original_cwd)
-            
+
         # Clean up the dummy BED file if it exists
         if bed_file_path.exists():
             bed_file_path.unlink()
