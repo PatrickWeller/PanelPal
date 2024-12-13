@@ -2,6 +2,8 @@ from PanelPal.settings import get_logger
 from DB.panelpal_db import Session, Patient, BedFile, PanelInfo
 from DB.create_db import create_database
 from sqlalchemy.exc import OperationalError
+from sqlalchemy import and_
+from datetime import datetime
 
 
 # Initialise logger
@@ -25,7 +27,6 @@ def setup_db(force=False):
         else:
             logger.info("Please set up the database first using 'setup-db'.")
 
-
 def query_patient(patient_name):
     """
     Fetches and displays conjoined data from all three tables 
@@ -36,8 +37,12 @@ def query_patient(patient_name):
     patient_name : str
         The name of the patient to search for.
     """
-    # Convert the list of strings to a single string (e.g. "John Smith")
-    patient_name = " ".join(patient_name)
+    # Ensure the patient_name is a single string
+    if isinstance(patient_name, list):
+        patient_name = " ".join(patient_name)
+    
+    # Automatically wrap the name in quotes if not already done
+    patient_name = patient_name.strip('"')
 
     try:
         # Create session
@@ -64,5 +69,4 @@ def query_patient(patient_name):
                 print("-" * 40)
 
     except Exception as e:
-        logger.error(f"Failed to retrieve patient information for {
-                     patient_name}: {e}")
+        logger.error(f"Failed to retrieve patient information for {patient_name}: {e}")

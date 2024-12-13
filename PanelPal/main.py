@@ -66,10 +66,12 @@ Available Commands:
     --help, -h              Prints this help message
 
 Database Operations:
-    db query-patient        Query a patient's data by name from the database
+    db                      Add 'db' in front of the following flags to perform specific database queries.
+        --query-patient      Query a patient's data by name from the database.
+                            Example: PanelPal db --query-patient "John Doe"
 
-    db setup-db             Set up the database (if not already set up)
-
+        --setup-db           Set up the database (if not already set up).
+                            Example: PanelPal db --setup-db
     """
     print(help_message)
 
@@ -78,19 +80,20 @@ def setup_db_subcommands(parser_db):
     """
     Set up subcommands related to database functionality.
     """
-    db_subparsers = parser_db.add_subparsers(dest='db_command')
+    # Subcommand for querying patient
+    parser_db.add_argument(
+        "--query-patient",
+        type=str,
+        nargs='+',  # Allow multi-word input (e.g., "John Doe")
+        help="Patient name to query from the database, e.g., 'John Doe'."
+    )
 
-    # Add a command for setting up the database
-    setup_parser = db_subparsers.add_parser(
-        'setup-db', help="Set up the database")
-    setup_parser.add_argument(
-        '--force', action='store_true', help='Force setup even if database exists')
-
-    # Add a command for querying the database
-    query_parser = db_subparsers.add_parser(
-        'query-patient', help="Query the database")
-    query_parser.add_argument(
-        '--name', type=str, nargs='+', required=True, help='Patient name to search for')
+    # Subcommand for setting up the DB
+    parser_db.add_argument(
+        "--setup-db",
+        action='store_true',
+        help="Set up the database if not already set up."
+    )
 
 
 def main():
@@ -169,37 +172,18 @@ def main():
         help="Filter by gene status. Green only; green and amber; or all",
     )
 
-    # subcommand group: Database-related operations
+    #### SUBCOMMANDS FOR DB #####
     parser_db = subparsers.add_parser(
         "db",
-        help="Database operations that query different information.",
+        help="Database operations to query different information."
     )
 
-    # subcommand: query patient
-    db_subparsers = parser_db.add_subparsers(
-        dest="db_command",  # destination
-        title="DB Subcommands",
-    )
-
-    # subcommand for setup-db and query-patient
-    parser_setup_db = db_subparsers.add_parser(
-        "setup-db", help="Set up the database")
-    parser_setup_db.add_argument(
-        '--force', action='store_true', help="Force setup even if database exists"
-    )
-
-    parser_query_patient = db_subparsers.add_parser(
-        "query-patient",
-        help="Query patient information from the database by name."
-    )
-    parser_query_patient.add_argument(
-        "--patient_name",
-        type=str,
-        required=True,
-        help="Patient name to query, e.g., 'John Doe'."
-    )
-
+    # Set up the db related subcommands
+    setup_db_subcommands(parser_db) 
+    
     args = parser.parse_args()
+
+    ##############################
 
     if not args.command:
         print_help()
@@ -221,15 +205,16 @@ def main():
             status_filter=args.status_filter,
         )
     elif args.command == "db":
-        if args.db_command == "setup-db":
-            force = args.force
-            setup_db(force=force)
-        elif args.db_command == "query-patient":
-            patient_name = args.patient_name
-            setup_db()  # Ensure the DB is set up before querying
+        if args.setup_db:
+            setup_db(force=False)
+        elif args.query_patient:
+            # Join the name into a single string
+            patient_name = " ".join(args.query_patient) 
+            # Ensure db has been set up before querying
+            setup_db()  
             query_patient(patient_name)
-    else:
-        print_help()
+        else:
+            print_help()
 
 
 if __name__ == "__main__":
