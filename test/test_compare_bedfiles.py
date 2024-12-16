@@ -15,7 +15,6 @@ from unittest import mock
 from pathlib import Path
 import pytest
 from PanelPal.compare_bedfiles import parse_arguments
-script_path = Path(os.getcwd()) / "PanelPal/compare_bedfiles.py"
 
 class TestCompareBedfilesArgs:
     '''
@@ -125,7 +124,7 @@ class TestCompareBedfilesMain:
         result = subprocess.run(
             [
                 sys.executable,
-                str(script_path),
+                "PanelPal/compare_bedfiles.py",
                 str(file1),
                 str(file2),
             ],
@@ -207,7 +206,7 @@ class TestCompareBedfilesMain:
         result = subprocess.run(
             [
                 sys.executable,
-                str(script_path),
+                "PanelPal/compare_bedfiles.py",
                 str(file3),
                 str(file4),
             ],
