@@ -29,11 +29,13 @@ class TestGenerateBedArguments:
         """
         Test script behavior when all arguments are missing.
         """
+        original_cwd = Path(os.getcwd())
         result = subprocess.run(
             [sys.executable, "PanelPal/generate_bed.py"],
             capture_output=True,
             text=True,
-            check=False
+            check=False,
+            env={**os.environ, "PYTHONPATH": str(original_cwd)}
         )
         assert result.returncode != 0
         assert "the following arguments are required" in result.stderr
@@ -43,11 +45,13 @@ class TestGenerateBedArguments:
         """
         Test script behavior when a single argument is missing.
         """
+        original_cwd = Path(os.getcwd())
         result = subprocess.run(
             [sys.executable, "PanelPal/generate_bed.py", "-p", "R207", "-v", "4"],
             capture_output=True,
             text=True,
-            check=False
+            check=False,
+            env={**os.environ, "PYTHONPATH": str(original_cwd)}
         )
         assert result.returncode != 0
         assert "the following arguments are required: -g/--genome_build" in result.stderr
@@ -56,6 +60,7 @@ class TestGenerateBedArguments:
         """
         Test script behavior with invalid genome build.
         """
+        original_cwd = Path(os.getcwd())
         result = subprocess.run(
             [
                 sys.executable,
@@ -66,7 +71,8 @@ class TestGenerateBedArguments:
             ],
             capture_output=True,
             text=True,
-            check=False
+            check=False,
+            env={**os.environ, "PYTHONPATH": str(original_cwd)}
         )
         assert result.returncode != 0
         assert "invalid choice: 'INVALID_GENOME' (choose from 'GRCh37', 'GRCh38')" in result.stderr
@@ -104,6 +110,7 @@ class TestGenerateBedArguments:
                 capture_output=True,
                 text=True,
                 check=False,
+                env={**os.environ, "PYTHONPATH": str(original_cwd)}
             )
 
             # Assert successful execution, print error if not
@@ -241,6 +248,8 @@ class TestValidPanelCheck:
         panel_id = "X123"  # Invalid panel_id
         panel_version = "4"
         genome_build = "GRCh38"
+        
+        original_cwd = Path(os.getcwd())
 
         result = subprocess.run(
             [
@@ -252,7 +261,8 @@ class TestValidPanelCheck:
             ],
             capture_output=True,
             text=True,
-            check=False
+            check=False,
+            env={**os.environ, "PYTHONPATH": str(original_cwd)}
         )
 
         # Ensure that the script exits with an error code
