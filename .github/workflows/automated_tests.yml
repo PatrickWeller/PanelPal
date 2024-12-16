@@ -45,6 +45,12 @@ jobs:
       run: |
         pip install .
 
+    - name: Verify files are present
+      run: |
+        echo "Checking files in the repo"
+        ls -la /home/runner/work/PanelPal/PanelPal
+
+
     # Initialize Conda for bash, activate the environment and run the tests
     - name: Run Automated Unit and Functional Tests
       shell: bash
