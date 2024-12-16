@@ -31,7 +31,7 @@ class TestGenerateBedArguments:
         Test script behavior when all arguments are missing.
         """
         result = subprocess.run(
-            [sys.executable, "PanelPal/generate_bed.py"],
+            [sys.executable, "generate_bed.py"],
             capture_output=True,
             text=True,
             check=False
@@ -45,7 +45,7 @@ class TestGenerateBedArguments:
         Test script behavior when a single argument is missing.
         """
         result = subprocess.run(
-            [sys.executable, "PanelPal/generate_bed.py", "-p", "R207", "-v", "4"],
+            [sys.executable, "generate_bed.py", "-p", "R207", "-v", "4"],
             capture_output=True,
             text=True,
             check=False
@@ -60,7 +60,7 @@ class TestGenerateBedArguments:
         result = subprocess.run(
             [
                 sys.executable,
-                "PanelPal/generate_bed.py",
+                "generate_bed.py",
                 "-p", "R207",
                 "-v", "4",
                 "-g", "INVALID_GENOME"
@@ -84,7 +84,7 @@ class TestGenerateBedArguments:
 
         # Save the current working directory
         original_cwd = Path(os.getcwd())
-        script_path = Path(original_cwd) / "PanelPal/generate_bed.py"
+        script_path = Path(original_cwd) / "generate_bed.py"
 
         try:
             # Change the working directory to tmp_path
@@ -247,7 +247,7 @@ class TestValidPanelCheck:
         result = subprocess.run(
             [
                 sys.executable,
-                "PanelPal/generate_bed.py",
+                "generate_bed.py",
                 "-p", panel_id,
                 "-v", panel_version,
                 "-g", genome_build
@@ -290,7 +290,7 @@ class TestBedFileExists:
 
         # Save the current working directory
         original_cwd = Path(os.getcwd())
-        script_path = Path(original_cwd) / "PanelPal/generate_bed.py"
+        script_path = Path(original_cwd) / "generate_bed.py"
 
         try:
             # Change the working directory to the temporary directory
@@ -348,7 +348,7 @@ class TestBedFileExists:
 
         # Save the current working directory
         original_cwd = Path(os.getcwd())
-        script_path = Path(original_cwd) / "PanelPal/generate_bed.py"
+        script_path = Path(original_cwd) / "generate_bed.py"
 
         try:
             # Change the working directory to the temporary directory

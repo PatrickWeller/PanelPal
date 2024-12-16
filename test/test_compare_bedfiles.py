@@ -123,7 +123,7 @@ class TestCompareBedfilesMain:
         result = subprocess.run(
             [
                 sys.executable,
-                "PanelPal/compare_bedfiles.py",
+                "compare_bedfiles.py",
                 str(file1),
                 str(file2),
             ],
@@ -205,7 +205,7 @@ class TestCompareBedfilesMain:
         result = subprocess.run(
             [
                 sys.executable,
-                "PanelPal/compare_bedfiles.py", 
+                "compare_bedfiles.py", 
                 str(file3),
                 str(file4),
             ],
