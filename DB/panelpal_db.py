@@ -37,16 +37,12 @@ Session : sqlalchemy.orm.session.sessionmaker
 
 Notes:
 ------
-- Ensure that `PanelPal.settings` contains a valid `get_logger` function.
 - The database URL defaults to an SQLite database named `panelpal.db`.
-- SQLAlchemy's echo mode is enabled for debugging.
 """
 
-import sqlalchemy
 from sqlalchemy import create_engine, Column, Integer, String, Date, JSON, ForeignKey
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship, sessionmaker
-from PanelPal.settings import get_logger, log_database_startup
+from sqlalchemy.orm import relationship, sessionmaker, declarative_base
+from PanelPal.settings import get_logger
 
 # Initialise logger
 logger = get_logger(__name__)
@@ -59,17 +55,45 @@ Base = declarative_base()
 
 class Patient(Base):
     """
-    patient information table. NHS number = primary key
+    Patient information table.
+
+    This table stores patient details, including NHS number, patient name, and date of birth.
+    Multiple records for the same patient can exist, which is useful for reanalysis purposes.
+
+    Attributes
+    ----------
+    id : int
+        The unique identifier for the patient record.
+    nhs_number : str
+        The NHS number of the patient.
+    dob : date
+        The date of birth of the patient.
+    patient_name : str
+        The name of the patient.
+
+    Relationships
+    -------------
+    bed_files : list of BedFile
+        A list of `BedFile` objects related to this patient.
+
+    Methods
+    -------
+    __repr__()
+        Returns a string representation of the `Patient` object. 
+        Defines how objects are displayed as strings when printed 
+        (making them more user-friendly)
     """
     __tablename__ = "patients"
 
-    nhs_number = Column(String, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    nhs_number = Column(String(10), nullable=False)
     dob = Column(Date, nullable=False)
     patient_name = Column(String, nullable=False)
 
-    # Relationship to BedFiles
+    # Relationship to BedFiles table
     bed_files = relationship("BedFile", back_populates="patient")
 
+    # string representation method
     def __repr__(self):
         return (
             f"<Patient(nhs_number={self.nhs_number}, "
@@ -87,6 +111,7 @@ class BedFile(Base):
     id = Column(Integer, primary_key=True)
     analysis_date = Column(Date, nullable=False)
     bed_file_path = Column(String, nullable=False)
+    merged_bed_path = Column(String, nullable=False)
     patient_id = Column(String, ForeignKey(
         "patients.nhs_number"), nullable=False)
 
@@ -101,23 +126,15 @@ class BedFile(Base):
 
 
 class PanelInfo(Base):
-    """
-    Panel information. Foreign key = BED file. 
-    """
     __tablename__ = "panel_info"
 
-    id = Column(Integer, primary_key=True)
+    # ID as PK for clarity
+    id = Column(Integer, primary_key=True, autoincrement=True)
     bed_file_id = Column(Integer, ForeignKey("bed_files.id"), nullable=False)
-    panel_data = Column(JSON, nullable=False)  # store data in JSON format
+    panel_data = Column(JSON, nullable=False)
 
     # Relationship to bed file
     bed_file = relationship("BedFile", back_populates="panels")
-
-    def __repr__(self):
-        return (
-            f"<PanelInfo(bed_file_id={self.bed_file_id}, panel_data={
-                self.panel_data})>"
-        )
 
 
 # URL that links to the SQLite database

@@ -9,7 +9,7 @@ test/db_tests/__pycache__/
 test/db_tests/.pytest_cache/
 __pycache__/
 DB/__pycache__/
-DB/panelpal.db
+panelpal.db
 *.bed
 *.log
 *.pyc

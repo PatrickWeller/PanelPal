@@ -65,13 +65,6 @@ Available Commands:
                             Example: PanelPal compare-panel-versions --panel R21 --versions 1.0 2.2 --status_filter green
     --help, -h              Prints this help message
 
-Database Operations:
-    db                      Add 'db' in front of the following flags to perform specific database queries.
-        --query-patient      Query a patient's data by name from the database.
-                            Example: PanelPal db --query-patient "John Doe"
-
-        --setup-db           Set up the database (if not already set up).
-                            Example: PanelPal db --setup-db
     """
     print(help_message)
 
@@ -152,23 +145,6 @@ def main():
         help="Filter by gene status. Green only; green and amber; or all",
     )
 
-    # Subcommand: db
-    parser_db = subparsers.add_parser(
-        "db",
-        help="Database operations to query different information."
-    )
-    parser_db.add_argument(
-        "--query-patient",
-        type=str,
-        nargs='+',  # Allow multi-word input for fore + surname
-        help="Patient name to query from the database e.g. 'John Doe'."
-    )
-    parser_db.add_argument(
-        "--setup-db",
-        action='store_true',
-        help="Set up the database if not already set up."
-    )
-    
     args = parser.parse_args()
 
     if not args.command:
@@ -195,8 +171,8 @@ def main():
             setup_db(force=False)
         elif args.query_patient:
             # Join the name into a single string
-            patient_name = " ".join(args.query_patient) 
-            setup_db() # run to ensure the DB was setup beforehand
+            patient_name = " ".join(args.query_patient)
+            setup_db()  # run to ensure the DB was setup beforehand
             query_patient(patient_name)
         else:
             print_help()

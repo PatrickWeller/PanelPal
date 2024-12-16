@@ -38,16 +38,21 @@ Notes
 - This script assumes that the user has valid access to PanelApp and VariantValidator APIs.
 
 """
-
-from DB.panelpal_db import Session, Patient
-from PanelPal.settings import get_logger
-from PanelPal.accessories import panel_app_api_functions
-from PanelPal.accessories import variant_validator_api_functions
 import argparse
 import sys
 import os
-import re
-from datetime import datetime
+from PanelPal.db_input import (
+    add_patient_to_db,
+    add_bed_file_to_db,
+    add_panel_data_to_db,
+    patient_info_prompt,
+    bed_file_info_prompt
+)
+from DB.panelpal_db import Session, Patient, BedFile, PanelInfo
+from PanelPal.settings import get_logger
+from PanelPal.accessories import panel_app_api_functions
+from PanelPal.accessories import variant_validator_api_functions
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Set up logger
@@ -114,129 +119,6 @@ def parse_arguments():
     return args
 
 
-def patient_info_prompt():
-    """
-    Prompts the user to optionally add patient information to the database.
-    If user chooses to proceed, patient information is collected and returned.
-
-    Returns
-    -------
-    dict or None
-        A dictionary containing patient information if the user agrees, 
-        otherwise None.
-    """
-
-    # Validation functions for user input
-    def validate_nhs_number(nhs_number):
-        """Validates the NHS number to ensure it is a 10-digit numeric string."""
-        return nhs_number.isdigit() and len(nhs_number) == 10
-
-    def validate_name(name):
-        """Validates that the name is non-empty and contains only letters and spaces."""
-        return bool(re.match(r"^[a-zA-Z\s]+$", name))
-
-    def validate_dob(dob):
-        """Validates the date of birth format (DD-MM-YYYY)."""
-        try:
-            return datetime.strptime(dob, "%d-%m-%Y").date()
-        except ValueError:
-            return None
-
-    # Prompt the user to decide whether to record patient information
-    store_info = input(
-        "Add patient to database? (Default = 'yes', press 'n' to skip): "
-    ).strip().lower()
-
-    # If the user opts out, return None
-    if store_info == 'n':
-        return None
-
-    # Collect and validate patient information
-    while True:
-        patient_id = input("Patient ID (NHS number, 10 digits): ").strip()
-        if validate_nhs_number(patient_id):
-            break
-        print("Invalid NHS number. It must be a 10-digit numeric string.")
-
-    while True:
-        patient_name = input("Patient name: ").strip()
-        if validate_name(patient_name):
-            break
-        print("Invalid name. It must contain only letters and spaces.")
-
-    while True:
-        dob = input("Patient's date of birth (DD-MM-YYYY): ").strip()
-        dob_valid = validate_dob(dob)
-        if dob_valid:
-            break
-        print("Invalid date format. Please use DD-MM-YYYY.")
-
-    return {
-        "patient_id": patient_id,
-        "patient_name": patient_name,
-        "dob": dob_valid,
-    }
-
-
-def add_patient_to_db(patient_info, bed_file_info, panel_info_data):
-    """
-    Inserts the patient information and related bed_file and panel_info into the database.
-
-    Parameters
-    ----------
-    patient_info : dict
-        Dictionary containing patient information with keys:
-        - "patient_id": str
-        - "patient_name": str
-        - "dob": datetime.date
-    bed_file_info : dict
-        Dictionary containing bed file information with keys:
-        - "analysis_date": str
-        - "bed_file_path": str
-        - "patient_id": str
-    panel_info_data : dict
-        Dictionary containing panel info data with keys:
-        - "bed_file_id": int
-        - "panel_data": dict (JSON)
-    """
-    session = Session()
-    try:
-        # Insert patient information
-        new_patient = Patient(
-            nhs_number=patient_info["patient_id"],
-            patient_name=patient_info["patient_name"],
-            dob=patient_info["dob"]
-        )
-        session.add(new_patient)
-        session.commit()
-
-        # Insert bed file information
-        new_bed_file = BedFile(
-            analysis_date=bed_file_info["analysis_date"],
-            bed_file_path=bed_file_info["bed_file_path"],
-            patient_id=bed_file_info["patient_id"]
-        )
-        session.add(new_bed_file)
-        session.commit()
-
-        # Insert panel info data
-        new_panel_info = PanelInfo(
-            bed_file_id=new_bed_file.id,
-            panel_data=panel_info_data["panel_data"]
-        )
-        session.add(new_panel_info)
-        session.commit()
-
-        logger.info(f"Patient and related data for {
-                    patient_info['patient_name']} added to database.")
-    except Exception as e:
-        # Log and rollback in case of errors
-        logger.error(f"Failed to add patient and related data: {e}")
-        session.rollback()
-    finally:
-        session.close()
-
-
 def main(panel_id=None, panel_version=None, genome_build=None):
     """
     Main function that processes the panel data and generates the BED file.
@@ -276,10 +158,32 @@ def main(panel_id=None, panel_version=None, genome_build=None):
     )
 
     try:
-        # Prompt for patient information
+        # Call function to get the user's input for patient info
         patient_info = patient_info_prompt()
-        if patient_info:  # If patient info is provided
+
+        # if patient info is provided, the dictionary returned = database input
+        if patient_info:
             add_patient_to_db(patient_info)
+
+            # Prompt for BED file metadata if patient info is provided
+            bed_file_info = bed_file_info_prompt(
+                patient_id=patient_info["patient_id"],
+                panel_name=panel_id,
+                panel_version=panel_version,
+                genome_build=genome_build
+            )
+            add_bed_file_to_db(bed_file_info)
+            logger.info(
+                "BED file metadata added to the database: %s", bed_file_info)
+
+            # logging message to confirm info was added
+            logger.info(
+                "Record added to database for ID: %s",
+                patient_info["patient_id"])
+
+        else:
+            # If patient info is not provided, skip adding to the database
+            pass
 
         # Fetch the panel data from PanelApp using the panel_id
         logger.debug("Requesting panel data for panel_id=%s", panel_id)

@@ -5,6 +5,11 @@ initialise SQLite database and create all three tables
 already exist. 
 """
 from DB.panelpal_db import create_database
+from PanelPal.settings import get_logger, log_database_startup
 
-# Initialize the database and create necessary tables
+logger = get_logger(__name__)
+
+# Initialize the database and create tables,
+# then print and log message confirming it has been set up
 create_database()
+log_database_startup(logger)
