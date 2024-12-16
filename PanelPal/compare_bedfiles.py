@@ -25,9 +25,12 @@ FileNotFoundError :
     If one or both of the input files do not exist.
 """
 
+import sys
+import os
 import argparse
 from PanelPal.settings import get_logger
 from PanelPal.accessories.bedfile_functions import compare_bed_files
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 logger = get_logger(__name__)
 
