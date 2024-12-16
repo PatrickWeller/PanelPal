@@ -119,6 +119,7 @@ class TestCompareBedfilesMain:
         """
         # Extract the paths from the fixture
         file1, file2 = temp_bed_files
+        original_cwd = Path(os.getcwd())
 
         # Run the main function (using subprocess to simulate command-line)
         result = subprocess.run(
@@ -130,7 +131,8 @@ class TestCompareBedfilesMain:
             ],
             capture_output=True,
             text=True,
-            check=False
+            check=False,
+            env={**os.environ, "PYTHONPATH": str(original_cwd)}
         )
 
         # Check the result of the subprocess run

@@ -19,7 +19,6 @@ from unittest import mock
 import pytest
 from PanelPal.accessories import variant_validator_api_functions, panel_app_api_functions
 from PanelPal.generate_bed import main
-#script_path = Path(os.getcwd()) / "PanelPal/generate_bed.py"
 
 class TestGenerateBedArguments:
     '''
@@ -307,7 +306,7 @@ class TestBedFileExists:
                 capture_output=True,
                 text=True,
                 check=False,
-                #env={**os.environ, "PYTHONPATH": str(original_cwd)}
+                env={**os.environ, "PYTHONPATH": str(original_cwd)}
             )
 
             # Ensure that the script exits with a warning
@@ -365,7 +364,7 @@ class TestBedFileExists:
                 capture_output=True,
                 text=True,
                 check=False,
-                #env={**os.environ, "PYTHONPATH": str(original_cwd)}
+                env={**os.environ, "PYTHONPATH": str(original_cwd)}
             )
 
             # Ensure that the script exits successfully
