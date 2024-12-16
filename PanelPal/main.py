@@ -43,7 +43,6 @@ from .check_panel import main as check_panel_main
 from .generate_bed import main as generate_bed_main
 from .compare_panel_versions import main as compare_panel_versions_main
 from .compare_panel_versions import validate_panel
-from .query_db import setup_db, query_patient
 
 
 def print_help():
@@ -166,16 +165,8 @@ def main():
             versions=args.versions,
             status_filter=args.status_filter,
         )
-    elif args.command == "db":
-        if args.setup_db:
-            setup_db(force=False)
-        elif args.query_patient:
-            # Join the name into a single string
-            patient_name = " ".join(args.query_patient)
-            setup_db()  # run to ensure the DB was setup beforehand
-            query_patient(patient_name)
-        else:
-            print_help()
+    else:
+        print_help()
 
 
 if __name__ == "__main__":

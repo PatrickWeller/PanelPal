@@ -1,9 +1,12 @@
-import argparse
-import json
 import re
 from datetime import datetime
 from DB.panelpal_db import Session, Patient, BedFile, PanelInfo
 from PanelPal.settings import get_logger
+from PanelPal.accessories.panel_app_api_functions import (
+    get_response,
+    get_name_version,
+    get_genes
+)
 
 
 logger = get_logger(__name__)
@@ -13,12 +16,12 @@ def patient_info_prompt():
     """
     Prompts the user to optionally provide patient information to be added to the database.
     If user chooses to proceed, patient information is collected and returned as a dictionary.
-    Otherwise it returns None and no data will be requested. 
+    Otherwise it returns None and no data will be requested.
 
     Returns
     -------
     dict or None
-        A dictionary containing patient information if the user agrees, 
+        A dictionary containing patient information if the user agrees,
         otherwise None.
     """
 
@@ -77,7 +80,7 @@ def patient_info_prompt():
 def add_patient_to_db(patient_info):
     """
     Inserts the patient information given in patient_info_prompt() into the database.
-    Accepts a dictionary (gathered by patient_info_prompt) described below. 
+    Accepts a dictionary (gathered by patient_info_prompt) described below.
 
     Parameters
     ----------
@@ -112,7 +115,7 @@ def add_patient_to_db(patient_info):
 
 
 def bed_file_info_prompt(
-        patient_id, panel_name, panel_version, genome_build=None):
+        patient_id, panel_name, panel_version, genome_build):
 
     while True:
         # ask for user input on analysis date
@@ -163,7 +166,7 @@ def add_bed_file_to_db(bed_file_info):
         session.add(new_bed_file)
         session.commit()
 
-        logger.info(f"Bed file for patient {
+        logger.info(f"Bed file metadata for patient {
                     bed_file_info['patient_id']} added to database.")
 
     except Exception as e:
@@ -173,31 +176,56 @@ def add_bed_file_to_db(bed_file_info):
         session.close()
 
 
-def add_panel_data_to_db(panel_data_info):
+def add_panel_data_to_db(panel_id, bed_file_id):
     """
     Inserts the panel data information into the database.
 
     Parameters
     ----------
-    panel_data_info : dict
-        Dictionary containing panel data information with keys:
-        - "bed_file_id": int
-        - "panel_data": dict (JSON)
+    panel_id : str
+        The unique ID of the panel being processed.
+    bed_file_id : str
+        The file path for the BED file to associate with the panel data.
     """
     session = Session()
     try:
-        # Insert panel data into the panel_info table
-        new_panel_info = PanelInfo(
-            bed_file_id=panel_data_info["bed_file_id"],
-            panel_data=panel_data_info["panel_data"]
+        # check BED file ID exists (i.e. the name of the BED file)
+        if not bed_file_id:
+            raise ValueError(
+                "BED file ID is missing from bed_file_info list.")
+
+        # Fetch panel data from PanelApp API
+        panel_response = get_response(panel_id)
+
+        # Extract panel metadata and gene list
+        panel_metadata = get_name_version(panel_response)
+        gene_list = get_genes(panel_response)
+
+        # Create panel data as a JSON object that can be stored
+        panel_data_json = {
+            "panel_id": panel_id,
+            "panel_name": panel_metadata["name"],
+            "panel_version": panel_metadata["version"],
+            "panel_pk": panel_metadata["panel_pk"],
+            "genes": gene_list,
+        }
+
+        # Add the JSON to the PanelInfo table
+        # (it is passed as a dict, but will be automatically serialised # into JSON as the DB expects a JSON input.)
+
+        panel_info = PanelInfo(
+            bed_file_id=bed_file_id,
+            panel_data=panel_data_json,
         )
-        session.add(new_panel_info)
+
+        session.add(panel_info)
         session.commit()
 
-        logger.info(f"Panel data added to database for bed_file_id {
-                    panel_data_info['bed_file_id']}.")
+        logger.info(
+            "Panel data successfully added to the database for panel_id=%s", panel_id)
+
     except Exception as e:
-        logger.error(f"Failed to add panel data: {e}")
+        logger.error(
+            "Failed to add panel data to database for panel_id=%s: %s", panel_id, e)
         session.rollback()
-    finally:
-        session.close()
+        raise

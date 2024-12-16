@@ -48,7 +48,6 @@ from PanelPal.db_input import (
     patient_info_prompt,
     bed_file_info_prompt
 )
-from DB.panelpal_db import Session, Patient, BedFile, PanelInfo
 from PanelPal.settings import get_logger
 from PanelPal.accessories import panel_app_api_functions
 from PanelPal.accessories import variant_validator_api_functions
@@ -158,27 +157,32 @@ def main(panel_id=None, panel_version=None, genome_build=None):
     )
 
     try:
-        # Call function to get the user's input for patient info
+        # Prompt the user for patient information
         patient_info = patient_info_prompt()
 
-        # if patient info is provided, the dictionary returned = database input
+        # If patient info is provided, the dictionary returned = database input
         if patient_info:
             add_patient_to_db(patient_info)
 
-            # Prompt for BED file metadata if patient info is provided
+            # Prompt user for BED file metadata if patient info was provided
             bed_file_info = bed_file_info_prompt(
                 patient_id=patient_info["patient_id"],
                 panel_name=panel_id,
                 panel_version=panel_version,
                 genome_build=genome_build
             )
+            # add BED file to database
             add_bed_file_to_db(bed_file_info)
-            logger.info(
-                "BED file metadata added to the database: %s", bed_file_info)
 
-            # logging message to confirm info was added
+            # Retrieve BED file ID (which is the path)
+            bed_file_id = bed_file_info["bed_file"]
+
+            # Fetch the panel data and add to the database
+            add_panel_data_to_db(panel_id, bed_file_id)
+
+            # Log success
             logger.info(
-                "Record added to database for ID: %s",
+                "Record added to the database for patient ID: %s",
                 patient_info["patient_id"])
 
         else:

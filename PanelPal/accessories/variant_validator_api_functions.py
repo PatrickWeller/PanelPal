@@ -52,7 +52,7 @@ if not os.path.exists(BED_DIRECTORY):
 
 
 def get_gene_transcript_data(
-    gene_name, genome_build="GRCh38", max_retries=4, wait_time=2
+    gene_name, genome_build="GRCh38", max_retries=5, wait_time=2
 ):
     """
     Fetches the gene transcript data for a given gene from the Variant Validator API.
@@ -103,7 +103,7 @@ def get_gene_transcript_data(
                     gene_name, retries + 1)
 
         # Send the GET request to the Variant Validator API
-        response = requests.get(url, timeout=10)
+        response = requests.get(url, timeout=15)
 
         if response.status_code == 200:  # success
             logger.info("Data for %s fetched successfully.", gene_name)
