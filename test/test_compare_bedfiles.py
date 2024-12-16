@@ -202,7 +202,7 @@ class TestCompareBedfilesMain:
         """
         # Extract the paths from the fixture
         file3, file4 = temp_identical_bed_files
-
+        original_cwd = Path(os.getcwd())
 
         # Run the script with the correct arguments via subprocess
         result = subprocess.run(
@@ -214,7 +214,8 @@ class TestCompareBedfilesMain:
             ],
             capture_output=True,
             text=True,
-            check=False
+            check=False,
+            env={**os.environ, "PYTHONPATH": str(original_cwd)}
         )
 
         # Check the result of the subprocess run
