@@ -19,7 +19,7 @@ from unittest import mock
 import pytest
 from PanelPal.accessories import variant_validator_api_functions, panel_app_api_functions
 from PanelPal.generate_bed import main
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+script_path = Path(os.getcwd()) / "generate_bed.py"
 
 class TestGenerateBedArguments:
     '''
@@ -31,7 +31,7 @@ class TestGenerateBedArguments:
         Test script behavior when all arguments are missing.
         """
         result = subprocess.run(
-            [sys.executable, "generate_bed.py"],
+            [sys.executable, str(script_path)],
             capture_output=True,
             text=True,
             check=False
@@ -45,7 +45,7 @@ class TestGenerateBedArguments:
         Test script behavior when a single argument is missing.
         """
         result = subprocess.run(
-            [sys.executable, "generate_bed.py", "-p", "R207", "-v", "4"],
+            [sys.executable, str(script_path), "-p", "R207", "-v", "4"],
             capture_output=True,
             text=True,
             check=False
@@ -60,7 +60,7 @@ class TestGenerateBedArguments:
         result = subprocess.run(
             [
                 sys.executable,
-                "generate_bed.py",
+                str(script_path),
                 "-p", "R207",
                 "-v", "4",
                 "-g", "INVALID_GENOME"
@@ -84,7 +84,7 @@ class TestGenerateBedArguments:
 
         # Save the current working directory
         original_cwd = Path(os.getcwd())
-        script_path = Path(original_cwd) / "generate_bed.py"
+        new_script_path = Path(original_cwd) / "generate_bed.py"
 
         try:
             # Change the working directory to tmp_path
@@ -94,7 +94,7 @@ class TestGenerateBedArguments:
             result = subprocess.run(
                 [
                     sys.executable,
-                    str(script_path),
+                    str(new_script_path),
                     "-p",
                     "R219",
                     "-v",
@@ -105,7 +105,7 @@ class TestGenerateBedArguments:
                 capture_output=True,
                 text=True,
                 check=False,
-                env={**os.environ, "PYTHONPATH": str(original_cwd)}
+                #env={**os.environ, "PYTHONPATH": str(original_cwd)}
             )
 
             # Assert successful execution, print error if not
@@ -247,7 +247,7 @@ class TestValidPanelCheck:
         result = subprocess.run(
             [
                 sys.executable,
-                "generate_bed.py",
+                str(script_path),
                 "-p", panel_id,
                 "-v", panel_version,
                 "-g", genome_build
@@ -290,7 +290,7 @@ class TestBedFileExists:
 
         # Save the current working directory
         original_cwd = Path(os.getcwd())
-        script_path = Path(original_cwd) / "generate_bed.py"
+        new_script_path = Path(original_cwd) / "generate_bed.py"
 
         try:
             # Change the working directory to the temporary directory
@@ -300,7 +300,7 @@ class TestBedFileExists:
             result = subprocess.run(
                 [
                     sys.executable,
-                    str(script_path),
+                    str(new_script_path),
                     "-p", panel_id,
                     "-v", panel_version,
                     "-g", genome_build
@@ -308,7 +308,7 @@ class TestBedFileExists:
                 capture_output=True,
                 text=True,
                 check=False,
-                env={**os.environ, "PYTHONPATH": str(original_cwd)}
+                #env={**os.environ, "PYTHONPATH": str(original_cwd)}
             )
 
             # Ensure that the script exits with a warning
@@ -348,7 +348,7 @@ class TestBedFileExists:
 
         # Save the current working directory
         original_cwd = Path(os.getcwd())
-        script_path = Path(original_cwd) / "generate_bed.py"
+        new_script_path = Path(original_cwd) / "generate_bed.py"
 
         try:
             # Change the working directory to the temporary directory
@@ -358,7 +358,7 @@ class TestBedFileExists:
             result = subprocess.run(
                 [
                     sys.executable,
-                    str(script_path),
+                    str(new_script_path),
                     "-p", panel_id,
                     "-v", panel_version,
                     "-g", genome_build
@@ -366,7 +366,7 @@ class TestBedFileExists:
                 capture_output=True,
                 text=True,
                 check=False,
-                env={**os.environ, "PYTHONPATH": str(original_cwd)}
+                #env={**os.environ, "PYTHONPATH": str(original_cwd)}
             )
 
             # Ensure that the script exits successfully

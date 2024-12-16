@@ -8,12 +8,14 @@ Tests include:
 - Successful execution with different bedfiles
 - Successful execution with identical bedfiles
 """
+import os
 import sys
 import subprocess
 from unittest import mock
 from pathlib import Path
 import pytest
 from PanelPal.compare_bedfiles import parse_arguments
+script_path = Path(os.getcwd()) / "compare_bedfiles.py"
 
 class TestCompareBedfilesArgs:
     '''
@@ -123,7 +125,7 @@ class TestCompareBedfilesMain:
         result = subprocess.run(
             [
                 sys.executable,
-                "compare_bedfiles.py",
+                str(script_path),
                 str(file1),
                 str(file2),
             ],
@@ -205,7 +207,7 @@ class TestCompareBedfilesMain:
         result = subprocess.run(
             [
                 sys.executable,
-                "compare_bedfiles.py", 
+                str(script_path),
                 str(file3),
                 str(file4),
             ],
