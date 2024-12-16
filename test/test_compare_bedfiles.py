@@ -15,7 +15,7 @@ from unittest import mock
 from pathlib import Path
 import pytest
 from PanelPal.compare_bedfiles import parse_arguments
-script_path = Path(os.getcwd()) / "compare_bedfiles.py"
+script_path = Path(os.getcwd()) / "PanelPal/compare_bedfiles.py"
 
 class TestCompareBedfilesArgs:
     '''

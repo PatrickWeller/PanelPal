@@ -19,7 +19,7 @@ from unittest import mock
 import pytest
 from PanelPal.accessories import variant_validator_api_functions, panel_app_api_functions
 from PanelPal.generate_bed import main
-script_path = Path(os.getcwd()) / "generate_bed.py"
+script_path = Path(os.getcwd()) / "PanelPal/generate_bed.py"
 
 class TestGenerateBedArguments:
     '''
@@ -84,7 +84,7 @@ class TestGenerateBedArguments:
 
         # Save the current working directory
         original_cwd = Path(os.getcwd())
-        new_script_path = Path(original_cwd) / "generate_bed.py"
+        new_script_path = Path(original_cwd) / "PanelPal/generate_bed.py"
 
         try:
             # Change the working directory to tmp_path
@@ -290,7 +290,7 @@ class TestBedFileExists:
 
         # Save the current working directory
         original_cwd = Path(os.getcwd())
-        new_script_path = Path(original_cwd) / "generate_bed.py"
+        new_script_path = Path(original_cwd) / "PanelPal/generate_bed.py"
 
         try:
             # Change the working directory to the temporary directory
@@ -348,7 +348,7 @@ class TestBedFileExists:
 
         # Save the current working directory
         original_cwd = Path(os.getcwd())
-        new_script_path = Path(original_cwd) / "generate_bed.py"
+        new_script_path = Path(original_cwd) / "PanelPal/generate_bed.py"
 
         try:
             # Change the working directory to the temporary directory
