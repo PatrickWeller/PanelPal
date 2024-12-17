@@ -19,14 +19,14 @@ Command-Line Arguments
 -p, --panel_id : str
     The ID of the panel (e.g., "R207").
 -v, --panel_version : str
-    The version of the panel (e.g., "4").
+    The version of the panel as a float (e.g., "4.0").
 -g, --genome_build : str
     The genome build to be used (e.g., "GRCh38").
 
 Example
 -------
 Run the script from the command line:
->>> python generate_bed.py -p R207 -v 4 -g GRCh38
+>>> python generate_bed.py -p R207 -v 4.0 -g GRCh38
 
 Logging
 -------
@@ -84,9 +84,9 @@ def parse_arguments():
     parser.add_argument(
         "-v",
         "--panel_version",
-        type=str,
+        type=float,
         required=True,
-        help='The version of the panel (e.g., "4").',
+        help='The version of the panel (e.g., "4.0").',
     )
 
     # Define the genome_build argument
@@ -170,6 +170,7 @@ def main(panel_id=None, panel_version=None, genome_build=None):
             f"PROCESS STOPPED: A BED file for the panel '{panel_id}' "
             f"(version {panel_version}, build {genome_build}) already exists."
             )
+        return
     else:
         logger.debug("No existing BED file found. Proceeding with generation.")
 
@@ -179,12 +180,26 @@ def main(panel_id=None, panel_version=None, genome_build=None):
         panelapp_data = panel_app_api_functions.get_response(panel_id)
         logger.info("Panel data fetched successfully for panel_id=%s", panel_id)
 
+        # Get panel primary key to extract data by version
+        panel_pk = panelapp_data.json().get("id", "N/A")
+
+        logger.debug("Requesting panel data for panel_pk=%s, panel_version=%s",
+                     panel_pk, panel_version)
+        panelapp_v_data = panel_app_api_functions.get_response_old_panel_version(
+            panel_pk,panel_version)
+        logger.info("Panel data fetched successfully for panel_id=%s, panel_pk=%s,"
+                    "panel_version=%s",
+                    panel_id, panel_pk,
+                    panel_version)
+
         # Extract the list of genes from the panel data
         logger.debug("Extracting gene list from panel data for panel_id=%s", panel_id)
-        gene_list = panel_app_api_functions.get_genes(panelapp_data)
+        gene_list = panel_app_api_functions.get_genes(panelapp_v_data)
         logger.info(
-            "Gene list extracted successfully for panel_id=%s. Total genes found: %d",
+            "Gene list extracted successfully for panel_id=%s, panel_version=%s."
+            "Total genes found: %d",
             panel_id,
+            panel_version,
             len(gene_list),
         )
 
