@@ -1,7 +1,0 @@
-Metadata-Version: 2.1
-Name: PanelPal
-Version: 1.0.0
-Summary: A tool for managing genomic panels.
-Home-page: https://github.com/PatrickWeller/PanelPal
-Author: Team Jenkins
-Requires-Python: >=3.6
