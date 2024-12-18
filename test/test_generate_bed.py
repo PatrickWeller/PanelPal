@@ -47,7 +47,7 @@ class TestGenerateBedArguments:
         """
         original_cwd = Path(os.getcwd())
         result = subprocess.run(
-            [sys.executable, "PanelPal/generate_bed.py", "-p", "R207", "-v", "4"],
+            [sys.executable, "PanelPal/generate_bed.py", "-p", "R207", "-v", "4.0"],
             capture_output=True,
             text=True,
             check=False,
@@ -66,7 +66,7 @@ class TestGenerateBedArguments:
                 sys.executable,
                 "PanelPal/generate_bed.py",
                 "-p", "R207",
-                "-v", "4",
+                "-v", "4.0",
                 "-g", "INVALID_GENOME"
             ],
             capture_output=True,
@@ -103,7 +103,7 @@ class TestGenerateBedArguments:
                     "-p",
                     "R219",
                     "-v",
-                    "1",
+                    "1.0",
                     "-g",
                     "GRCh38",
                 ],
@@ -118,14 +118,14 @@ class TestGenerateBedArguments:
                 f"Script failed with error: {result.stderr}"
 
             # Verify the expected file exists and is not empty
-            expected_file = Path("R219_v1_GRCh38.bed")
+            expected_file = Path("R219_v1.0_GRCh38.bed")
             assert expected_file.exists(), \
                 f"Expected output file {expected_file} was not created."
             assert expected_file.stat().st_size > 0, \
                 f"File {expected_file} is empty."
 
             # Verify the expected file exists and is not empty
-            expected_merged_file = Path("R219_v1_GRCh38_merged.bed")
+            expected_merged_file = Path("R219_v1.0_GRCh38_merged.bed")
             assert expected_merged_file.exists(), \
                 f"Expected output file {expected_merged_file} was not created."
             assert expected_merged_file.stat().st_size > 0, \
@@ -152,13 +152,16 @@ class TestGenerateBedExceptionHandling:
         """
         # Mocking the function that parses command-line arguments to simulate arguments passed
         with mock.patch('PanelPal.generate_bed.parse_arguments', return_value=mock.MagicMock(
-            panel_id="R219", panel_version="1", genome_build="GRCh38")):
+            panel_id="R219", panel_version="1.0", genome_build="GRCh38")):
 
             # Mocking the functions used inside main() to simulate errors
             with mock.patch.object(
                 panel_app_api_functions, "get_response",
                 side_effect=Exception("PanelApp API error")
                 ) as mock_get_response, \
+                 mock.patch.object(
+                    panel_app_api_functions, "get_response_old_panel_version"
+                    ) as mock_get_response_old_panel_version, \
                 mock.patch.object(
                     panel_app_api_functions, "get_genes"
                     ) as mock_get_genes, \
@@ -177,20 +180,45 @@ class TestGenerateBedExceptionHandling:
                 mock_get_response.assert_called_once_with('R219')
 
                 # Ensure other functions were not called after the exception
+                mock_get_response_old_panel_version.assert_not_called()
                 mock_get_genes.assert_not_called()
                 mock_generate_bed_file.assert_not_called()
                 mock_bedtools_merge.assert_not_called()
 
+            # Test for exception handling when get_response_old_panel_version fails
+            with mock.patch.object(
+                panel_app_api_functions, "get_response",
+                return_value=mock.MagicMock(json=mock.MagicMock(return_value={"id": "R219"}))
+                ), \
+                mock.patch.object(
+                    panel_app_api_functions, "get_response_old_panel_version",
+                    side_effect=Exception("Failed to fetch old panel version")
+                    ) as mock_get_response_old_panel_version, \
+                mock.patch.object(
+                    panel_app_api_functions, "get_genes"
+                    ) as mock_get_genes:
+
+                with pytest.raises(Exception, match="Failed to fetch old panel version"):
+                    main()
+
+                # Ensure get_response_old_panel_version raised the error as expected
+                mock_get_response_old_panel_version.assert_called_once_with("R219", "1.0")
+                mock_get_genes.assert_not_called()
+
             # Test for exception handling when get_genes fails
             with mock.patch.object(
                 panel_app_api_functions, "get_response",
-                return_value={"genes": []}
+                return_value=mock.MagicMock(json=mock.MagicMock(return_value={"id": "R219"}))
                 ), \
                 mock.patch.object(
+                    panel_app_api_functions, "get_response_old_panel_version",
+                    return_value=mock.MagicMock(json=mock.MagicMock(return_value={"genes": []}))
+                    ) as mock_get_response_old_panel_version, \
+                mock.patch.object(
                     panel_app_api_functions, "get_genes",
-                    side_effect=Exception("Gene extraction error")) as mock_get_genes:
+                    side_effect=Exception("Failed to retrieve genes.")) as mock_get_genes:
 
-                with pytest.raises(Exception, match="Gene extraction error"):
+                with pytest.raises(Exception, match="Failed to retrieve genes."):
                     main()
 
                 # Ensure the get_genes function raised the error as expected
@@ -199,7 +227,10 @@ class TestGenerateBedExceptionHandling:
             # Test for exception handling when generate_bed_file fails
             with mock.patch.object(
                 panel_app_api_functions, "get_response",
-                return_value={"genes": []}), \
+                return_value=mock.MagicMock(json=mock.MagicMock(return_value={"id": "R219"}))), \
+                mock.patch.object(
+                    panel_app_api_functions, "get_response_old_panel_version",
+                    return_value=mock.MagicMock(json=mock.MagicMock(return_value={"genes": []}))), \
                 mock.patch.object(
                     panel_app_api_functions, "get_genes",
                     return_value=["BRCA1", "TP53"]
@@ -218,7 +249,10 @@ class TestGenerateBedExceptionHandling:
             # Test the exception when bedtools_merge fails
             with mock.patch.object(
                 panel_app_api_functions, "get_response",
-                return_value={"genes": []}), \
+                return_value=mock.MagicMock(json=mock.MagicMock(return_value={"id": "R219"}))), \
+                mock.patch.object(
+                    panel_app_api_functions, "get_response_old_panel_version",
+                    return_value=mock.MagicMock(json=mock.MagicMock(return_value={"genes": []}))), \
                 mock.patch.object(
                     panel_app_api_functions, "get_genes",
                     return_value=["BRCA1", "TP53"]
@@ -246,9 +280,9 @@ class TestValidPanelCheck:
         Test that the script raises a ValueError and logs an error for an invalid panel_id.
         """
         panel_id = "X123"  # Invalid panel_id
-        panel_version = "4"
+        panel_version = "4.0"
         genome_build = "GRCh38"
-        
+
         original_cwd = Path(os.getcwd())
 
         result = subprocess.run(
@@ -281,7 +315,7 @@ class TestBedFileExists:
         Test that the script stops when the BED file exists.
         """
         panel_id = "R219"
-        panel_version = "1"
+        panel_version = "1.0"
         genome_build = "GRCh38"
 
         temp_dir = Path("tmp/")  # Temporary directory for bed files
@@ -339,7 +373,7 @@ class TestBedFileExists:
         Test that the script proceeds to generate a BED file when it does not exist.
         """
         panel_id = "R219"
-        panel_version = "1"
+        panel_version = "1.0"
         genome_build = "GRCh37"
 
         # Ensure the temporary directory exists
