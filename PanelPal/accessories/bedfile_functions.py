@@ -31,6 +31,7 @@ Comparison complete. Differences saved in bedfile_comparisons/comparison_file1.b
 """
 
 import os
+from datetime import datetime
 from PanelPal.settings import get_logger
 
 logger = get_logger(__name__)
@@ -198,4 +199,78 @@ def compare_bed_files(file1, file2):
         logger.error(
             "Error: %s", str(e)
             )
+        raise
+
+
+def bed_head(panel_id, panel_version, genome_build, num_genes, bed_filename):
+    """
+    Generates a header for the BED file with metadata information and prepends it to the file.
+    
+    Parameters
+    ----------
+    panel_id : str
+        The ID of the panel (e.g., "R207").
+    panel_version : str
+        The version of the panel (e.g., "4.0").
+    genome_build : str
+        The genome build (e.g., "GRCh38").
+    num_genes : int
+        The number of genes in the panel.
+    bed_filename : str
+        The name of the BED file being generated.
+    
+    Returns
+    -------
+    None
+        This function directly modifies the BED file by prepending the header.
+    """
+    # Get date of creation
+    date_generated = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    # Check if the bed_filename contains "merged"
+    if "merged" in bed_filename.lower():
+        header = (
+            f"# Merged BED file generated for panel: {panel_id} (Version: {panel_version}) "
+            f"Date of creation: {date_generated}.\n"
+            f"# Genome build: {genome_build}. Number of genes: {num_genes}\n"
+            f"# Merged BED file: {bed_filename}\n"
+            "# Columns: chrom, chromStart, chromEnd \n"
+            "# Note: for exon and gene details, see the original BED file.\n"
+        )
+    else:
+        header = (
+            f"# BED file generated for panel: {panel_id} (Version: {panel_version}). "
+            f"Date of creation: {date_generated}.\n"
+            f"# Genome build: {genome_build}. Number of genes: {num_genes}.\n"
+            f"# BED file: {bed_filename}\n"
+            "# Columns: chrom, chromStart, chromEnd, exon_number|transcript|gene symbol\n"
+        )
+
+    # Prepend the header to the file
+    try:
+        with open(bed_filename, 'r+', encoding='utf-8') as bed_file:
+            file_content = bed_file.read()  # Read the current content of the file
+            bed_file.seek(0, 0)  # Move the file pointer to the beginning of the file
+            bed_file.write(header + file_content)  # Write the header and then the original content
+
+        # Log success message
+        logger.info(f"Header successfully added to {bed_filename}")
+    except FileNotFoundError as fnf_error:
+        # Handle file not found error
+        logger.error(f"File '{bed_filename}' not found: {fnf_error}", exc_info=True)
+        raise
+    
+    except PermissionError as perm_error:
+        # Handle permission error (e.g., no read/write access to the file)
+        logger.error(f"Permission denied when accessing '{bed_filename}': {perm_error}", exc_info=True)
+        raise
+    
+    except IOError as io_error:
+        # Handle general IO errors, like read/write issues
+        logger.error(f"IOError while processing '{bed_filename}': {io_error}", exc_info=True)
+        raise
+    
+    except Exception as e:
+        # Catch any unexpected errors that don't fall into the above categories
+        logger.error(f"Unexpected error while adding header to {bed_filename}: {e}", exc_info=True)
         raise
