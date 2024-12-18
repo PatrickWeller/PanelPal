@@ -28,7 +28,10 @@ dependencies = [
     "pytest==8.3.3",
     "responses==0.25.3",
 ]
-python = ">=3.12.4"
+
+[tool.setuptools.packages.find]
+include = ["PanelPal*"]
+exclude = ["tmp*", "DB*", "assets*", "logging*"]
 
 [project.urls]
 Homepage = "https://github.com/PatrickWeller/PanelPal"
