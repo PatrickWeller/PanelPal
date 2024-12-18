@@ -129,4 +129,5 @@ The following structure should be used going foward to keep the project director
 ```
 
 ## License
-To be confirmed.
+
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
