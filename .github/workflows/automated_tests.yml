@@ -22,7 +22,7 @@ jobs:
     # Created the Conda environment
     - name: Create Conda environment
       run: |
-        conda env create --file env/environment.yaml || conda env update -f environment.yml --prune
+        conda env create --file environment.yaml || conda env update -f environment.yml --prune
 
     # Trouble Shooting
     - name: Print Conda Environment Location
