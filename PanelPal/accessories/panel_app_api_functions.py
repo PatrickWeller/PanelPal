@@ -197,7 +197,7 @@ def get_genes(response, status_filter="green"):
                 if gene["confidence_level"] in ("1", "2", "3")
             ]
             return all_genes
-        
+
         # If filter = amber, return all amber and green genes
         if status_filter == ("amber"):
             logger.info("Extracting amber and green genes from JSON")
@@ -207,7 +207,7 @@ def get_genes(response, status_filter="green"):
                 if gene["confidence_level"] in ("2", "3")
             ]
             return amber_green_genes
-        
+
         # If filter = green, return only green genes
         if status_filter == ("green"):
             logger.info("Extracting green genes from JSON")
