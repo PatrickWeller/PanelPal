@@ -38,7 +38,7 @@ class TestParseArguments:
         
         # Assert each argument is parsed as expected
         assert parsed_args.panel_id == "R207"
-        assert parsed_args.panel_version == "4"
+        assert parsed_args.panel_version == 4.0
         assert parsed_args.genome_build == "GRCh38"
         assert parsed_args.status_filter == "green"  # Checks default value
 
