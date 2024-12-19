@@ -241,7 +241,7 @@ class TestMain:
             main()
 
         # Test the exit code = 1
-        assert exc_info.value.code == 1
+        assert str(exc_info.value) == "Panel R2132 not found. Exiting program."
 
     def test_main_old_version_wrong(self):
         """Test the main function with an invalid old version."""

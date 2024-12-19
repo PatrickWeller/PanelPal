@@ -19,7 +19,7 @@ Command-Line Arguments
 -p, --panel_id : str
     The ID of the panel (e.g., "R207").
 -v, --panel_version : str
-    The version of the panel (e.g., "4").
+    The version of the panel as a float (e.g., "4.0").
 -g, --genome_build : str
     The genome build to be used (e.g., "GRCh38").
 -f, --status_filter : str
@@ -30,6 +30,7 @@ Example
 -------
 Run the script from the command line:
 >>> python generate_bed.py -p R207 -v 4 -g GRCh38 -f amber
+
 
 Logging
 -------
@@ -44,11 +45,14 @@ Notes
 import argparse
 import sys
 import os
-# Adds parent directory to python module search path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from PanelPal.accessories import variant_validator_api_functions
 from PanelPal.accessories import panel_app_api_functions
+from PanelPal.accessories.bedfile_functions import bed_file_exists
+from PanelPal.check_panel import is_valid_panel_id
 from PanelPal.settings import get_logger
+# Adds parent directory to python module search path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 
 # Set up logger
@@ -88,9 +92,9 @@ def parse_arguments():
     parser.add_argument(
         "-v",
         "--panel_version",
-        type=str,
+        type=float,
         required=True,
-        help='The version of the panel (e.g., "4").',
+        help='The version of the panel (e.g., "4.0").',
     )
 
     # Define the genome_build argument
@@ -159,7 +163,16 @@ def main(panel_id=None, panel_version=None, genome_build=None, status_filter='gr
         genome_build = args.genome_build
         status_filter = args.status_filter
 
-    # Log the start of the BED generation process
+    if not is_valid_panel_id(panel_id):
+        logger.error(
+            "Invalid panel_id '%s'. Panel ID must start with 'R' followed "
+            "by digits (e.g., 'R207').", panel_id
+            )
+        raise ValueError(
+            f"Invalid panel_id '{args.panel_id}'. Panel ID must start with "
+            "'R' followed by digits (e.g., 'R207')."
+            )
+
     logger.info(
         "Command executed: generate-bed --panel_id %s, --panel_version %s "
         "--genome_build %s, --status_filter %s",
@@ -169,19 +182,50 @@ def main(panel_id=None, panel_version=None, genome_build=None, status_filter='gr
         status_filter
     )
 
+    if bed_file_exists(panel_id, panel_version, genome_build):
+        logger.warning(
+            "Process stopping: BED file already exists for panel_id=%s, "
+            "panel_version=%s, genome_build=%s.",
+            panel_id,
+            panel_version,
+            genome_build,
+            )
+        print(
+            f"PROCESS STOPPED: A BED file for the panel '{panel_id}' "
+            f"(version {panel_version}, build {genome_build}) already exists."
+            )
+        return
+    else:
+        logger.debug("No existing BED file found. Proceeding with generation.")
+
     try:
         # Fetch the panel data from PanelApp using the panel_id
         logger.debug("Requesting panel data for panel_id=%s", panel_id)
         panelapp_data = panel_app_api_functions.get_response(panel_id)
         logger.info("Panel data fetched successfully for panel_id=%s", panel_id)
 
+        # Get panel primary key to extract data by version
+        panel_pk = panelapp_data.json().get("id", "N/A")
+
+        logger.debug("Requesting panel data for panel_pk=%s, panel_version=%s",
+                     panel_pk, panel_version)
+        panelapp_v_data = panel_app_api_functions.get_response_old_panel_version(
+            panel_pk,panel_version)
+        logger.info("Panel data fetched successfully for panel_id=%s, panel_pk=%s,"
+                    "panel_version=%s",
+                    panel_id, panel_pk,
+                    panel_version)
+
         # Extract the list of genes from the panel data
         logger.debug("Extracting gene list from panel data for panel_id=%s, status_filter=%s",
                     panel_id, status_filter)
         gene_list = panel_app_api_functions.get_genes(panelapp_data, status_filter)
+
         logger.info(
-            "Gene list extracted successfully for panel_id=%s. Total genes found: %d",
+            "Gene list extracted successfully for panel_id=%s, panel_version=%s."
+            "Total genes found: %d",
             panel_id,
+            panel_version,
             len(gene_list),
         )
 
