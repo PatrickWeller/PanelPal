@@ -16,7 +16,7 @@ import subprocess
 import sys
 from pathlib import Path
 from unittest import mock
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 import pytest
 from PanelPal.accessories import variant_validator_api_functions, panel_app_api_functions
 from PanelPal.generate_bed import main, parse_arguments
@@ -486,3 +486,65 @@ class TestBedFileExists:
 
         if bed_merged_path.exists():
             bed_merged_path.unlink()
+
+    @patch("PanelPal.generate_bed.bed_file_exists")
+    @patch("PanelPal.generate_bed.parse_arguments")
+    @patch("PanelPal.generate_bed.logger")
+    def test_bed_file_exists_halts(self, mock_logger, mock_parse_arguments, mock_bed_file_exists):
+        """
+        Test that the main function stops execution when the BED file already exists.
+        """
+        # Mock the arguments
+        mock_parse_arguments.return_value = MagicMock(
+            panel_id="R207",
+            panel_version="4.0",
+            genome_build="GRCh38"
+        )
+
+        # Mock bed_file_exists to return True
+        mock_bed_file_exists.return_value = True
+
+        # Call the main function
+        main()
+
+        # Assert logger.warning is called
+        mock_logger.warning.assert_called_once_with(
+            "Process stopping: BED file already exists for panel_id=%s, "
+            "panel_version=%s, genome_build=%s.",
+            "R207",
+            "4.0",
+            "GRCh38",
+        )
+
+    @patch("PanelPal.generate_bed.bed_file_exists")
+    @patch("PanelPal.generate_bed.parse_arguments")
+    @patch("PanelPal.generate_bed.logger")
+    def test_no_existance_continues(self, mock_logger, mock_parse_arguments, mock_bed_file_exists):
+        """
+        Test that the main function continues execution when the BED file does not exist.
+        """
+        # Mock the arguments
+        mock_parse_arguments.return_value = MagicMock(
+            panel_id="R207",
+            panel_version="4.0",
+            genome_build="GRCh38"
+        )
+
+        # Mock bed_file_exists to return False
+        mock_bed_file_exists.return_value = False
+
+        # Mock dependent function calls to prevent actual execution
+        with patch("PanelPal.generate_bed.panel_app_api_functions.get_response"), \
+            patch("PanelPal.generate_bed.panel_app_api_functions.get_response_old_panel_version"), \
+            patch("PanelPal.generate_bed.panel_app_api_functions.get_genes", return_value=[]), \
+            patch("PanelPal.generate_bed.variant_validator_api_functions.generate_bed_file"), \
+            patch("PanelPal.generate_bed.variant_validator_api_functions.bedtools_merge"), \
+            patch("PanelPal.generate_bed.bed_head"):
+
+            # Call the main function
+            main()
+
+        # Assert logger.debug is called
+        mock_logger.debug.assert_any_call(
+            "No existing BED file found. Proceeding with generation."
+        )

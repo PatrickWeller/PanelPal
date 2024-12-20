@@ -48,7 +48,7 @@ import os
 
 from PanelPal.accessories import variant_validator_api_functions
 from PanelPal.accessories import panel_app_api_functions
-from PanelPal.accessories.bedfile_functions import bed_file_exists
+from PanelPal.accessories.bedfile_functions import bed_file_exists, bed_head
 from PanelPal.check_panel import is_valid_panel_id
 from PanelPal.settings import get_logger
 # Adds parent directory to python module search path
@@ -195,8 +195,8 @@ def main(panel_id=None, panel_version=None, genome_build=None, status_filter='gr
             f"(version {panel_version}, build {genome_build}) already exists."
             )
         return
-    else:
-        logger.debug("No existing BED file found. Proceeding with generation.")
+
+    logger.debug("No existing BED file found. Proceeding with generation.")
 
     try:
         # Fetch the panel data from PanelApp using the panel_id
@@ -257,6 +257,13 @@ def main(panel_id=None, panel_version=None, genome_build=None, status_filter='gr
         )
         logger.info("Bedtools merge completed successfully for panel_id=%s",
                     panel_id) # pragma: no cover
+
+        # Add headers to both the original and merged BED files
+        num_genes = len(gene_list)
+        bed_name = f"{panel_id}_v{panel_version}_{genome_build}.bed"
+        merged_bed_name =  f"{panel_id}_v{panel_version}_{genome_build}_merged.bed"
+        bed_head(panel_id, panel_version, genome_build, num_genes, bed_name)
+        bed_head(panel_id, panel_version, genome_build, num_genes, merged_bed_name)
 
         # Log completion of the process
         logger.info("Process completed successfully for panel_id=%s", panel_id) # pragma: no cover

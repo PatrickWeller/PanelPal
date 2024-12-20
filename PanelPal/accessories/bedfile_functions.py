@@ -18,6 +18,11 @@ Functions:
     Outputs BED entries present only in either file1 or file2. Each entry 
     will be tagged with whether it was found in file1 or file2.
 
+- bed_head(panel_id, panel_version, genome_build, num_genes, bed_filename):
+    Generates and prepends a metadata header to the specified BED file. The 
+    header includes information such as the panel ID, version, genome build, 
+    and the number of genes in the panel.
+
 Example:
 --------
 >>> bed_file_exists("R207", "4", "GRCh38")
@@ -28,9 +33,13 @@ True
 
 >>> compare_bed_files("file1.bed", "file2.bed")
 Comparison complete. Differences saved in bedfile_comparisons/comparison_file1.bed_file2.bed.txt
+
+>>> bed_head("R207", "4.0", "GRCh38", 200, "R207_v4_GRCh38.bed")
+Header successfully added to R207_v4_GRCh38.bed
 """
 
 import os
+from datetime import datetime
 from PanelPal.settings import get_logger
 
 logger = get_logger(__name__)
@@ -198,4 +207,97 @@ def compare_bed_files(file1, file2):
         logger.error(
             "Error: %s", str(e)
             )
+        raise
+
+
+def bed_head(panel_id, panel_version, genome_build, num_genes, bed_filename):
+    """
+    Generates a header for the BED file with metadata information and prepends it to the file.
+    
+    Parameters
+    ----------
+    panel_id : str
+        The ID of the panel (e.g., "R207").
+    panel_version : str
+        The version of the panel (e.g., "4.0").
+    genome_build : str
+        The genome build (e.g., "GRCh38").
+    num_genes : int
+        The number of genes in the panel.
+    bed_filename : str
+        The name of the BED file being generated.
+    
+    Returns
+    -------
+    None
+        This function directly modifies the BED file by prepending the header.
+    """
+    # Get date of creation
+    date_generated = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    # Check if the bed_filename contains "merged"
+    if "merged" in bed_filename.lower():
+        header = (
+            f"# Merged BED file generated for panel: {panel_id} (Version: {panel_version}) "
+            f"Date of creation: {date_generated}.\n"
+            f"# Genome build: {genome_build}. Number of genes: {num_genes}\n"
+            f"# Merged BED file: {bed_filename}\n"
+            "# Columns: chrom, chromStart, chromEnd \n"
+            "# Note: for exon and gene details, see the original BED file.\n"
+        )
+    else:
+        header = (
+            f"# BED file generated for panel: {panel_id} (Version: {panel_version}). "
+            f"Date of creation: {date_generated}.\n"
+            f"# Genome build: {genome_build}. Number of genes: {num_genes}.\n"
+            f"# BED file: {bed_filename}\n"
+            "# Columns: chrom, chromStart, chromEnd, exon_number|transcript|gene symbol\n"
+        )
+
+    # Prepend the header to the file
+    try:
+        with open(bed_filename, 'r+', encoding='utf-8') as bed_file:
+            file_content = bed_file.read()  # Read the current content of the file
+            bed_file.seek(0, 0)  # Move the file pointer to the beginning of the file
+            bed_file.write(header + file_content)  # Write the header and then the original content
+
+        # Log success message
+        logger.info("Header successfully added to %s",
+                    bed_filename
+                    )
+
+    except FileNotFoundError as fnf_error:
+        # Handle file not found error
+        logger.error("File %s not found: %s",
+                     bed_filename,
+                     fnf_error,
+                     exc_info=True
+                     )
+        raise
+
+    except PermissionError as perm_error:
+        # Handle permission error (e.g., no read/write access to the file)
+        logger.error("Permission denied when accessing %s: %s",
+                     bed_filename,
+                     perm_error,
+                     exc_info=True
+                     )
+        raise
+
+    except IOError as io_error:
+        # Handle general IO errors, like read/write issues
+        logger.error("IOError while processing %s: %s",
+                     bed_filename,
+                     io_error,
+                     exc_info=True
+                     )
+        raise
+
+    except Exception as e:
+        # Catch any unexpected errors that don't fall into the above categories
+        logger.error("Unexpected error while adding header to %s: %s",
+                     bed_filename,
+                     e,
+                     exc_info=True
+                     )
         raise

@@ -128,7 +128,7 @@ def main():
     )
     parser_bed.add_argument(
         "--panel_version",
-        type=str,
+        type=float,
         required=True,
         help='The version of the panel (e.g., "4").',
     )
