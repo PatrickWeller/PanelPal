@@ -171,8 +171,8 @@ def main(panel_id=None, panel_version=None, genome_build=None):
             f"(version {panel_version}, build {genome_build}) already exists."
             )
         return
-    else:
-        logger.debug("No existing BED file found. Proceeding with generation.")
+
+    logger.debug("No existing BED file found. Proceeding with generation.")
 
     try:
         # Fetch the panel data from PanelApp using the panel_id
