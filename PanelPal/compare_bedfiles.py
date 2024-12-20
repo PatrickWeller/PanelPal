@@ -54,7 +54,7 @@ def parse_arguments():
     )
     return parser.parse_args()
 
-def main():
+def main(bedfile1=None, bedfile2=None): # pragma: no cover
     """
     Compare two BED files and write the differences to an output file.
     Outputs BED entries present only in either file1 or file2.
@@ -72,14 +72,21 @@ def main():
     FileNotFoundError
         If one or both of the input files do not exist.
     """
-    # Parse command-line arguments
-    args = parse_arguments()
 
-    logger.info("Comparing BED files: %s and %s", args.file1, args.file2)
+    if bedfile1 is None and bedfile2 is None:
+        # Parse command-line arguments
+        args = parse_arguments()
+        bedfile1 = args.file1
+        bedfile2 = args.file2
 
-    compare_bed_files(args.file1, args.file2)
+    # Add entry to log
+    logger.info("Comparing BED files: %s and %s", bedfile1, bedfile2)
 
+    # Compare the two BED files
+    compare_bed_files(bedfile1, bedfile2)
+
+    # Add entry to log
     logger.info("BED file comparison completed successfully.")
 
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
     main()

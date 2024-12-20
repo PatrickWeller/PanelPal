@@ -18,6 +18,11 @@ The script offers several primary subcommands:
    This subcommand allows users to compare two versions of the same panel ID.
    It requires the panel ID, two version numbers, and can take a filter for gene status.
 
+4. **compare-bed-files**:
+    This subcommand compares two BED files and identifies the differences between them.
+    It takes two BED files as input and writes the differences to an output file within the
+    'bedfile_comparisons' directory.
+
 Parameters
 ----------
 None (this is an entry point for the script, which processes commands and arguments via argparse).
@@ -47,6 +52,7 @@ from .generate_bed import main as generate_bed_main
 from .gene_to_panels import main as gene_to_panels_main
 from .compare_panel_versions import main as compare_panel_versions_main
 from .compare_panel_versions import validate_panel
+from .compare_bedfiles import main as compare_bed_files_main
 
 
 def print_help():
@@ -59,12 +65,12 @@ Available Commands:
     check-panel             Check panel information for a given panel ID.
                             Example: PanelPal check-panel --panel_id R59
 
-    generate-bed            Generate a BED file for a genomic panel. Requires the
-                            panel ID, panel version, and genome build.
+    generate-bed            Generate a BED file for a genomic panel. Requires the panel ID, panel version, 
+                            and genome build.
                             Example: PanelPal generate-bed --panel_id R59 --panel_version 4 --genome_build GRCh38
 
-    compare-panel-versions  Compare two versions of a genomic panel. Requires
-                            the panel ID and two version numbers. Optionally, filter by gene status.
+    compare-panel-versions  Compare two versions of a genomic panel. Requires the panel ID and two version numbers. 
+                            Optionally, filter by gene status.
                             Example: PanelPal compare-panel-versions --panel R21 --versions 1.0 2.2 --status_filter green
 
     gene-panels             List panels containing a given gene. Requires the HGNC symbol of the gene.
@@ -72,6 +78,9 @@ Available Commands:
                             (green, amber, red, green & amber). Use 'show_all_panels' to include panels without R codes.
                             Example: PanelPal gene-panels --hgnc_symbol BRCA1 --confidence_status green --show_all_panels
     
+    compare-bed-files       Compare two BED files and find the differences between them.
+                            Example: PanelPal compare-bed-files file1.bed file2.bed 
+
     --help, -h              Prints this help message
     """
     print(help_message)
@@ -178,6 +187,23 @@ def main():
         help="Filter by gene status. Green only; green and amber; or all",
     )
 
+    
+    # Subcommand: compare-bed-files
+    parser_bed_files = subparsers.add_parser(
+        "compare-bed-files",
+        help="Compare two BED files and find the differences between them.",
+    )
+    parser_bed_files.add_argument(
+        "file1",
+        type=str,
+        help="Path to the first BED file.",
+    )
+    parser_bed_files.add_argument(
+        "file2",
+        type=str,
+        help="Path to the second BED file.",
+    )
+    
     args = parser.parse_args()
 
     if not args.command:
@@ -205,6 +231,8 @@ def main():
             confidence_status=args.confidence_status,
             show_all_panels=args.show_all_panels,
         )
+    elif args.command == "compare-bed-files":
+        compare_bed_files_main(args.file1, args.file2)
     else:
         print_help()
 
