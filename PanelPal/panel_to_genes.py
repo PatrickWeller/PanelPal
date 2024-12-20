@@ -14,7 +14,7 @@ Command-Line Arguments
 -v, --panel_version : float
     The version of the panel to fetch data for (e.g., "4.0").
 --confidence_status : str
-    Filter genes by confidence status. Choices are 'red', 'amber', 'green', or 'all'.
+    Filter genes by minimum confidence status. Choices are 'red', 'amber', 'green', or 'all'.
     Defaults to 'green'.
 
 Example Usage
@@ -181,11 +181,7 @@ def main(panel_id=None, panel_version=None, confidence_status="green"):
         )
 
         # Request panel data for the specified panel version
-        logger.debug(
-            "Requesting panel data for panel_pk=%s, panel_version=%s",
-            panel_pk,
-            panel_version,
-        )
+        logger.debug("Requesting panel data for panel_pk=%s", panel_pk)
         panelapp_v_data = panel_app_api_functions.get_response_old_panel_version(
             panel_pk, panel_version
         )
