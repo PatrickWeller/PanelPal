@@ -9,7 +9,7 @@ from PanelPal.settings import get_logger, log_database_startup
 
 logger = get_logger(__name__)
 
-# Initialize the database and create tables,
+# Initialise the database and create tables,
 # then print and log message confirming it has been set up
 create_database()
 log_database_startup(logger)

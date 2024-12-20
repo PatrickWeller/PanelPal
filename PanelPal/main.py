@@ -44,7 +44,6 @@ from .generate_bed import main as generate_bed_main
 from .compare_panel_versions import main as compare_panel_versions_main
 from .compare_panel_versions import validate_panel
 from DB.panelpal_db import create_database
-from PanelPal.settings import get_logger, log_database_startup
 
 
 def print_help():
@@ -75,7 +74,6 @@ def main():
 
     try:
         create_database()
-        print("Database initialised successfully.")
     except Exception as e:
         print(f"Error: Could not initialize the database. {e}")
         exit(1)

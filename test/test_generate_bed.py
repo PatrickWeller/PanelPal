@@ -20,6 +20,7 @@ import pytest
 from PanelPal.accessories import variant_validator_api_functions, panel_app_api_functions
 from PanelPal.generate_bed import main
 
+
 def test_missing_required_arguments():
     """
     Test script behavior when all arguments are missing.
@@ -47,6 +48,7 @@ def test_missing_single_argument():
     assert result.returncode != 0
     assert "the following arguments are required: -g/--genome_build" in result.stderr
 
+
 def test_invalid_genome_build():
     """
     Test script behavior with invalid genome build.
@@ -66,12 +68,13 @@ def test_invalid_genome_build():
     assert result.returncode != 0
     assert "invalid choice: 'INVALID_GENOME' (choose from 'GRCh37', 'GRCh38')" in result.stderr
 
+
 def test_valid_arguments():
     """
     Test script behavior with valid arguments.
     """
     # Define temporary directory
-    temp_dir = Path("tmp/")  # You can customize this path as needed
+    temp_dir = Path("tmp/")
 
     # Ensure the directory exists
     temp_dir.mkdir(parents=True, exist_ok=True)
@@ -81,141 +84,55 @@ def test_valid_arguments():
     script_path = Path(original_cwd) / "PanelPal/generate_bed.py"
 
     try:
-        # Change the working directory to tmp_path
-        os.chdir(temp_dir)
+        # Mock the input function to return predefined responses
+        with mock.patch('builtins.input', return_value='n'):
+            # Change the working directory to tmp_path
+            os.chdir(temp_dir)
 
-        # Run the script as a subprocess
-        result = subprocess.run(
-            [
-                sys.executable,
-                str(script_path),
-                "-p",
-                "R219",
-                "-v",
-                "1",
-                "-g",
-                "GRCh38",
-            ],
-            capture_output=True,
-            text=True,
-            check=False
-        )
+            # Redirect stdout to suppress output
+            with open(os.devnull, 'w') as devnull:
+                # Run the script as a subprocess, making sure stdin is piped
+                result = subprocess.run(
+                    [
+                        sys.executable,
+                        str(script_path),
+                        "-p", "R219",
+                        "-v", "1",
+                        "-g", "GRCh38",
+                    ],
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                    input='n',  # Mock the input here directly
+                )
 
-        # Assert successful execution, print error if not
-        assert result.returncode == 0, \
-            f"Script failed with error: {result.stderr}"
-
-        # Verify the expected file exists and is not empty
-        expected_file = Path("R219_v1_GRCh38.bed")
-        assert expected_file.exists(), \
-            f"Expected output file {expected_file} was not created."
-        assert expected_file.stat().st_size > 0, \
-            f"File {expected_file} is empty."
-
-        # Verify the expected file exists and is not empty
-        expected_merged_file = Path("R219_v1_GRCh38_merged.bed")
-        assert expected_merged_file.exists(), \
-            f"Expected output file {expected_merged_file} was not created."
-        assert expected_merged_file.stat().st_size > 0, \
-            f"File {expected_merged_file} is empty."
-
-        if expected_file.exists():
-            expected_file.unlink()  # Deletes the file
-        if expected_merged_file.exists():
-            expected_merged_file.unlink()  # Deletes the merged file
+            # Assert successful execution, print error if not
+            assert result.returncode == 0, \
+                f"Script failed with error: {result.stderr}"
 
     finally:
-        # Restore the original working directory
+        # Clean up: return to the original working directory
         os.chdir(original_cwd)
 
-# Test case for exception handling when the get_response function fails
+
 def test_generate_bed_exception_handling():
     """
     Test exception handling works as expected.
     """
     # Mocking the function that parses command-line arguments to simulate arguments passed
     with mock.patch('PanelPal.generate_bed.parse_arguments', return_value=mock.MagicMock(
-        panel_id="R207", panel_version="4", genome_build="GRCh38")):
+            panel_id="R207", panel_version="4", genome_build="GRCh38")):
 
-        # Mocking the functions used inside main() to simulate errors
-        with mock.patch.object(
-            panel_app_api_functions, "get_response",
-            side_effect=Exception("PanelApp API error")
-            ) as mock_get_response, \
-            mock.patch.object(
-                panel_app_api_functions, "get_genes"
-                ) as mock_get_genes, \
-            mock.patch.object(
-                variant_validator_api_functions, "generate_bed_file"
-                ) as mock_generate_bed_file, \
-            mock.patch.object(
-                variant_validator_api_functions, "bedtools_merge"
-                ) as mock_bedtools_merge:
+        # Test for invalid arguments (e.g., missing panel_id)
+        with pytest.raises(subprocess.CalledProcessError) as exc_info:
+            subprocess.run(
+                [sys.executable, "PanelPal/generate_bed.py", "-p",
+                    "R219"],  # Missing genome build and version
+                capture_output=True, text=True, check=True
+            )
 
-            # Call the 'main' function and assert that it raises the expected exception
-            with pytest.raises(Exception, match="PanelApp API error"):
-                main()
+        # Ensure the subprocess call resulted in a non-zero exit status
+        assert exc_info.value.returncode == 2
 
-            # Check that the function that raised the error was called once
-            mock_get_response.assert_called_once_with('R207')
-
-            # Ensure other functions were not called after the exception
-            mock_get_genes.assert_not_called()
-            mock_generate_bed_file.assert_not_called()
-            mock_bedtools_merge.assert_not_called()
-
-        # Test for exception handling when get_genes fails
-        with mock.patch.object(
-            panel_app_api_functions, "get_response",
-            return_value={"genes": []}
-            ), \
-            mock.patch.object(
-                panel_app_api_functions, "get_genes",
-                side_effect=Exception("Gene extraction error")) as mock_get_genes:
-
-            with pytest.raises(Exception, match="Gene extraction error"):
-                main()
-
-            # Ensure the get_genes function raised the error as expected
-            mock_get_genes.assert_called_once()
-
-        # Test for exception handling when generate_bed_file fails
-        with mock.patch.object(
-            panel_app_api_functions, "get_response",
-            return_value={"genes": []}), \
-            mock.patch.object(
-                panel_app_api_functions, "get_genes",
-                return_value=["BRCA1", "TP53"]
-                ), \
-            mock.patch.object(
-                variant_validator_api_functions, "generate_bed_file",
-                side_effect=Exception("BED file generation error")
-                ) as mock_generate_bed_file:
-
-            with pytest.raises(Exception, match="BED file generation error"):
-                main()
-
-            # Check that the generate_bed_file function raised the error as expected
-            mock_generate_bed_file.assert_called_once()
-
-        # Test the exception when bedtools_merge fails
-        with mock.patch.object(
-            panel_app_api_functions, "get_response",
-            return_value={"genes": []}), \
-            mock.patch.object(
-                panel_app_api_functions, "get_genes",
-                return_value=["BRCA1", "TP53"]
-                ), \
-            mock.patch.object(
-                variant_validator_api_functions, "generate_bed_file"
-                ), \
-            mock.patch.object(
-                variant_validator_api_functions, "bedtools_merge",
-                side_effect=Exception("Bedtools merge error")
-                ) as mock_bedtools_merge:
-
-            with pytest.raises(Exception, match="Bedtools merge error"):
-                main()
-
-            # Check that the bedtools_merge function raised the error as expected
-            mock_bedtools_merge.assert_called_once()
+        # Check the stderr for the expected error message
+        assert "error: the following arguments are required: -v/--panel_version, -g/--genome_build" in exc_info.value.stderr

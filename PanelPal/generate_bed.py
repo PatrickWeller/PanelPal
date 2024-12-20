@@ -174,7 +174,7 @@ def main(panel_id=None, panel_version=None, genome_build=None):
             # add BED file to database
             add_bed_file_to_db(bed_file_info)
 
-            # Retrieve BED file ID (which is the path)
+            # Retrieve BED file ID (i.e. the path to the BED file)
             bed_file_id = bed_file_info["bed_file"]
 
             # Fetch the panel data and add to the database

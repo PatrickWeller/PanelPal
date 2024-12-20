@@ -247,6 +247,9 @@ def generate_bed_file(gene_list, panel_name, panel_version, genome_build="GRCh38
     requests.exceptions.RequestException
         If there is an error while fetching the transcript data for any gene.
     """
+    # ensure bed directory exists
+    os.makedirs(BED_DIRECTORY, exist_ok=True)
+
     # Define the name of the output BED file based on the panel name and genome build
     output_file = os.path.join(BED_DIRECTORY, f"{panel_name}_v{
                                panel_version}_{genome_build}.bed")

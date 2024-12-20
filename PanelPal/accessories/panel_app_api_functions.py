@@ -76,7 +76,7 @@ def get_response(panel_id):
     try:
         # Send the GET request to the API
         logger.info("Sending request to Panel App API")
-        response = requests.get(url, timeout=10)
+        response = requests.get(url, timeout=25)
 
         # Raise an exception for any non-2xx HTTP status codes
         response.raise_for_status()
@@ -91,7 +91,8 @@ def get_response(panel_id):
             "Request timed out while fetching panel data for panel %s: %s", panel_id, e
         )
         sys.exit(
-            f"Timeout error: Panel {panel_id} request exceeded the time limit. "
+            f"Timeout error: Panel {
+                panel_id} request exceeded the time limit. "
             "Exiting program."
         )
 
@@ -113,20 +114,23 @@ def get_response(panel_id):
             logger.error(
                 "Error occurred while fetching panel data for panel %s: %s", panel_id, e
             )
-            sys.exit("Service unavailable: Please try again later. Exiting program.")
+            sys.exit(
+                "Service unavailable: Please try again later. Exiting program.")
 
         # For other non-successful status codes
         logger.error(
             "Error occurred while fetching panel data for panel %s: %s", panel_id, e
         )
-        sys.exit(f"Error: {response.status_code} - {response.text}. Exiting program.")
+        sys.exit(
+            f"Error: {response.status_code} - {response.text}. Exiting program.")
 
     except requests.RequestException as e:
         # Catch all other types of request exceptions (network errors, etc.)
         logger.error(
             "Error occurred while fetching panel data for panel %s: %s", panel_id, e
         )
-        sys.exit(f"Failed to retrieve data for panel {panel_id}. Exiting program.")
+        sys.exit(f"Failed to retrieve data for panel {
+                 panel_id}. Exiting program.")
 
     except Exception as e:
         # Catch any unexpected exceptions
@@ -241,7 +245,8 @@ def get_response_old_panel_version(panel_pk, version):
     PanelAppError
         If the request fails, times out, or returns an error status code.
     """
-    url = f"https://panelapp.genomicsengland.co.uk/api/v1/panels/{panel_pk}/?version={version}"
+    url = f"https://panelapp.genomicsengland.co.uk/api/v1/panels/{
+        panel_pk}/?version={version}"
 
     try:
         # Send the GET request to the API

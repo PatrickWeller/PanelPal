@@ -1,3 +1,7 @@
+"""
+DOCSTRING AND MORE COMMENTS NEEDED
+"""
+
 import re
 from datetime import datetime
 from DB.panelpal_db import Session, Patient, BedFile, PanelInfo
@@ -14,15 +18,45 @@ logger = get_logger(__name__)
 
 def patient_info_prompt():
     """
-    Prompts the user to optionally provide patient information to be added to the database.
-    If user chooses to proceed, patient information is collected and returned as a dictionary.
-    Otherwise it returns None and no data will be requested.
+    Prompt the user to optionally provide patient information for database entry.
+
+    This function interacts with the user to collect patient information, such as
+    NHS number, name, and date of birth, for storage in the database. If the user
+    opts out, the function returns `None` and no further input is requested.
 
     Returns
     -------
     dict or None
-        A dictionary containing patient information if the user agrees,
-        otherwise None.
+        A dictionary containing the following keys if the user agrees:
+        - 'patient_id' (str): The NHS number of the patient (10 digits).
+        - 'patient_name' (str): The name of the patient.
+        - 'dob' (datetime.date): patient's date of birth in `datetime.date` format.
+        Returns `None` if user chooses to skip adding patient information.
+
+    Notes
+    -----
+    - NHS numbers must be exactly 10-digit numeric strings.
+    - Names must only contain letters and spaces.
+    - The date of birth must be in the format DD-MM-YYYY.
+
+    Examples
+    --------
+    When the user provides valid patient information:
+
+    >>> patient_info = patient_info_prompt()
+    Add patient to database? (Default = 'yes', type 'n' to skip): yes
+    Patient ID (NHS number, 10 digits): 1234567890
+    Patient name: John Doe
+    Patient's date of birth (DD-MM-YYYY): 01-01-1990
+    >>> patient_info
+    {'patient_id': '1234567890', 'patient_name': 'John Doe', 'dob': datetime.date(1990, 1, 1)}
+
+    When the user opts out of providing patient information:
+
+    >>> patient_info = patient_info_prompt()
+    Add patient to database? (Default = 'yes', type 'n' to skip): n
+    >>> patient_info
+    None
     """
 
     # Prompt the user to decide whether to record patient information
@@ -79,17 +113,43 @@ def patient_info_prompt():
 
 def add_patient_to_db(patient_info):
     """
-    Inserts the patient information given in patient_info_prompt() into the database.
-    Accepts a dictionary (gathered by patient_info_prompt) described below.
+    Add patient information to the database.
+
+    This function inserts patient information given in 
+    patient_info_prompt() into the `patients` table from panelpal.db.
+    It uses a SQLalchemy session to handle the database transaction,
+    ensuring proper error handling and session management. 
+
+    Accepts a dictionary, described below.
 
     Parameters
     ----------
     patient_info : dict
-        Dictionary containing patient information with keys:
-        - "patient_id": str
-        - "patient_name": str
-        - "dob": datetime.date
+        A dictionary containing the following keys:
+        - 'patient_id' (str): The NHS number of the patient.
+        - 'patient_name' (str): The name of the patient.
+        - 'dob' (datetime.date): The date of birth of the patient.
+
+    Returns
+    -------
+    None
+
+    Notes
+    -----
+    - The function commits the transaction if the data is successfully added.
+    - In case of an error, the transaction is rolled back to ensure database integrity.
+    - Logs are generated for successful addition or errors during the process.
+
+    Examples
+    --------
+    >>> patient_info = {
+    ...     "patient_id": "123456789",
+    ...     "patient_name": "John Doe",
+    ...     "dob": datetime.date(1990, 1, 1)
+    ... }
+    >>> add_patient_to_db(patient_info)
     """
+
     # open a new session
     session = Session()
     try:
@@ -116,6 +176,39 @@ def add_patient_to_db(patient_info):
 
 def bed_file_info_prompt(
         patient_id, panel_name, panel_version, genome_build):
+    """
+    Prompt the user to input metadata for a BED file and generate file names.
+
+    This function collects the analysis date from the user and generates the file
+    names for the BED file and its merged counterpart based on the provided
+    panel information. The metadata is returned as a dictionary.
+
+    Parameters
+    ----------
+    patient_id : str
+        The unique identifier for the patient associated with the BED file.
+    panel_name : str
+        The name of the genetic panel used for analysis.
+    panel_version : str
+        The version of the genetic panel used for analysis.
+    genome_build : str
+        The genome build (e.g., GRCh38) used for generating the BED file.
+
+    Returns
+    -------
+    dict
+        A dictionary containing the following keys:
+        - 'patient_id' (str): The patient ID.
+        - 'analysis_date' (datetime.date): The date of analysis entered by the user.
+        - 'bed_file' (str): The name of the BED file.
+        - 'merged_bed_file' (str): The name of the merged BED file.
+
+    Notes
+    -----
+    - The user is prompted to input the analysis date in the format DD-MM-YYYY.
+      Invalid input will prompt the user to re-enter the date.
+    - The BED file names are generated based on the panel name, version, and genome build.
+    """
 
     while True:
         # ask for user input on analysis date
@@ -149,10 +242,24 @@ def add_bed_file_to_db(bed_file_info):
     ----------
     bed_file_info : dict
         Dictionary containing bed file information with keys:
-        - "patient_id": str
-        - "analysis_date": datetime.date
-        - "bed_file_path": str
-        - "merged_bed_path": str
+        - "patient_id" : str
+            The unique identifier for the patient.
+        - "analysis_date" : datetime.date
+            The date of analysis for the bed file.
+        - "bed_file_path" : str
+            The file path of the original BED file.
+        - "merged_bed_path" : str
+            The file path of the merged BED file.
+
+    Returns
+    -------
+    None
+        This function does not return any value. It commits the information into the database.
+
+    Raises
+    ------
+    Exception
+        If an error occurs while inserting the bed file data into the database.
     """
     session = Session()
     try:
@@ -186,6 +293,19 @@ def add_panel_data_to_db(panel_id, bed_file_id):
         The unique ID of the panel being processed.
     bed_file_id : str
         The file path for the BED file to associate with the panel data.
+
+    Returns
+    -------
+    None
+        This function does not return any value. 
+        It commits the panel data into the database.
+
+    Raises
+    ------
+    ValueError
+        If the BED file ID is missing.
+    Exception
+        If an error occurs while fetching or inserting the panel data.
     """
     session = Session()
     try:
