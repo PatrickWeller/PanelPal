@@ -14,6 +14,9 @@ Tested Functions:
 2. `read_bed_file`: Tests for reading a BED file and parsing its content.
 3. `compare_bed_files`: Tests for comparing two BED files and outputting 
    their differences.
+4. `bed_head`: Tests for generating and prepending a metadata header to 
+   a BED file, including handling different scenarios such as normal files, 
+   merged files, and error handling.
 
 Classes:
 --------
@@ -21,6 +24,8 @@ Classes:
 - `TestsReadBedFile`: Contains tests for the `read_bed_file` function.
 - `TestsCompareBedFunction`: Contains tests for the `compare_bed_files` 
    function.
+- `TestBedHeadFunction`: Contains tests for the `bed_head` function, which 
+   generates and adds a metadata header to a BED file.
 
 Testing Scenarios:
 ------------------
@@ -32,6 +37,9 @@ Testing Scenarios:
   function, including handling differences and identical files.
 - Handling various edge cases such as missing files, file reading errors, 
   and folder creation failures.
+- Verifying the correct addition of headers to normal and merged BED files 
+  using `bed_head`, and checking error handling for file not found, 
+  permission errors, IO errors, and unexpected exceptions.
 """
 
 import os

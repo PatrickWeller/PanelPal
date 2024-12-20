@@ -18,6 +18,11 @@ Functions:
     Outputs BED entries present only in either file1 or file2. Each entry 
     will be tagged with whether it was found in file1 or file2.
 
+- bed_head(panel_id, panel_version, genome_build, num_genes, bed_filename):
+    Generates and prepends a metadata header to the specified BED file. The 
+    header includes information such as the panel ID, version, genome build, 
+    and the number of genes in the panel.
+
 Example:
 --------
 >>> bed_file_exists("R207", "4", "GRCh38")
@@ -28,6 +33,9 @@ True
 
 >>> compare_bed_files("file1.bed", "file2.bed")
 Comparison complete. Differences saved in bedfile_comparisons/comparison_file1.bed_file2.bed.txt
+
+>>> bed_head("R207", "4.0", "GRCh38", 200, "R207_v4_GRCh38.bed")
+Header successfully added to R207_v4_GRCh38.bed
 """
 
 import os
