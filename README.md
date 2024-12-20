@@ -55,6 +55,17 @@ PanelPal check-panel --panel_id R207
 python PanelPal/check_panel.py --panel_id R207
 ```
 
+### Get panels containing a given gene
+To generate a list of panels containing a specific gene (e.g. BRCA1):
+
+```bash
+#Either
+panelpal gene-panels --hgnc_symbol BRCA1
+
+#Or
+python PanelPal/gene_to_panels.py --hgnc_symbol BRCA1
+```
+
 ### Compare Panel Versions
 To compare the genes on two versions of a given panel:
 
@@ -65,6 +76,7 @@ PanelPal compare-panel-versions -p R21 -v 1.0 2.0 -f green
 #Or
 python PanelPal/compare_panel_versions.py --panel R21 --versions 1.0 2.0 --status_filter green
 ```
+
 ### Generate Bed File
 To generate a bed file for a given panel:
 
@@ -74,6 +86,17 @@ python PanelPal/generate_bed.py --panel_id R207 --panel_version 4 --genome_build
 
 #Or
 PanelPal generate-bed --panel_id R207 --panel_version 4 --genome_build GRCh38 --status_filter green
+```
+
+### Compare Bed Files
+To compare the content of two bed files:
+
+```bash
+#Either
+python PanelPal/compare_bedfile.py bedfile1.bed bedfile2.bed
+
+#Or
+PanelPal compare-bed-files bedfile1.bed bedfile2.bed
 ```
 
 ## Directory structure
@@ -90,6 +113,7 @@ The following structure should be used going foward to keep the project director
 │   │   ├── panel_app_api_functions.py
 │   │   └── variant_validator_api_functions.py
 │   ├── check_panel.py
+│   ├── compare_bedfiles.py
 │   ├── compare_panel_versions.py
 │   ├── generate_bed.py
 │   ├── __init__.py
