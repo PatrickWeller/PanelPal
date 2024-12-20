@@ -1,5 +1,42 @@
 #!/usr/bin/env python
 
+"""
+Generate a list of genes in a panel from PanelApp API.
+
+This script fetches panel data from PanelApp using the provided panel ID and version.
+It extracts the list of genes from the panel data based on the specified confidence status
+(default = green genes only). The gene list is then written to a file in TSV format.
+
+Command-Line Arguments
+----------------------
+-p, --panel_id : str
+    The ID of the panel to fetch data for (e.g., "R207").
+-v, --panel_version : float
+    The version of the panel to fetch data for (e.g., "4.0").
+--confidence_status : str
+    Filter genes by confidence status. Choices are 'red', 'amber', 'green', or 'all'.
+    Defaults to 'green'.
+
+Example Usage
+-------------
+Run the script from the command line:
+>>> python gene_to_panels.py --panel_id R207 --panel_version 1.2 --confidence_status green
+
+Logging
+-------
+Logs are written to `panelpal/logging/panelpal.log`.
+settings.py can be modified to also write logs to the stream.
+
+Notes
+-----
+- This script assumes that the user has valid access to PanelApp API.
+- The gene list is written to a file in the current working directory.
+- The gene list file is named as `panel_id_version_confidence_genes.tsv`.
+- The gene list file contains one gene per line.
+- The gene list file is overwritten if it already exists.
+"""
+
+
 import argparse
 from PanelPal.accessories import panel_app_api_functions
 from PanelPal.settings import get_logger
