@@ -25,6 +25,10 @@ get_response_old_panel_version(panel_pk, version)
     Fetches the response from the PanelApp API for a specific panel and version.
     Raises PanelAppError if the request fails or returns an error status code.
 
+det_response_gene(hgnc_symbol)
+    Fetches gene-level information from the PanelApp API.
+    Raises PanelAppError if the request fails.
+
 Example Usage
 -------------
 >>> response = get_response('R293')
