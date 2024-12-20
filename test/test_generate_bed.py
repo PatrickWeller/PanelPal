@@ -16,9 +16,70 @@ import subprocess
 import sys
 from pathlib import Path
 from unittest import mock
+from unittest.mock import patch
 import pytest
 from PanelPal.accessories import variant_validator_api_functions, panel_app_api_functions
-from PanelPal.generate_bed import main
+from PanelPal.generate_bed import main, parse_arguments
+
+
+#####################
+#     Unit Tests    #
+#####################
+
+class TestParseArguments:
+    
+    def test_parse_arguments_valid(self):
+        """
+        Test parse_arguments() with valid arguments.
+        """
+        test_args = ["script_name", "-p", "R207", "-v", "4", "-g", "GRCh38"]
+        with patch.object(sys, 'argv', test_args):
+            parsed_args = parse_arguments()
+        
+        # Assert each argument is parsed as expected
+        assert parsed_args.panel_id == "R207"
+        assert parsed_args.panel_version == 4.0
+        assert parsed_args.genome_build == "GRCh38"
+        assert parsed_args.status_filter == "green"  # Checks default value
+
+    def test_parse_arguments_missing_argument(self):
+        """
+        Test parse_arguments() when a required argument is missing.
+        """
+        test_args = ["script_name", "-p", "R207", "-v", "4"]  # Missing genome_build argument
+        with patch.object(sys, 'argv', test_args), pytest.raises(SystemExit):
+            parse_arguments() # Should raise a SystemExit
+
+    def test_parse_arguments_invalid_genome_build(self):
+        """
+        Test parse_arguments() with an invalid genome_build.
+        """
+        test_args = ["script_name", "-p", "R207", "-v", "4", "-g", "INVALID_GENOME"]
+        with patch.object(sys, 'argv', test_args), pytest.raises(SystemExit):
+            parse_arguments() # Should raise a SystemExit
+
+    def test_parse_arguments_default_status_filter(self):
+        """
+        Test parse_arguments() with no status_filter argument (should default to 'green').
+        """
+        test_args = ["script_name", "-p", "R207", "-v", "4", "-g", "GRCh38"]
+        with patch.object(sys, 'argv', test_args):
+            parsed_args = parse_arguments()
+
+         # Check that the default status_filter is correctly set.
+        assert parsed_args.status_filter == "green"  # Default value
+
+    def test_parse_arguments_invalid_status_filter(self):
+        """
+        Test parse_arguments() with an invalid status_filter argument.
+        """
+        test_args = ["script_name", "-p", "R207", "-v", "4", "-g", "GRCh38", "-f", "invalid"]
+        with patch.object(sys, 'argv', test_args), pytest.raises(SystemExit):
+            parse_arguments() # Should raise a SystemExit
+
+####################
+# Functional Tests #
+####################
 
 class TestGenerateBedArguments:
     '''
@@ -61,6 +122,7 @@ class TestGenerateBedArguments:
         Test script behavior with invalid genome build.
         """
         original_cwd = Path(os.getcwd())
+
         result = subprocess.run(
             [
                 sys.executable,

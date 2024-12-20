@@ -13,10 +13,12 @@ The script offers several primary subcommands:
 2. **generate-bed**:
    This subcommand generates a BED file for a specified genomic panel.
    It requires the panel ID, version, and genome build to generate the appropriate BED file.
+   It can also accept a gene status for filtering.
 
 3. **compare-panel-versions**:
    This subcommand allows users to compare two versions of the same panel ID.
-   It requires the panel ID, two version numbers, and can take a filter for gene status.
+   It requires the panel ID and two version numbers.
+   It can also accept a gene status for filtering.
 
 4. **compare-bed-files**:
     This subcommand compares two BED files and identifies the differences between them.
@@ -39,12 +41,13 @@ To check panel information for a specific panel ID:
     $ PanelPal check-panel --panel_id R59
 
 To generate a BED file for a specific panel, version, and genome build:
-    $ PanelPal generate-bed --panel_id R59 --panel_version 4 --genome_build GRCh38
+    $ PanelPal generate-bed --panel_id R59 --panel_version 4 --genome_build GRCh38 
+        --status_filter amber
 
 To query the gene differences between two versions of a panel:
-    $ PanelPal compare-panel-versions --panel_id R21 --versions 1.0 2.2 --status_filter green
+    $ PanelPal compare-panel-versions --panel R21 --versions 1.0 2.2 --status_filter green
 """
-
+import sys
 import argparse
 import sys
 from .check_panel import main as check_panel_main
@@ -65,9 +68,9 @@ Available Commands:
     check-panel             Check panel information for a given panel ID.
                             Example: PanelPal check-panel --panel_id R59
 
-    generate-bed            Generate a BED file for a genomic panel. Requires the panel ID, panel version, 
-                            and genome build.
-                            Example: PanelPal generate-bed --panel_id R59 --panel_version 4 --genome_build GRCh38
+    generate-bed            Generate a BED file for a genomic panel. Requires the
+                            panel ID, panel version, and genome build.
+                            Example: PanelPal generate-bed --panel_id R59 --panel_version 4 --genome_build GRCh38 --status_filter red
 
     compare-panel-versions  Compare two versions of a genomic panel. Requires the panel ID and two version numbers. 
                             Optionally, filter by gene status.
@@ -89,8 +92,9 @@ Available Commands:
 def main():
     """Main function which gathers arguments and passes them to the relevant PanelPal command."""
     parser = argparse.ArgumentParser(
-        description="PanelPal: A toolkit for helping UK labs implement the "
-        "National Test Directory for rare disease",
+        description="PanelPal: A toolkit for helping UK labs "
+        "implement the National Test Directory for rare disease",
+
         epilog="For more details, visit https://github.com/PatrickWeller/PanelPal",
     )
 
@@ -133,6 +137,13 @@ def main():
         type=str,
         required=True,
         help="The genome build (e.g., GRCh38).",
+    )
+    parser_bed.add_argument(
+        "--status_filter",
+        "-f",
+        choices=["green", "amber", "red", "all"],
+        default="green",
+        help="Filter by gene status. Green only; green and amber; or red / all",
     )
 
     # Subcommand: gene-panels
@@ -182,9 +193,9 @@ def main():
     parser_versions.add_argument(
         "--status_filter",
         "-f",
-        choices=["green", "amber", "all"],
+        choices=["green", "amber", "red", "all"],
         default="green",
-        help="Filter by gene status. Green only; green and amber; or all",
+        help="Filter by gene status. Green only; green and amber; or red / all",
     )
 
     
@@ -218,6 +229,7 @@ def main():
             panel_id=args.panel_id,
             panel_version=args.panel_version,
             genome_build=args.genome_build,
+            status_filter=args.status_filter,
         )
     elif args.command == "compare-panel-versions":
         compare_panel_versions_main(
