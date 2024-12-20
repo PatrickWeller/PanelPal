@@ -55,6 +55,17 @@ PanelPal check-panel --panel_id R207
 python PanelPal/check_panel.py --panel_id R207
 ```
 
+### Get panels containing a given gene
+To generate a list of panels containing a specific gene (e.g. BRCA1):
+
+```bash
+#Either
+panelpal gene-panels --hgnc_symbol BRCA1
+
+#Or
+python PanelPal/gene_to_panels.py --hgnc_symbol BRCA1
+```
+
 ### Compare Panel Versions
 To compare the genes on two versions of a given panel:
 
@@ -65,6 +76,7 @@ PanelPal compare-panel-versions -p R21 -v 1.0 2.0
 #Or
 python PanelPal/compare_panel_versions.py --panel R21 --versions 1.0 2.0
 ```
+
 ### Generate Bed File
 To generate a bed file for a given panel:
 
