@@ -13,8 +13,8 @@ import argparse
 import re
 import time
 import logging
-import requests
 import sys
+import requests
 from PanelPal.accessories.panel_app_api_functions import get_response, get_name_version
 from PanelPal.settings import get_logger
 

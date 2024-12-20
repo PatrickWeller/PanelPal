@@ -22,11 +22,15 @@ Command-Line Arguments
     The version of the panel as a float (e.g., "4.0").
 -g, --genome_build : str
     The genome build to be used (e.g., "GRCh38").
+-f, --status_filter : str
+    The lowest acceptable gene status to filter by (e.g "amber").
+    Default is green.
 
 Example
 -------
 Run the script from the command line:
->>> python generate_bed.py -p R207 -v 4.0 -g GRCh38
+>>> python generate_bed.py -p R207 -v 4 -g GRCh38 -f amber
+
 
 Logging
 -------
@@ -38,16 +42,18 @@ Notes
 - This script assumes that the user has valid access to PanelApp and VariantValidator APIs.
 
 """
-
 import argparse
 import sys
 import os
+
 from PanelPal.accessories import variant_validator_api_functions
 from PanelPal.accessories import panel_app_api_functions
 from PanelPal.accessories.bedfile_functions import bed_file_exists, bed_head
 from PanelPal.check_panel import is_valid_panel_id
 from PanelPal.settings import get_logger
+# Adds parent directory to python module search path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 
 # Set up logger
 logger = get_logger(__name__)
@@ -65,6 +71,8 @@ def parse_arguments():
         The version of the panel (e.g., "4").
     genome_build : str
          The genome build to be used (e.g., "GRCh38").
+    status_filter : str
+        The lowest acceptable gene status to filter by (e.g., "amber").
     """
     # Set up argument parsing for the command-line interface (CLI)
     parser = argparse.ArgumentParser(
@@ -99,21 +107,32 @@ def parse_arguments():
         choices=["GRCh37", "GRCh38"],
     )
 
+    # Define the status_filter argument
+    parser.add_argument(
+        "-f",
+        "--status_filter",
+        choices=["green", "amber", "red", "all"],
+        help='Filter by gene status. Green only; green and amber; or all',
+        default='green'
+    )
+
     # Parse the command-line arguments
     args = parser.parse_args()
 
     # Log the parsed arguments
     logger.debug(
-        "Parsed command-line arguments: panel_id=%s, panel_version=%s, genome_build=%s",
+        "Parsed command-line arguments: panel_id=%s, panel_version=%s, "
+        "genome_build=%s, status_filter=%s",
         args.panel_id,
         args.panel_version,
         args.genome_build,
+        args.status_filter,
     )
 
     return args
 
 
-def main(panel_id=None, panel_version=None, genome_build=None):
+def main(panel_id=None, panel_version=None, genome_build=None, status_filter='green'):
     """
     Main function that processes the panel data and generates the BED file.
 
@@ -124,7 +143,10 @@ def main(panel_id=None, panel_version=None, genome_build=None):
     panel_version : str
         The version of the panel (e.g., "4").
     genome_build : str
-         The genome build to be used (e.g., "GRCh38").
+        The genome build to be used (e.g., "GRCh38").
+    status_filter : str
+        The gene status to filter by (e.g., "amber").
+        Default is green.
 
     Raises
     ------
@@ -139,6 +161,7 @@ def main(panel_id=None, panel_version=None, genome_build=None):
         panel_id = args.panel_id
         panel_version = args.panel_version
         genome_build = args.genome_build
+        status_filter = args.status_filter
 
     if not is_valid_panel_id(panel_id):
         logger.error(
@@ -152,10 +175,11 @@ def main(panel_id=None, panel_version=None, genome_build=None):
 
     logger.info(
         "Command executed: generate-bed --panel_id %s, --panel_version %s "
-        "--genome_build %s",
+        "--genome_build %s, --status_filter %s",
         panel_id,
         panel_version,
-        genome_build
+        genome_build,
+        status_filter
     )
 
     if bed_file_exists(panel_id, panel_version, genome_build):
@@ -193,8 +217,10 @@ def main(panel_id=None, panel_version=None, genome_build=None):
                     panel_version)
 
         # Extract the list of genes from the panel data
-        logger.debug("Extracting gene list from panel data for panel_id=%s", panel_id)
-        gene_list = panel_app_api_functions.get_genes(panelapp_v_data)
+        logger.debug("Extracting gene list from panel data for panel_id=%s, status_filter=%s",
+                    panel_id, status_filter)
+        gene_list = panel_app_api_functions.get_genes(panelapp_data, status_filter)
+
         logger.info(
             "Gene list extracted successfully for panel_id=%s, panel_version=%s."
             "Total genes found: %d",
@@ -205,10 +231,12 @@ def main(panel_id=None, panel_version=None, genome_build=None):
 
         # Generate the BED file using the gene list, panel ID, panel version, and genome build
         logger.debug(
-            "Generating BED file for panel_id=%s, panel_version=%s, genome_build=%s",
+            "Generating BED file for panel_id=%s, panel_version=%s, "
+            "genome_build=%s, status_filter=%s",
             panel_id,
             panel_version,
             genome_build,
+            status_filter,
         )
         variant_validator_api_functions.generate_bed_file(
             gene_list, panel_id, panel_version, genome_build
@@ -217,15 +245,18 @@ def main(panel_id=None, panel_version=None, genome_build=None):
 
         # Perform bedtools merge with the provided panel details
         logger.debug(
-            "Starting bedtools merge for panel_id=%s, panel_version=%s, genome_build=%s",
+            "Starting bedtools merge for panel_id=%s, panel_version=%s, "
+            "genome_build=%s, status_filter=%s",
             panel_id,
             panel_version,
             genome_build,
+            status_filter
         )
         variant_validator_api_functions.bedtools_merge(
             panel_id, panel_version, genome_build
         )
-        logger.info("Bedtools merge completed successfully for panel_id=%s", panel_id)
+        logger.info("Bedtools merge completed successfully for panel_id=%s",
+                    panel_id) # pragma: no cover
 
         # Add headers to both the original and merged BED files
         num_genes = len(gene_list)
@@ -235,7 +266,7 @@ def main(panel_id=None, panel_version=None, genome_build=None):
         bed_head(panel_id, panel_version, genome_build, num_genes, merged_bed_name)
 
         # Log completion of the process
-        logger.info("Process completed successfully for panel_id=%s", panel_id)
+        logger.info("Process completed successfully for panel_id=%s", panel_id) # pragma: no cover
 
     except Exception as e:
         # Reraise the exception after logging it for further handling if needed
@@ -248,5 +279,5 @@ def main(panel_id=None, panel_version=None, genome_build=None):
         raise
 
 
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
     main()
