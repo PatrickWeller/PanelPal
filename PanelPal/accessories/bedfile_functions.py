@@ -254,23 +254,42 @@ def bed_head(panel_id, panel_version, genome_build, num_genes, bed_filename):
             bed_file.write(header + file_content)  # Write the header and then the original content
 
         # Log success message
-        logger.info(f"Header successfully added to {bed_filename}")
+        logger.info("Header successfully added to %s",
+                    bed_filename
+                    )
+
     except FileNotFoundError as fnf_error:
         # Handle file not found error
-        logger.error(f"File '{bed_filename}' not found: {fnf_error}", exc_info=True)
+        logger.error("File %s not found: %s",
+                     bed_filename,
+                     fnf_error,
+                     exc_info=True
+                     )
         raise
-    
+
     except PermissionError as perm_error:
         # Handle permission error (e.g., no read/write access to the file)
-        logger.error(f"Permission denied when accessing '{bed_filename}': {perm_error}", exc_info=True)
+        logger.error("Permission denied when accessing %s: %s",
+                     bed_filename,
+                     perm_error,
+                     exc_info=True
+                     )
         raise
-    
+
     except IOError as io_error:
         # Handle general IO errors, like read/write issues
-        logger.error(f"IOError while processing '{bed_filename}': {io_error}", exc_info=True)
+        logger.error("IOError while processing %s: %s",
+                     bed_filename,
+                     io_error,
+                     exc_info=True
+                     )
         raise
-    
+
     except Exception as e:
         # Catch any unexpected errors that don't fall into the above categories
-        logger.error(f"Unexpected error while adding header to {bed_filename}: {e}", exc_info=True)
+        logger.error("Unexpected error while adding header to %s: %s",
+                     bed_filename,
+                     e,
+                     exc_info=True
+                     )
         raise
