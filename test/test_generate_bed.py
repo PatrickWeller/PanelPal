@@ -13,9 +13,9 @@ Tests include:
 
 
 from unittest import mock
+from unittest.mock import patch
 from io import StringIO
 import pytest
-from unittest.mock import patch
 from PanelPal.generate_bed import main, parse_arguments
 
 
@@ -65,7 +65,8 @@ def test_missing_single_argument():
 def test_invalid_genome_build():
     """Test with an invalid genome build"""
     # Mock sys.argv to simulate the script being called with an invalid genome build
-    with patch('sys.argv', new=["generate_bed.py", "-p", "R207", "-v", "4", "-g", "INVALID_GENOME"]):
+    with patch('sys.argv', new=[
+            "generate_bed.py", "-p", "R207", "-v", "4", "-g", "INVALID_GENOME"]):
         with pytest.raises(SystemExit) as exc_info:
             # Attempt to parse arguments with an invalid genome build
             with patch('sys.stderr', new_callable=StringIO) as mock_stderr:
@@ -75,7 +76,10 @@ def test_invalid_genome_build():
         assert exc_info.value.code != 0
 
         # Check that the error message mentions the invalid genome build
-        assert "invalid choice: 'INVALID_GENOME' (choose from 'GRCh37', 'GRCh38')" in mock_stderr.getvalue(
+        assert (
+            "invalid choice: 'INVALID_GENOME' "
+            "(choose from 'GRCh37', 'GRCh38')"
+            in mock_stderr.getvalue()
         )
 
 
