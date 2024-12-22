@@ -19,57 +19,17 @@ from unittest import mock
 import pytest
 from unittest.mock import patch
 from PanelPal.generate_bed import main, parse_arguments
-sys.path.append(str(Path(os.getcwd()) / "PanelPal"))
-
-
-print("Current Working Directory:", os.getcwd())
-print("Python Path:", sys.path)
 
 
 def test_valid_arguments():
     """
     Test script behavior with valid arguments.
     """
-    # Define temporary directory
-    temp_dir = Path("tmp/")
-
-    # Ensure the directory exists
-    temp_dir.mkdir(parents=True, exist_ok=True)
-
-    # Save the current working directory
-    original_cwd = Path(os.getcwd())
-    script_path = Path(original_cwd) / "PanelPal/generate_bed.py"
-
-    try:
-        # Mock the input function to return predefined responses
-        with mock.patch('builtins.input', return_value='n'):
-            # Change the working directory to tmp_path
-            os.chdir(temp_dir)
-
-            # Redirect stdout to suppress output
-            with open(os.devnull, 'w') as devnull:
-                # Run script as a subprocess, making sure stdin is piped
-                result = subprocess.run(
-                    [
-                        sys.executable,
-                        str(script_path),
-                        "-p", "R219",
-                        "-v", "1",
-                        "-g", "GRCh38",
-                    ],
-                    capture_output=True,
-                    text=True,
-                    check=False,
-                    input='n',
-                )
-
-            # Assert successful execution, print error if not
-            assert result.returncode == 0, \
-                f"Script failed with error: {result.stderr}"
-
-    finally:
-        # Clean up - return to original working directory
-        os.chdir(original_cwd)
+    with mock.patch('builtins.input', return_value='n'):  # Mock input() to return 'n'
+        try:
+            main(panel_id="R169", panel_version="1", genome_build="GRCh37")
+        except Exception as e:
+            pytest.fail(f"Main function raised an exception: {e}")
 
 
 def test_missing_required_arguments():
