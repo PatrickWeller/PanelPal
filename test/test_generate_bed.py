@@ -11,14 +11,19 @@ Tests include:
 - Mocking logger to simulate errors and validate error handling
 """
 
-from unittest.mock import patch
-from PanelPal.generate_bed import main, parse_arguments
 import os
 import subprocess
 import sys
 from pathlib import Path
 from unittest import mock
 import pytest
+from unittest.mock import patch
+from PanelPal.generate_bed import main, parse_arguments
+sys.path.append(str(Path(os.getcwd()) / "PanelPal"))
+
+
+print("Current Working Directory:", os.getcwd())
+print("Python Path:", sys.path)
 
 
 def test_valid_arguments():
