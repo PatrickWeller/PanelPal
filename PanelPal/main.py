@@ -60,6 +60,8 @@ Available Commands:
                             panel ID, panel version, and genome build.
                             Example: PanelPal generate-bed --panel_id R59 --panel_version 4 --genome_build GRCh38
 
+                            Optionally, you can add a patient to the database (default is 'yes', type 'n' to skip)
+                                              
     compare-panel-versions  Compare two versions of a genomic panel. Requires
                             the panel ID and two version numbers. Optionally, filter by gene status.
                             Example: PanelPal compare-panel-versions --panel R21 --versions 1.0 2.2 --status_filter green
