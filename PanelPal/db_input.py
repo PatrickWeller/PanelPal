@@ -1,5 +1,32 @@
 """
-DOCSTRING AND MORE COMMENTS NEEDED
+Module for handling patient information, BED file metadata, and panel data
+for the PanelPal project.
+
+This module contains functions to:
+- Prompt the user to enter patient information (NHS number, name, date of birth).
+- Add the patient information to the database.
+- Collect metadata about BED files and store them in the database.
+- Fetch and store panel data related to genetic panels and their corresponding BED files.
+
+Functions
+---------
+patient_info_prompt()
+    Prompts the user for patient information and returns it as a dictionary.
+add_patient_to_db(patient_info)
+    Adds the provided patient information to the database.
+bed_file_info_prompt(patient_id, panel_name, panel_version, genome_build)
+    Prompts the user for metadata related to a BED file and returns the information.
+add_bed_file_to_db(bed_file_info)
+    Adds the provided BED file information to the database.
+add_panel_data_to_db(panel_id, bed_file_id)
+    Fetches and stores panel data in the database associated with a BED file.
+
+Notes
+-----
+- NHS numbers must be exactly 10 digits.
+- Patient names must contain only letters and spaces.
+- Date of birth should be entered in the format DD-MM-YYYY.
+- The module works with SQLAlchemy ORM to interact with the database.
 """
 
 import re
