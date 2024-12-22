@@ -1,6 +1,6 @@
 """
-A suite of tests for the db_input functions.
-Tests correct inputs, edge cases, invalid inputs, and interactions with the database.
+Tests for the db_input functions.
+These tests cover correct inputs, edge cases, invalid inputs, and interactions with the database.
 """
 
 from unittest.mock import patch, MagicMock
@@ -13,7 +13,6 @@ from datetime import date, datetime
 import pytest
 
 
-# Test correct inputs
 def test_patient_info_prompt_correct():
     with patch("builtins.input", side_effect=["yes", "1234567890", "John Doe", "01-01-1990"]):
         patient_info = patient_info_prompt()
@@ -31,7 +30,6 @@ def test_bed_file_info_prompt_correct():
         assert bed_file_info["merged_bed_file"] == "R207_v4_GRCh38_merged.bed"
 
 
-# Test edge cases
 def test_patient_info_prompt_edge_case():
     with patch("builtins.input", side_effect=["yes", "1234567890", "A B C", "31-12-1999"]):
         patient_info = patient_info_prompt()
@@ -40,7 +38,6 @@ def test_patient_info_prompt_edge_case():
         assert patient_info["dob"] == datetime(1999, 12, 31).date()
 
 
-# Test invalid inputs
 def test_patient_info_prompt_invalid_nhs_number(capsys):
     """
     Test error message appears/there is a prompt to retype NHS number 
@@ -125,8 +122,10 @@ def mock_session():
         yield mock_session
 
 
-# Test for adding patient to the database
 def test_add_patient_to_db(mock_session):
+    """
+    Test for adding patient to the database
+    """
     mock_db = MagicMock()
     mock_session.return_value = mock_db
 
@@ -142,8 +141,10 @@ def test_add_patient_to_db(mock_session):
     mock_db.commit.assert_called_once()
 
 
-# Test for error while adding patient to the database
 def test_add_patient_to_db_error(mock_session):
+    """
+    Test for error while adding patient to the database
+    """
     mock_db = MagicMock()
     mock_session.return_value = mock_db
     mock_db.add.side_effect = Exception("Database error")
@@ -162,8 +163,10 @@ def test_add_patient_to_db_error(mock_session):
     mock_db.rollback.assert_called_once()
 
 
-# Test for adding bed file info to the database
 def test_add_bed_file_to_db(mock_session):
+    """
+    Test for adding bed file info to the database
+    """
     mock_db = MagicMock()
     mock_session.return_value = mock_db
 
@@ -183,8 +186,10 @@ def test_add_bed_file_to_db(mock_session):
     mock_db.commit.assert_called_once()
 
 
-# Test for error while adding bed file info to the database
 def test_add_bed_file_to_db_error(mock_session):
+    """
+    Test for error when adding bed file info to the database
+    """
     mock_db = MagicMock()
     mock_session.return_value = mock_db
     mock_db.add.side_effect = Exception("Database error")
@@ -207,8 +212,10 @@ def test_add_bed_file_to_db_error(mock_session):
     mock_db.rollback.assert_called_once()
 
 
-# Test for adding panel data to the database
 def test_add_panel_data_to_db(mock_session):
+    """
+    Test for adding panel data to the database
+    """
     mock_db = MagicMock()
     mock_session.return_value = mock_db
 
@@ -227,8 +234,10 @@ def test_add_panel_data_to_db(mock_session):
     mock_db.commit.assert_called_once()
 
 
-# Test for error while adding panel data to the database
 def test_add_panel_data_to_db_error(mock_session):
+    """
+    Test for error while adding panel data to the database
+    """
     mock_db = MagicMock()
     mock_session.return_value = mock_db
     mock_db.add.side_effect = Exception("Database error")
@@ -239,11 +248,10 @@ def test_add_panel_data_to_db_error(mock_session):
     }
 
     try:
-        # Unpack dictionary for individual arguments, if necessary
         add_panel_data_to_db(
             panel_data_info["panel_id"], panel_data_info["bed_file_id"])
     except Exception:
         pass
 
-    # Ensure rollback was called in case of an error
+    # Ensure rollback was called in case of error
     mock_db.rollback.assert_called_once()

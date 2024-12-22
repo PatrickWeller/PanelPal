@@ -17,8 +17,6 @@ import sys
 from pathlib import Path
 from unittest import mock
 import pytest
-from PanelPal.accessories import variant_validator_api_functions, panel_app_api_functions
-from PanelPal.generate_bed import main
 
 
 def test_missing_required_arguments():
