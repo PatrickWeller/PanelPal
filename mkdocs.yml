@@ -1,0 +1,6 @@
+site_name: PanelPal
+nav:
+  - Home: index.md
+  - Installation: installation.md
+  - User Manual: user_manual.md
+  - Technical Manual: technical_manual.md
