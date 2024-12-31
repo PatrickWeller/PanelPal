@@ -44,6 +44,7 @@ from PanelPal.settings import get_logger
 
 logger = get_logger(__name__)
 
+
 def bed_file_exists(panel_name, panel_version, genome_build):
     """
     Check if a bed file with a certain name already exists
@@ -74,6 +75,7 @@ def bed_file_exists(panel_name, panel_version, genome_build):
         logger.error("An unexpected error occurred: %s", str(e))
         raise
 
+
 def read_bed_file(filename):
     """
     Reads a BED file, ignoring header lines starting with '#'.
@@ -103,10 +105,11 @@ def read_bed_file(filename):
 
     except Exception as e:
         logger.error("An unexpected error occurred while reading '%s': %s",
-                    filename,
-                    str(e)
-                    )
+                     filename,
+                     str(e)
+                     )
         raise
+
 
 def compare_bed_files(file1, file2):
     """
@@ -126,7 +129,7 @@ def compare_bed_files(file1, file2):
     FileNotFoundError
         If one or both of the input files do not exist.
     """
-        # Check for file existence directly and log errors
+    # Check for file existence directly and log errors
     for file in [file1, file2]:
         if not os.path.exists(file):
             logger.error("Input file does not exist: %s", file)
@@ -150,14 +153,16 @@ def compare_bed_files(file1, file2):
                 logger.debug("Creating output folder: %s", output_folder)
                 os.makedirs(output_folder)
         except OSError as o:
-            logger.error("Failed to create output folder '%s': %s", output_folder, str(o))
+            logger.error("Failed to create output folder '%s': %s",
+                         output_folder, str(o))
             raise
 
         # Generate the output file name based on input file names
         output_file = os.path.join(
             output_folder,
-            f"comparison_{os.path.basename(file1)}_{os.path.basename(file2)}.txt"
-            )
+            f"comparison_{os.path.basename(file1)}_{
+                os.path.basename(file2)}.txt"
+        )
 
         # Find the differences
         logger.debug("Calculating differences between the BED files.")
@@ -166,7 +171,7 @@ def compare_bed_files(file1, file2):
 
         # Column widths for formatting output
         col_widths = {
-            "entry": 60, 
+            "entry": 60,
             "comment": 40
         }
 
@@ -174,27 +179,30 @@ def compare_bed_files(file1, file2):
         try:
             with open(output_file, 'w', encoding='utf-8') as out_file:
                 header = (f"{'Entry'.ljust(col_widths['entry'])}"
-                        f"{'Comment'.ljust(col_widths['comment'])}\n")
+                          f"{'Comment'.ljust(col_widths['comment'])}\n")
 
                 # Header for readability
                 out_file.write(header)
 
                 # Add a separator line for readability
-                out_file.write("=" * (col_widths["entry"] + col_widths["comment"]) + "\n")
+                out_file.write(
+                    "=" * (col_widths["entry"] + col_widths["comment"]) + "\n")
 
                 # Write differences
                 for entry in diff_file1:
                     out_file.write(
-                        f"{entry.ljust(col_widths['entry'])}# Present in {file1} only\n"
-                        )
+                        f"{entry.ljust(col_widths['entry'])}# Present in {
+                            file1} only\n"
+                    )
                 for entry in diff_file2:
                     out_file.write(
-                        f"{entry.ljust(col_widths['entry'])}# Present in {file2} only\n"
-                        )
+                        f"{entry.ljust(col_widths['entry'])}# Present in {
+                            file2} only\n"
+                    )
 
             logger.info(
                 "Comparison complete. Differences saved in %s", output_file
-                )
+            )
 
         except OSError as e:
             logger.error("Failed to write to output file '%s': %s",
@@ -206,14 +214,14 @@ def compare_bed_files(file1, file2):
     except Exception as e:
         logger.error(
             "Error: %s", str(e)
-            )
+        )
         raise
 
 
 def bed_head(panel_id, panel_version, genome_build, num_genes, bed_filename):
     """
     Generates a header for the BED file with metadata information and prepends it to the file.
-    
+
     Parameters
     ----------
     panel_id : str
@@ -226,19 +234,27 @@ def bed_head(panel_id, panel_version, genome_build, num_genes, bed_filename):
         The number of genes in the panel.
     bed_filename : str
         The name of the BED file being generated.
-    
+
     Returns
     -------
     None
         This function directly modifies the BED file by prepending the header.
     """
+
+    # Ensure bed_files subdirectory exists
+    bed_dir = "bed_files"
+    os.makedirs(bed_dir, exist_ok=True)
+    # Construct full path to the BED file
+    bed_filename = os.path.join(bed_dir, bed_filename)
+
     # Get date of creation
     date_generated = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     # Check if the bed_filename contains "merged"
     if "merged" in bed_filename.lower():
         header = (
-            f"# Merged BED file generated for panel: {panel_id} (Version: {panel_version}) "
+            f"# Merged BED file generated for panel: {
+                panel_id} (Version: {panel_version}) "
             f"Date of creation: {date_generated}.\n"
             f"# Genome build: {genome_build}. Number of genes: {num_genes}\n"
             f"# Merged BED file: {bed_filename}\n"
@@ -247,7 +263,8 @@ def bed_head(panel_id, panel_version, genome_build, num_genes, bed_filename):
         )
     else:
         header = (
-            f"# BED file generated for panel: {panel_id} (Version: {panel_version}). "
+            f"# BED file generated for panel: {
+                panel_id} (Version: {panel_version}). "
             f"Date of creation: {date_generated}.\n"
             f"# Genome build: {genome_build}. Number of genes: {num_genes}.\n"
             f"# BED file: {bed_filename}\n"
@@ -258,8 +275,10 @@ def bed_head(panel_id, panel_version, genome_build, num_genes, bed_filename):
     try:
         with open(bed_filename, 'r+', encoding='utf-8') as bed_file:
             file_content = bed_file.read()  # Read the current content of the file
-            bed_file.seek(0, 0)  # Move the file pointer to the beginning of the file
-            bed_file.write(header + file_content)  # Write the header and then the original content
+            # Move the file pointer to the beginning of the file
+            bed_file.seek(0, 0)
+            # Write the header and then the original content
+            bed_file.write(header + file_content)
 
         # Log success message
         logger.info("Header successfully added to %s",

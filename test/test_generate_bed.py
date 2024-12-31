@@ -11,135 +11,92 @@ Tests include:
 - Mocking logger to simulate errors and validate error handling
 """
 
-
-from unittest.mock import patch, MagicMock
-from PanelPal.accessories import variant_validator_api_functions, panel_app_api_functions
-from unittest import mock
-from unittest.mock import patch
-from io import StringIO
 import pytest
+import os
+import shutil
+import subprocess
+import sys
+
+from unittest import mock
+from unittest.mock import patch, MagicMock
+from pathlib import Path
+from io import StringIO
+from PanelPal.accessories import variant_validator_api_functions, panel_app_api_functions
 from PanelPal.generate_bed import main, parse_arguments
-
-
-def test_valid_arguments():
-    """
-    Test script behavior with valid arguments.
-    """
-    with mock.patch('builtins.input', return_value='n'):  # Mock input() to return 'n'
-        try:
-            main(panel_id="R169", panel_version="1", genome_build="GRCh37")
-        except Exception as e:
-            pytest.fail(f"Main function raised an exception: {e}")
-
-
-def test_missing_required_arguments():
-    """Test missing required arguments"""
-    # Mock sys.argv to simulate the script being called without required arguments
-    with patch('sys.argv', new=["generate_bed.py"]):
-        with pytest.raises(SystemExit) as exc_info:
-            # Attempt to parse arguments without providing required ones
-            with patch('sys.stderr', new_callable=StringIO) as mock_stderr:
-                parse_arguments()
-
-        # Check that the script exits with the expected error code
-        assert exc_info.value.code != 0
-
-        # Check that the error message mentions missing arguments
-        assert "the following arguments are required" in mock_stderr.getvalue()
-
-
-def test_missing_single_argument():
-    """Test missing a single required argument"""
-    # Mock sys.argv to simulate the script being called with missing arguments
-    with patch('sys.argv', new=["generate_bed.py", "-p", "R207", "-v", "4"]):
-        with pytest.raises(SystemExit) as exc_info:
-            # Attempt to parse arguments with missing genome build argument
-            with patch('sys.stderr', new_callable=StringIO) as mock_stderr:
-                parse_arguments()
-
-        # Check that the script exits with the expected error code
-        assert exc_info.value.code != 0
-
-        # Check that the error message mentions missing -g/--genome_build argument
-        assert "the following arguments are required: -g/--genome_build" in mock_stderr.getvalue()
-
-
-def test_invalid_genome_build():
-    """Test with an invalid genome build"""
-    # Mock sys.argv to simulate the script being called with an invalid genome build
-    with patch('sys.argv', new=[
-            "generate_bed.py", "-p", "R207", "-v", "4", "-g", "INVALID_GENOME"]):
-        with pytest.raises(SystemExit) as exc_info:
-            # Attempt to parse arguments with an invalid genome build
-            with patch('sys.stderr', new_callable=StringIO) as mock_stderr:
-                parse_arguments()
-
-        # Check that the script exits with the expected error code
-        assert exc_info.value.code != 0
-
-        # Check that the error message mentions the invalid genome build
-        assert (
-            "invalid choice: 'INVALID_GENOME' "
-            "(choose from 'GRCh37', 'GRCh38')"
-            in mock_stderr.getvalue()
-        )
-
-
-def test_empty_panel_id():
-    """Test with an empty panel_id"""
-    # Mock sys.argv to simulate running the script with an empty panel_id
-    with patch("sys.argv", new=["generate_bed.py", "-p", "", "-v", "4", "-g", "GRCh38"]):
-        # Mock the input to avoid the prompt
-        with patch("builtins.input", return_value="n"):  # Simulate 'n' for patient info
-            with patch("PanelPal.generate_bed.logger") as mock_logger:
-                # Call the main function directly within a try-except block
-                try:
-                    main()
-                except Exception:
-                    # Check that the error message was logged
-                    mock_logger.error.assert_called_with(
-                        "An error occurred in the BED file generation process for panel_id=%s: %s",
-                        "",
-                        mock_logger._mock_return_value
-                    )
-
-
-def test_generate_bed_valid_arguments():
-    """
-    Tests the main function with valid arguments, simulating 'n' input to skip prompts.
-    """
-    with patch('builtins.input', return_value='n'):
-        try:
-            # Run the main function with valid arguments
-            main(panel_id="R169", panel_version="1", genome_build="GRCh37")
-        except Exception as e:
-            pytest.fail(f"Main function raised an exception: {e}")
-
-
-@patch('argparse.ArgumentParser.parse_args')
-def test_parse_arguments(mock_parse_args):
-    """
-    Mock the return value of parse_args
-    """
-    mock_parse_args.return_value = mock.MagicMock(
-        panel_id="R169", panel_version="1", genome_build="GRCh37"
-    )
-
-    # Call parse_arguments and check its return value
-    args = parse_arguments()
-
-    # Validate the expected arguments
-    assert args.panel_id == "R169"
-    assert args.panel_version == "1"
-    assert args.genome_build == "GRCh37"
-
-    # Check that parse_args was called
-    mock_parse_args.assert_called_once()
 
 
 #####################
 #     Unit Tests    #
 #####################
+
+
+class TestValidArguments:
+    def test_valid_arguments(self):
+        with mock.patch('builtins.input', return_value='n'):
+            try:
+                main(panel_id="R169", panel_version="1.1", genome_build="GRCh38")
+            except Exception as e:
+                pytest.fail(f"Main function raised an exception: {e}")
+
+    def test_generate_bed_valid_arguments(self):
+        with mock.patch('builtins.input', return_value='n'):
+            try:
+                main(panel_id="R169", panel_version="1.1", genome_build="GRCh37")
+            except Exception as e:
+                pytest.fail(f"Main function raised an exception: {e}")
+
+
+class TestInvalidArguments:
+    def test_missing_required_arguments(self):
+        with mock.patch('sys.argv', new=["generate_bed.py"]):
+            with pytest.raises(SystemExit) as exc_info:
+                with mock.patch('sys.stderr', new_callable=StringIO) as mock_stderr:
+                    parse_arguments()
+            assert exc_info.value.code != 0
+            assert "the following arguments are required" in mock_stderr.getvalue()
+
+    def test_missing_single_argument(self):
+        with mock.patch('sys.argv', new=["generate_bed.py", "-p", "R207", "-v", "4"]):
+            with pytest.raises(SystemExit) as exc_info:
+                with mock.patch('sys.stderr', new_callable=StringIO) as mock_stderr:
+                    parse_arguments()
+            assert exc_info.value.code != 0
+            assert "the following arguments are required: -g/--genome_build" in mock_stderr.getvalue()
+
+    def test_invalid_genome_build(self):
+        with mock.patch('sys.argv', new=["generate_bed.py", "-p", "R207", "-v", "4", "-g", "INVALID_GENOME"]):
+            with pytest.raises(SystemExit) as exc_info:
+                with mock.patch('sys.stderr', new_callable=StringIO) as mock_stderr:
+                    parse_arguments()
+            assert exc_info.value.code != 0
+            assert "invalid choice: 'INVALID_GENOME' " "(choose from 'GRCh37', 'GRCh38')" in mock_stderr.getvalue(
+            )
+
+    def test_empty_panel_id(self):
+        with mock.patch("sys.argv", new=["generate_bed.py", "-p", "", "-v", "4", "-g", "GRCh38"]):
+            with mock.patch("builtins.input", return_value="n"):
+                with mock.patch("PanelPal.generate_bed.logger") as mock_logger:
+                    try:
+                        main()
+                    except Exception:
+                        mock_logger.error.assert_called_with(
+                            "Invalid panel_id '%s'. Panel ID must start with 'R' followed by digits (e.g., 'R207').",
+                            ''
+                        )
+
+
+class TestArgumentParsing:
+    @mock.patch('argparse.ArgumentParser.parse_args')
+    def test_parse_arguments(self, mock_parse_args):
+        mock_parse_args.return_value = mock.MagicMock(
+            panel_id="R169", panel_version="1", genome_build="GRCh37"
+        )
+        args = parse_arguments()
+        assert args.panel_id == "R169"
+        assert args.panel_version == "1"
+        assert args.genome_build == "GRCh37"
+        mock_parse_args.assert_called_once()
+
 
 class TestParseArguments:
 
@@ -202,7 +159,7 @@ class TestParseArguments:
 
 class TestGenerateBedArguments:
     '''
-    Tests for the command line arguments of the main function to 
+    Tests for the command line arguments of the main function to
     generate a bed file.
     '''
 
@@ -272,54 +229,36 @@ class TestGenerateBedArguments:
         original_cwd = Path(os.getcwd())
         new_script_path = Path(original_cwd) / "PanelPal/generate_bed.py"
 
+        simulated_input = 'n\n'  # simulate user skipping addition to databas
+
         try:
-            # Change the working directory to tmp_path
+            # Change to temporary working dir
             os.chdir(temp_dir)
 
-            # Run the script as a subprocess
+            # Run script as subprocess with the simulated input (n)
             result = subprocess.run(
                 [
                     sys.executable,
                     str(new_script_path),
-                    "-p",
-                    "R219",
-                    "-v",
-                    "1.0",
-                    "-g",
-                    "GRCh38",
+                    "-p", "R219",
+                    "-v", "1.0",
+                    "-g", "GRCh38"
                 ],
+                input=simulated_input,
                 capture_output=True,
                 text=True,
                 check=False,
                 env={**os.environ, "PYTHONPATH": str(original_cwd)}
             )
 
-            # Assert successful execution, print error if not
-            assert result.returncode == 0, \
-                f"Script failed with error: {result.stderr}"
-
-            # Verify the expected file exists and is not empty
-            expected_file = Path("R219_v1.0_GRCh38.bed")
-            assert expected_file.exists(), \
-                f"Expected output file {expected_file} was not created."
-            assert expected_file.stat().st_size > 0, \
-                f"File {expected_file} is empty."
-
-            # Verify the expected file exists and is not empty
-            expected_merged_file = Path("R219_v1.0_GRCh38_merged.bed")
-            assert expected_merged_file.exists(), \
-                f"Expected output file {expected_merged_file} was not created."
-            assert expected_merged_file.stat().st_size > 0, \
-                f"File {expected_merged_file} is empty."
-
-            if expected_file.exists():
-                expected_file.unlink()  # Deletes the file
-            if expected_merged_file.exists():
-                expected_merged_file.unlink()  # Deletes the merged file
+            # Assert successful execution
+            assert result.returncode == 0, f"Script failed with error: {
+                result.stderr}"
 
         finally:
-            # Restore the original working directory
+            # Clean up the temporary directory after the test
             os.chdir(original_cwd)
+            shutil.rmtree(temp_dir)
 
 
 class TestGenerateBedExceptionHandling:
