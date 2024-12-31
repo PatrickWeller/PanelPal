@@ -60,7 +60,7 @@ To generate a list of panels containing a specific gene (e.g. BRCA1):
 
 ```bash
 #Either
-panelpal gene-panels --hgnc_symbol BRCA1
+PanelPal gene-panels --hgnc_symbol BRCA1
 
 #Or
 python PanelPal/gene_to_panels.py --hgnc_symbol BRCA1
