@@ -27,13 +27,13 @@ To set up a conda environment for this project, you can use the provided `enviro
 
    ```bash
    cd PanelPal
-   docker build -it panelpal .
+   docker build -t panelpal .
     ```
 
 3. Run the docker container:
 
     ```bash
-    docker run -t panelpal
+    docker run -it panelpal
     ```
 
 4. Test PanelPal is installed:
