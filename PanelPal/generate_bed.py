@@ -219,7 +219,7 @@ def main(panel_id=None, panel_version=None, genome_build=None, status_filter='gr
         # Extract the list of genes from the panel data
         logger.debug("Extracting gene list from panel data for panel_id=%s, status_filter=%s",
                     panel_id, status_filter)
-        gene_list = panel_app_api_functions.get_genes(panelapp_data, status_filter)
+        gene_list = panel_app_api_functions.get_genes(panelapp_v_data, status_filter)
 
         logger.info(
             "Gene list extracted successfully for panel_id=%s, panel_version=%s."
