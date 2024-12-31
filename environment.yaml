@@ -9,4 +9,4 @@ dependencies:
   - bedtools==2.31.1
   - sqlalchemy==2.0.34
   - pip:
-      - -r requirements.txt
+      - .

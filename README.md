@@ -17,29 +17,29 @@ PanelPal is a python package of command line tools for helping UK labs implement
 
 To set up a conda environment for this project, you can use the provided `environment.yaml` file.
 
-1. Clone or download this repository.
+1. Clone or download this repository:
 
    ```bash
    git clone https://github.com/PatrickWeller/PanelPal.git
     ```
 
-2. Create a new conda environment with the following command:
+2. Build the docker image:
 
    ```bash
-   conda env create -f env/environment.yaml
+   cd PanelPal
+   docker build -t panelpal .
     ```
 
-3. Activate the environment:
+3. Run the docker container:
 
     ```bash
-    conda activate PanelPal
+    docker run -it panelpal
     ```
 
-4. Install PanelPal via pip
+4. Test PanelPal is installed:
 
     ```bash
-    cd PanelPal
-    pip install .
+    PanelPal
     ```
 
 ## Usage
@@ -60,7 +60,7 @@ To generate a list of panels containing a specific gene (e.g. BRCA1):
 
 ```bash
 #Either
-panelpal gene-panels --hgnc_symbol BRCA1
+PanelPal gene-panels --hgnc_symbol BRCA1
 
 #Or
 python PanelPal/gene_to_panels.py --hgnc_symbol BRCA1
@@ -100,13 +100,10 @@ PanelPal compare-bed-files bedfile1.bed bedfile2.bed
 ```
 
 ## Directory structure
-The following structure should be used going foward to keep the project directories tidy and in preparation for package build. This will also resolve issues importing modules going forward. Note: DB directory has been omitted from the tree for now.
+The following structure should be used going foward to keep the project directories tidy and compatible with the project build. This will also resolve issues importing modules going forward. Note: DB directory has been omitted from the tree for now.
 
 ```bash
 .
-├── env
-│   ├── environment.yaml
-│   └── requirements.txt
 ├── PanelPal
 │   ├── accessories
 │   │   ├── __init__.py
@@ -122,7 +119,12 @@ The following structure should be used going foward to keep the project director
 │   ├── main.py
 │   └── settings.py
 ├── README.md
-├── setup.py
+├── pyproject.toml
+├── environment.yaml
+├── Dockerfile
+├── entrypoint.sh
+├── assets
+│   └── logo.jpg
 └── test
     ├── __init__.py
     └── test_*.py
@@ -152,4 +154,5 @@ If the user chooses to skip entering patient information (by typing n), the syst
 
 
 ## License
-To be confirmed.
+
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
