@@ -389,7 +389,10 @@ class TestBedFileExists:
         if bed_merged_path.exists():
             bed_merged_path.unlink()
 
-    def test_bed_file_does_not_exist(self):
+    @patch("PanelPal.generate_bed.bed_file_exists")
+    @patch("PanelPal.generate_bed.parse_arguments")
+    @patch("PanelPal.generate_bed.logger")
+    def test_bed_file_does_not_exist(self, mock_logger, mock_parse_arguments, mock_bed_file_exists):
         """
         Test that the script proceeds to generate a BED file when it does not exist.
         """
@@ -397,7 +400,6 @@ class TestBedFileExists:
         panel_version = "1.0"
         genome_build = "GRCh37"
 
-        # Ensure the temporary directory exists
         temp_dir = Path("tmp/")  # Temporary directory for bed files
         temp_dir.mkdir(parents=True, exist_ok=True)
 
@@ -415,29 +417,29 @@ class TestBedFileExists:
         original_cwd = Path(os.getcwd())
         new_script_path = Path(original_cwd) / "PanelPal/generate_bed.py"
 
+        # Mock the arguments
+        mock_parse_arguments.return_value = MagicMock(
+            panel_id=panel_id,
+            panel_version=panel_version,
+            genome_build=genome_build
+        )
+
+        # Mock bed_file_exists to return False
+        mock_bed_file_exists.return_value = False
+
         try:
             # Change the working directory to the temporary directory
             os.chdir(temp_dir)
 
             # Mock input to simulate the user typing 'n' to stop
-            # Simulate user input 'n' followed by Enter
-            with mock.patch('builtins.input', return_value='n\n'):
-                result = subprocess.run(
-                    [
-                        sys.executable,
-                        str(new_script_path),
-                        "-p", panel_id,
-                        "-v", panel_version,
-                        "-g", genome_build
-                    ],
-                    capture_output=True,
-                    text=True,
-                    check=False,
-                    env={**os.environ, "PYTHONPATH": str(original_cwd)}
-                )
+            with mock.patch("builtins.input", return_value="n\n"):
+                # Run the script without using subprocess
+                main()  # directly call the main function
 
-            # Ensure that the script exits successfully
-            assert result.returncode == 0
+            # Ensure logger.debug is called
+            mock_logger.debug.assert_any_call(
+                "No existing BED file found. Proceeding with generation."
+            )
 
         finally:
             # Restore the original working directory
@@ -484,7 +486,7 @@ class TestBedFileExists:
     @patch("PanelPal.generate_bed.bed_file_exists")
     @patch("PanelPal.generate_bed.parse_arguments")
     @patch("PanelPal.generate_bed.logger")
-    def test_no_existance_continues(self, mock_logger, mock_parse_arguments, mock_bed_file_exists):
+    def test_no_existence_continues(self, mock_logger, mock_parse_arguments, mock_bed_file_exists):
         """
         Test that the main function continues execution when the BED file does not exist.
         """
