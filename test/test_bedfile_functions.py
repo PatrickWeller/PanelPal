@@ -1,44 +1,44 @@
 """
-Module for testing functions related to BED file handling in the 
+Module for testing functions related to BED file handling in the
 PanelPal package.
 
-This module contains tests for various functions that manage and 
-manipulate BED files. The tests ensure the correctness of functions 
-that check for the existence of BED files, read BED files, and compare 
+This module contains tests for various functions that manage and
+manipulate BED files. The tests ensure the correctness of functions
+that check for the existence of BED files, read BED files, and compare
 the contents of two BED files.
 
 Tested Functions:
 -----------------
-1. `bed_file_exists`: Tests for existence of a BED file based on panel 
+1. `bed_file_exists`: Tests for existence of a BED file based on panel
    name, version, and genome build.
 2. `read_bed_file`: Tests for reading a BED file and parsing its content.
-3. `compare_bed_files`: Tests for comparing two BED files and outputting 
+3. `compare_bed_files`: Tests for comparing two BED files and outputting
    their differences.
-4. `bed_head`: Tests for generating and prepending a metadata header to 
-   a BED file, including handling different scenarios such as normal files, 
+4. `bed_head`: Tests for generating and prepending a metadata header to
+   a BED file, including handling different scenarios such as normal files,
    merged files, and error handling.
 
 Classes:
 --------
 - `TestBedFileExists`: Contains tests for the `bed_file_exists` function.
 - `TestsReadBedFile`: Contains tests for the `read_bed_file` function.
-- `TestsCompareBedFunction`: Contains tests for the `compare_bed_files` 
+- `TestsCompareBedFunction`: Contains tests for the `compare_bed_files`
    function.
-- `TestBedHeadFunction`: Contains tests for the `bed_head` function, which 
+- `TestBedHeadFunction`: Contains tests for the `bed_head` function, which
    generates and adds a metadata header to a BED file.
 
 Testing Scenarios:
 ------------------
-- Verifying that the `bed_file_exists` function detects existing files 
+- Verifying that the `bed_file_exists` function detects existing files
   and handles missing parameters.
-- Testing the correct reading and parsing of a BED file with the 
+- Testing the correct reading and parsing of a BED file with the
   `read_bed_file` function.
-- Comparing the contents of two BED files using the `compare_bed_files` 
+- Comparing the contents of two BED files using the `compare_bed_files`
   function, including handling differences and identical files.
-- Handling various edge cases such as missing files, file reading errors, 
+- Handling various edge cases such as missing files, file reading errors,
   and folder creation failures.
-- Verifying the correct addition of headers to normal and merged BED files 
-  using `bed_head`, and checking error handling for file not found, 
+- Verifying the correct addition of headers to normal and merged BED files
+  using `bed_head`, and checking error handling for file not found,
   permission errors, IO errors, and unexpected exceptions.
 """
 
@@ -53,10 +53,12 @@ from PanelPal.accessories.bedfile_functions import (compare_bed_files,
                                                     bed_head
                                                     )
 
+
 class TestBedFileExists:
     '''
     Test for the function which checks whether a bed file exists
     '''
+
     def test_bed_file_exists(self):
         """
         Test bed_file_exists to verify it correctly detects existing files.
@@ -71,7 +73,8 @@ class TestBedFileExists:
             panel_name = "R207"
             panel_version = "4"
             genome_build = "GRCh38"
-            bed_file = temp_dir / f"{panel_name}_v{panel_version}_{genome_build}.bed"
+            bed_file = temp_dir / \
+                f"{panel_name}_v{panel_version}_{genome_build}.bed"
             bed_file.write_text("dummy content")  # Writing content to the file
 
             os.chdir(temp_dir)  # Change to the temp directory
@@ -91,8 +94,8 @@ class TestBedFileExists:
             os.chdir(original_cwd)
 
     def test_bed_file_exists_missing_parameters(self):
-        """ 
-        Test for missing parameters in bed_file_exists 
+        """
+        Test for missing parameters in bed_file_exists
         """
         with pytest.raises(ValueError):
             bed_file_exists(None, "v1", "GRCh38")
@@ -126,7 +129,7 @@ class TestBedFileExists:
     @patch("PanelPal.accessories.bedfile_functions.logger")
     def test_generic_exception_in_try_block(self, mock_logger):
         """
-        Ensure a generic Exception raised inside the try block is logged 
+        Ensure a generic Exception raised inside the try block is logged
         and re-raised.
         """
         with patch("os.path.isfile", side_effect=Exception("Mocked Exception Error")):
@@ -138,11 +141,11 @@ class TestBedFileExists:
                                                   "Mocked Exception Error")
 
 
-
 class TestsReadBedFile:
     '''
     Tests for the function which reads bed files.
     '''
+
     def test_read_bed_file(self):
         """
         Test read_bed_file to ensure it parses BED files correctly.
@@ -238,7 +241,8 @@ class TestsCompareBedFunction:
             f.write("13\t48877886\t48878185\tRB1_NM_000321.3_exon1\n")
             f.write("13\t48881415\t48881542\tRB1_NM_000321.3_exon2\n")
             f.write("13\t48916734\t48916850\tRB1_NM_000321.3_exon3\n")
-            f.write("13\t48919500\t48919600\tRB1_NM_000321.3_exon5\n") # Different
+            # Different
+            f.write("13\t48919500\t48919600\tRB1_NM_000321.3_exon5\n")
 
         yield file1_path, file2_path
 
@@ -248,10 +252,9 @@ class TestsCompareBedFunction:
         if file2_path.exists():
             file2_path.unlink()
 
-
     def test_compare_bed_files(self, temp_bed_files):
         """
-        Test the `compare_bed_files` function to ensure the differences 
+        Test the `compare_bed_files` function to ensure the differences
         are written correctly.
         """
         # Extract the paths from the fixture
@@ -267,7 +270,7 @@ class TestsCompareBedFunction:
 
         # Ensure that the output file is created
         assert expected_output_file.exists(), \
-              f"Expected output file {expected_output_file} was not created."
+            f"Expected output file {expected_output_file} was not created."
 
         # Check the content of the output file
         with open(expected_output_file, 'r', encoding='utf-8') as f:
@@ -281,7 +284,6 @@ class TestsCompareBedFunction:
 
         # Clean up the output file after testing
         expected_output_file.unlink(missing_ok=True)
-
 
     @pytest.fixture
     def temp_identical_bed_files(self):
@@ -319,7 +321,6 @@ class TestsCompareBedFunction:
         if file4_path.exists():
             file4_path.unlink()
 
-
     def test_identical_bed_files(self, temp_identical_bed_files):
         """
         Test the comparison function when both BED files are identical.
@@ -348,7 +349,6 @@ class TestsCompareBedFunction:
         # Clean up the output file after testing
         expected_output_file.unlink(missing_ok=True)
 
-
     @pytest.fixture
     def temp_missing_bed_file(self):
         """
@@ -358,10 +358,9 @@ class TestsCompareBedFunction:
         missing_file_path = temp_dir / "missing_file.bed"
         yield missing_file_path
 
-
     def test_missing_bed_file(self, temp_missing_bed_file):
         """
-        Test that the function raises a FileNotFoundError when a BED 
+        Test that the function raises a FileNotFoundError when a BED
         file is missing.
         """
         with pytest.raises(FileNotFoundError):
@@ -378,7 +377,6 @@ class TestsCompareBedFunction:
         non_existent_file2 = Path("tmp/non_existent_file2.bed")
 
         yield non_existent_file1, non_existent_file2
-
 
     @patch("PanelPal.accessories.bedfile_functions.logger")
     def test_file_not_found_error(self, mock_logger):
@@ -440,7 +438,8 @@ class TestsCompareBedFunction:
 
     @patch("os.path.exists",
            side_effect=lambda path: path in ["tmp/file1.bed", "tmp/file2.bed"])
-    @patch("os.makedirs", return_value=None)  # Simulate successful folder creation
+    # Simulate successful folder creation
+    @patch("os.makedirs", return_value=None)
     @patch("PanelPal.accessories.bedfile_functions.logger")
     def test_create_output_folder_success(self, mock_logger, mock_makedirs,
                                           mock_exists, temp_bed_files):
@@ -457,7 +456,7 @@ class TestsCompareBedFunction:
         mock_logger.debug.assert_any_call("Creating output folder: %s",
                                           "bedfile_comparisons")
 
-    @patch("os.path.exists", # file exists, folder does not
+    @patch("os.path.exists",  # file exists, folder does not
            side_effect=lambda path: path in ["tmp/file1.bed", "tmp/file2.bed"])
     @patch("os.makedirs", side_effect=OSError("Permission denied"))
     @patch("PanelPal.accessories.bedfile_functions.logger")
@@ -478,8 +477,8 @@ class TestsCompareBedFunction:
         )
 
         mock_logger.error.assert_any_call(
-                'Error: %s', 'Permission denied'
-            )
+            'Error: %s', 'Permission denied'
+        )
 
 
 class TestBedHeadFunction:
@@ -503,21 +502,26 @@ class TestBedHeadFunction:
         bed_filename = "panel.bed"
 
         # Call the function
-        bed_head(panel_id, panel_version, genome_build, num_genes, bed_filename)
+        bed_head(panel_id, panel_version,
+                 genome_build, num_genes, bed_filename)
 
         # Verify header generation
         date_generated = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        # fmt: off
         expected_header = (
             f"# BED file generated for panel: {panel_id} (Version: {panel_version}). "
             f"Date of creation: {date_generated}.\n"
             f"# Genome build: {genome_build}. Number of genes: {num_genes}.\n"
-            f"# BED file: {bed_filename}\n"
+            f"# BED file: bed_files/{bed_filename}\n"  # Fixed format here
             "# Columns: chrom, chromStart, chromEnd, exon_number|transcript|gene symbol\n"
         )
-        mock_open_file().write.assert_called_once_with(expected_header + "Existing content")
+        # fmt: on
+        mock_open_file().write.assert_called_once_with(
+            expected_header + "Existing content")
 
         # Assert logging
-        mock_logger.info.assert_called_once_with("Header successfully added to %s", bed_filename)
+        mock_logger.info.assert_called_once_with(
+            "Header successfully added to %s", f"bed_files/{bed_filename}")
 
     @patch("PanelPal.accessories.bedfile_functions.open",
            new_callable=mock_open,
@@ -535,26 +539,29 @@ class TestBedHeadFunction:
         bed_filename = "panel_merged.bed"
 
         # Call the function
-        bed_head(panel_id, panel_version, genome_build, num_genes, bed_filename)
+        bed_head(panel_id, panel_version,
+                 genome_build, num_genes, bed_filename)
 
         # Verify header generation
         date_generated = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        # fmt: off
         expected_header = (
             f"# Merged BED file generated for panel: {panel_id} (Version: {panel_version}) "
             f"Date of creation: {date_generated}.\n"
             f"# Genome build: {genome_build}. Number of genes: {num_genes}\n"
-            f"# Merged BED file: {bed_filename}\n"
+            f"# Merged BED file: bed_files/{bed_filename}\n"
             "# Columns: chrom, chromStart, chromEnd \n"
             "# Note: for exon and gene details, see the original BED file.\n"
         )
+        # fmt: on
         mock_open_file().write.assert_called_once_with(
             expected_header + "Existing content"
-            )
+        )
 
         # Assert logging
-        mock_logger.info.assert_called_once_with("Header successfully added to %s",
-                                                 bed_filename
-                                                 )
+        mock_logger.info.assert_called_once_with(
+            "Header successfully added to %s", f"bed_files/{bed_filename}"
+        )
 
     @patch("PanelPal.accessories.bedfile_functions.open",
            side_effect=FileNotFoundError("File not found")
@@ -568,7 +575,8 @@ class TestBedHeadFunction:
             bed_head("R207", "4.0", "GRCh38", 100, "nonexistent.bed")
 
         call_args = mock_logger.error.call_args
-        exc_info = call_args[1].get('exc_info', None)  # Access exc_info from kwargs
+        # Access exc_info from kwargs
+        exc_info = call_args[1].get('exc_info', None)
         assert exc_info is True  # Ensure exc_info was passed
         assert "File %s not found" in call_args[0][0]  # Check error message
 
@@ -602,7 +610,8 @@ class TestBedHeadFunction:
 
         # Check that the exception was logged with the expected message
         call_args = mock_logger.error.call_args
-        exc_info = call_args[1].get('exc_info', None)  # Access exc_info from kwargs
+        # Access exc_info from kwargs
+        exc_info = call_args[1].get('exc_info', None)
         assert exc_info is True  # Ensure exc_info=True was passed
         assert "IOError while processing %s" in call_args[0][0]
 
@@ -619,6 +628,7 @@ class TestBedHeadFunction:
 
         # Check that the exception was logged with the expected message
         call_args = mock_logger.error.call_args
-        exc_info = call_args[1].get('exc_info', None)  # Access exc_info from kwargs
+        # Access exc_info from kwargs
+        exc_info = call_args[1].get('exc_info', None)
         assert exc_info is True  # Ensure exc_info=True was passed
         assert "Unexpected error while adding header to %s" in call_args[0][0]
