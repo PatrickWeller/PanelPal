@@ -13,17 +13,17 @@ Parameters
     Two version numbers for the panel, in order to compare changes 
     between them (e.g., 1.0 and 2.0). The script determines which 
     version is older based on the numbers provided.
--f, --status_filter : 'green', 'amber', 'all'
+-f, --status_filter : 'green', 'amber', 'red', 'all'
     The option for filtering between keeping just green genes,
     or green and amber, or all genes.
 
 Example
 -------
 Run the following command in the terminal:
-    $ python compare_gene_lists.py -p R123 -v 1.0 2.0
+    $ python compare_gene_lists.py -p R123 -v 1.0 2.0 -f all
 
 This will compare version 1.0 with version 2.0 of the R123 panel and 
-output any genes that have been added or removed.
+output any genes that have been added or removed regardless of gene status.
 """
 
 import argparse
@@ -120,8 +120,12 @@ def main(panel=None, versions=None, status_filter='green'):
         sys.exit(1)
 
     # Get the list of genes for each panel version
-    older_version_genes = get_genes(older_version_json)
-    newer_version_genes = get_genes(newer_version_json)
+    older_version_genes = get_genes(older_version_json, status_filter=status_filter)
+    logger.info("%d %s genes found on panel %s for version %s",
+                len(older_version_genes), status_filter, panel, older_version)
+    newer_version_genes = get_genes(newer_version_json, status_filter=status_filter)
+    logger.info("%d %s genes found on panel %s for version %s",
+                len(newer_version_genes), status_filter, panel, newer_version)
 
     # Compare the 2 versions for removed or added genes
     removed = get_removed_genes(older_version_genes, newer_version_genes)
@@ -179,7 +183,8 @@ def argument_parser():
         '-p', '--panel',
         type=validate_panel,
         help='R number. Include the R',
-        required=True)
+        required=True
+    )
 
     # Add the versions argument for the panel
     parser.add_argument(
@@ -187,14 +192,16 @@ def argument_parser():
         type=float,
         help='Two panel versions. E.g. 1.1 or 69.23',
         nargs=2,
-        required=True)
+        required=True
+    )
 
     # Add the status_filter argument, which is optional for filtering genes of differing status
     parser.add_argument(
         '-f', '--status_filter',
-        choices=["green", "amber", "all"],
+        choices=["green", "amber", "red", "all"],
         help='Filter by gene status. Green only; green and amber; or all',
-        default='green')
+        default='green'
+    )
 
     # Return the name space object for use of the arguments
     return parser.parse_args()
@@ -253,7 +260,7 @@ def is_gene_absent(gene, gene_list):
     -------
     >>> gene = "MYC"
     >>> gene_list = ["BRCA1", "BRCA2", "TP53"]
-    >>> query_gene_against_list(gene, gene_list)
+    >>> is_gene_absent(gene, gene_list)
     True
     """
     return gene not in gene_list

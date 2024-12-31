@@ -331,10 +331,15 @@ def bedtools_merge(panel_name, panel_version, genome_build):
     """
 
     # Define the input and output file names based on parameters
-    bed_file = os.path.join(BED_DIRECTORY, f"{panel_name}_v{
-                            panel_version}_{genome_build}.bed")
-    merged_bed_file = os.path.join(BED_DIRECTORY, f"{panel_name}_v{
-                                   panel_version}_{genome_build}_merged.bed")
+    bed_file = os.path.join(
+        BED_DIRECTORY,
+        f"{panel_name}_v{panel_version}_{genome_build}.bed"
+    )
+
+    merged_bed_file = os.path.join(
+        BED_DIRECTORY,
+        f"{panel_name}_v{panel_version}_{genome_build}_merged.bed"
+    )
 
     # Try running bedtools merge
     try:
