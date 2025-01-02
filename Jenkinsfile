@@ -34,7 +34,7 @@ pipeline {
                     bash -c 'source /usr/share/miniconda/bin/activate'
 
                     # Create or update the Conda environment
-                    conda env create --file env/environment.yaml || conda env update -f env/environment.yml --prune
+                    conda env create --file env/environment.yaml || conda env update -f env/environment.yaml --prune
                     conda activate PanelPal
                 """
             }
