@@ -16,14 +16,19 @@ get_name_version(response)
     Extracts the name, version, and primary key of the panel from the API
     response. Raises PanelAppError if there is an issue parsing the response.
 
-get_genes(response)
+get_genes(response, status_filter)
     Extracts a list of gene symbols from the API response.
+    Filters based on lowest acceptable gene status. E.g. amber = amber and green genes.
     Raises PanelAppError if there is an error parsing the response JSON or
     requests.exceptions.HTTPError if the response contains an error status code.
 
 get_response_old_panel_version(panel_pk, version)
     Fetches the response from the PanelApp API for a specific panel and version.
     Raises PanelAppError if the request fails or returns an error status code.
+
+det_response_gene(hgnc_symbol)
+    Fetches gene-level information from the PanelApp API.
+    Raises PanelAppError if the request fails.
 
 Example Usage
 -------------
@@ -50,6 +55,7 @@ logger = get_logger(__name__)
 
 class PanelAppError(Exception):
     """Custom exception for PanelApp errors."""
+    pass
 
 
 def get_response(panel_id):
@@ -179,7 +185,7 @@ def get_name_version(response):
         raise PanelAppError("Failed to parse panel data.") from e
 
 
-def get_genes(response):
+def get_genes(response, status_filter="green"):
     """
     Extracts a list of gene symbols from the given API response.
 
@@ -187,11 +193,14 @@ def get_genes(response):
     ----------
     response : requests.Response
         The response object returned from the PanelApp API.
+    status_filter : str, optional
+        The lowest gene status that you want to filter by E.g. green, amber, red, all
 
     Returns
     -------
     list
-        A list of HGNC symbols for each gene in the response data.
+        A list of HGNC symbols for each gene in the response data,
+        according to the gene status and above you've specified.
 
     Raises
     ------
@@ -200,6 +209,7 @@ def get_genes(response):
     requests.exceptions.HTTPError
         If the response contains an error status code.
     """
+    status_filter = status_filter.lower()
     try:
         # Raise an exception for any non-2xx HTTP status codes
         response.raise_for_status()
@@ -207,9 +217,39 @@ def get_genes(response):
         # Parse the JSON data from the response
         data = response.json()
 
-        # Extract the gene symbols from the 'genes' key
-        logger.info("Extracting data from JSON")
-        return [gene["gene_data"]["gene_symbol"] for gene in data.get("genes", [])]
+        # If filter = red or all, provide all genes
+        if status_filter in ("red", "all"):
+            logger.info("Extracting red, amber and green genes from JSON")
+            all_genes = [
+                gene["gene_data"]["gene_symbol"]
+                for gene in data.get("genes", [])
+                if gene["confidence_level"] in ("1", "2", "3")
+            ]
+            return all_genes
+
+        # If filter = amber, return all amber and green genes
+        if status_filter == ("amber"):
+            logger.info("Extracting amber and green genes from JSON")
+            amber_green_genes = [
+                gene["gene_data"]["gene_symbol"]
+                for gene in data.get("genes", [])
+                if gene["confidence_level"] in ("2", "3")
+            ]
+            return amber_green_genes
+
+        # If filter = green, return only green genes
+        if status_filter == ("green"):
+            logger.info("Extracting green genes from JSON")
+            green_genes = [
+                gene["gene_data"]["gene_symbol"]
+                for gene in data.get("genes", [])
+                if gene["confidence_level"] == "3"
+            ]
+            return green_genes
+
+        logger.error("Unknown status filter: %s", status_filter)
+        return []
+
 
     except ValueError as e:
         # Log any errors encountered while parsing the JSON data
@@ -278,6 +318,52 @@ def get_response_old_panel_version(panel_pk, version):
         # Log any errors encountered during the request
         logger.error("Error fetching old panel version: %s", e)
         # Raise a custom PanelAppError with a more descriptive message
-        raise PanelAppError(
-            f"Failed to retrieve version {version} of panel {panel_pk}."
-        ) from e
+        raise PanelAppError(f"Failed to retrieve version {version} of panel {panel_pk}.") from e
+
+
+def get_response_gene(hgnc_symbol):
+    """
+    Send a GET request to the PanelApp API to retrieve information about a gene.
+
+    Parameters
+    ----------
+    hgnc_symbol : str
+        The HGNC symbol of the gene to query.
+
+    Returns
+    -------
+    requests.Response
+        The API response object containing the gene information.
+
+    Raises
+    ------
+    PanelAppError
+        If the request fails due to timeout, network issues, or other errors.
+    """
+    url = f"https://panelapp.genomicsengland.co.uk/api/v1/genes/?entity_name={hgnc_symbol}"
+    
+    try:
+        # Send the GET request to the API
+        logger.info("Sending request to Panel App API")
+        response = requests.get(url, timeout=10)
+
+        # Raise an exception for any non-2xx HTTP status codes
+        response.raise_for_status()
+
+        # If the request was successful, return the response object
+        logger.info("Request to Panel App API was successful")
+        return response
+    
+    # Handle errors if the API request times out
+    except requests.exceptions.Timeout as e:
+        # Log error if the API request times out
+        logger.error("Request timed out while fetching data for gene %s", hgnc_symbol)
+        # Raise a custom PanelAppError with a descriptive message
+        raise PanelAppError(f"Timeout: Gene {hgnc_symbol} request exceeded the time limit. Please try again.") from e
+
+    except requests.exceptions.RequestException as e:
+        # Log any errors encountered during the request
+        logger.error("Error fetching data for gene %s: %s", hgnc_symbol, e)
+        # Raise a custom PanelAppError with a more descriptive message
+        raise PanelAppError(f"Failed to retrieve data for gene: {hgnc_symbol}.") from e
+   
