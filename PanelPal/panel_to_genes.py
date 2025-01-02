@@ -55,11 +55,14 @@ def parse_arguments():
     argparse.Namespace
         Parsed arguments.
     """
+
+    # Define the parser
     parser = argparse.ArgumentParser(
         description="Get a list of genes in a panel",
         epilog="Example usage: python gene_to_panels.py --panel_id R207 --panel_version 1.2 "
         "--confidence_status green",
     )
+
     # Define the panel_id argument
     parser.add_argument(
         "-p",
@@ -68,6 +71,8 @@ def parse_arguments():
         required=True,
         help='The ID of the panel, (e.g., "R207").',
     )
+
+    # Define the panel_version argument
     parser.add_argument(
         "-v",
         "--panel_version",
@@ -75,6 +80,8 @@ def parse_arguments():
         required=True,
         help='The version of the panel (e.g., "4.0").',
     )
+
+    # Define the confidence_status argument
     parser.add_argument(
         "--confidence_status",
         type=str,
@@ -85,6 +92,8 @@ def parse_arguments():
             "Defaults to 'green'."
         ),
     )
+
+    # Return the parsed arguments
     return parser.parse_args()
 
 
@@ -99,9 +108,13 @@ def write_genes_to_file(gene_list, output_file):
     output_file : str
         Path to the output file.
     """
+
+    # Write the gene list to the output file
     with open(output_file, "w", encoding="utf-8") as f:
         for gene in gene_list:
             f.write(f"{gene}\n")
+
+    # Log the gene list written to file
     logger.info("Gene list written to file: %s", output_file)
 
 
@@ -111,10 +124,10 @@ def main(panel_id=None, panel_version=None, confidence_status="green"):
     Parameters
     ----------
     panel_id : str, optional
-        The ID of the panel to fetch data for. If not provided, it will 
+        The ID of the panel to fetch data for. If not provided, it will
         be parsed from command line arguments.
     panel_version : str, optional
-        The version of the panel to fetch data for. If not provided, it 
+        The version of the panel to fetch data for. If not provided, it
         will be parsed from command line arguments.
     confidence_status : str, optional
         The confidence status filter for genes. Default is 'green'.
@@ -131,7 +144,7 @@ def main(panel_id=None, panel_version=None, confidence_status="green"):
     Notes
     -----
     This function logs various stages of execution and errors using the logger.
-    It fetches panel data from PanelApp, extracts gene information based on the 
+    It fetches panel data from PanelApp, extracts gene information based on the
     specified confidence status, and writes the gene list to a file.
     """
 
@@ -144,7 +157,7 @@ def main(panel_id=None, panel_version=None, confidence_status="green"):
             panel_version = args.panel_version
             confidence_status = args.confidence_status
 
-        # Log the command executed
+        # Log the commands executed
         logger.info(
             "Command executed: panel-genes --panel_id %s --panel_version %s "
             "--confidence_filter %s",
@@ -199,9 +212,9 @@ def main(panel_id=None, panel_version=None, confidence_status="green"):
             panel_id,
             confidence_status,
         )
-
-        gene_list = panel_app_api_functions.get_genes(panelapp_v_data, confidence_status)
-
+        gene_list = panel_app_api_functions.get_genes(
+            panelapp_v_data, confidence_status
+        )
         logger.info(
             "Gene list extracted successfully for panel_id=%s, panel_version=%s. "
             "Total genes found: %d",
@@ -213,6 +226,8 @@ def main(panel_id=None, panel_version=None, confidence_status="green"):
         # Save gene list to file
         outfile = f"{panel_id}_v{panel_version}_{confidence_status}_genes.tsv"
         write_genes_to_file(gene_list, outfile)
+
+    # Catch and log specific exceptions
     except ValueError as ve:
         logger.error("ValueError: %s", str(ve))
         raise
@@ -222,10 +237,12 @@ def main(panel_id=None, panel_version=None, confidence_status="green"):
     except IOError as ioe:
         logger.error("IOError: %s", str(ioe))
         raise
+
+    # Catch and log any other exceptions
     except Exception as e:
         logger.error("An unexpected error occurred: %s", str(e))
         raise
 
 
-if __name__ == "__main__":  # pragma: no cover
+if __name__ == "__main__":
     main()
