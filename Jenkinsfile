@@ -31,36 +31,38 @@ pipeline {
                     bash miniconda.sh -b -u -p ${CONDA_PATH}
 
                     # Add conda to PATH and then activate it
-                    export PATH=/usr/share/miniconda/bin:$PATH
-                    bash -c 'source ${CONDA_PATH}/etc/profile.d/conda.sh'
+                    source ${CONDA_PATH}/etc/profile.d/conda.sh
+                    conda init bash
 
                     # Create or update the Conda environment
+                    export PATH=/usr/share/miniconda/bin:$PATH
                     conda env create --file env/environment.yaml || conda env update -f env/environment.yaml --prune
-                    {CONDA_PATH}/bin/conda activate ${CONDA_ENV}
+                    pytest test/
+                    conda activate ${CONDA_ENV}
                 """
             }
         }
 
-        stage('Install PanelPal') {
-            steps {
-                // Install the PanelPal package in editable mode
-                sh """
-                #!/usr/bin/env bash
-                bash -c 'source ${CONDA_PATH}/etc/profile.d/conda.sh'
-                {CONDA_PATH}/bin/conda activate ${CONDA_ENV}
-                pip install --upgrade pip
-                pip install .
-                """
-            }
-        }
+        // stage('Install PanelPal') {
+        //     steps {
+        //         // Install the PanelPal package in editable mode
+        //         sh """
+        //         #!/usr/bin/env bash
+        //         source ${CONDA_PATH}/etc/profile.d/conda.sh
+        //         conda activate ${CONDA_ENV}
+        //         pip install --upgrade pip
+        //         pip install .
+        //         """
+        //     }
+        // }
 
         stage('Run Automated Tests') {
             steps {
                 // Activate the Conda environment and run tests
                 sh """
                     #!/usr/bin/env bash
-                    bash -c 'source ${CONDA_PATH}/etc/profile.d/conda.sh'
-                    {CONDA_PATH}/bin/conda activate ${CONDA_ENV}
+                    source ${CONDA_PATH}/etc/profile.d/conda.sh
+                    ${CONDA_PATH}/bin/conda activate ${CONDA_ENV}
                     pytest test/
                 """
             }
