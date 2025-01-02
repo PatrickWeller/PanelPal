@@ -17,7 +17,7 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 git branch: 'issue109', 
-                    url: 'https://github.com/PatrickWeller/PanelPal.git',
+                    url: 'https://github.com/PatrickWeller/PanelPal.git'
             }
         }
 
