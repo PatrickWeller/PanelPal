@@ -29,6 +29,7 @@ dependencies = [
     "responses==0.25.3",
     "pandas==2.2.3",
     "mkdocs==1.6.1",
+    "pytest==8.3.3",
 ]
 
 [tool.setuptools.packages.find]
