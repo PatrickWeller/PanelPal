@@ -46,6 +46,7 @@ pipeline {
                 #!/usr/bin/env bash
                 bash -c 'source /usr/share/miniconda/bin/activate'
                 export PATH=/usr/share/miniconda/bin:$PATH
+                conda init bash
                 conda activate /usr/share/miniconda/envs/PanelPal
                 pip install --upgrade pip
                 pip install .
@@ -59,6 +60,8 @@ pipeline {
                 sh """
                     #!/usr/bin/env bash
                     bash -c 'source /usr/share/miniconda/bin/activate'
+                    export PATH=/usr/share/miniconda/bin:$PATH
+                    conda init bash
                     conda activate /usr/share/miniconda/envs/PanelPal
                     pytest test/
                 """
