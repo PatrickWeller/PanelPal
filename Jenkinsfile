@@ -44,8 +44,10 @@ pipeline {
                 // Install the PanelPal package in editable mode
                 sh """
                 #!/usr/bin/env bash
-                conda run -n PanelPal python pip install --upgrade pip
-                conda run -n PanelPal python pip install .
+                bash -c 'source /usr/share/miniconda/bin/activate'
+                conda activate /usr/share/miniconda/envs/PanelPal
+                pip install --upgrade pip
+                pip install .
                 """
             }
         }
@@ -55,7 +57,9 @@ pipeline {
                 // Activate the Conda environment and run tests
                 sh """
                     #!/usr/bin/env bash
-                    conda run -n PanelPal python pytest test/
+                    bash -c 'source /usr/share/miniconda/bin/activate'
+                    conda activate /usr/share/miniconda/envs/PanelPal
+                    pytest test/
                 """
             }
         }
