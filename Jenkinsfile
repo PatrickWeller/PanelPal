@@ -29,12 +29,14 @@ pipeline {
                     # Install Miniconda
                     curl -sSLo miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
                     bash miniconda.sh -b -u -p ${CONDA_PATH}
+
                     # Add conda to PATH and then activate it
                     export PATH=/usr/share/miniconda/bin:$PATH
-                    bash -c 'source /usr/share/miniconda/bin/activate'
+                    bash -c 'source ${CONDA_PATH}/etc/profile.d/conda.sh
 
                     # Create or update the Conda environment
                     conda env create --file env/environment.yaml || conda env update -f env/environment.yaml --prune
+                    conda activate /usr/share/miniconda/envs/PanelPal
                 """
             }
         }
@@ -44,11 +46,8 @@ pipeline {
                 // Install the PanelPal package in editable mode
                 sh """
                 #!/usr/bin/env bash
-                bash -c 'source /usr/share/miniconda/bin/activate'
-                export PATH=/usr/share/miniconda/bin:$PATH
-                bash -c source ~/.bashrc
-                conda init bash
-                conda activate /usr/share/miniconda/envs/PanelPal
+                bash -c source ${CONDA_PATH}/etc/profile.d/conda.sh
+                conda activate ${CONDA_ENV}
                 pip install --upgrade pip
                 pip install .
                 """
@@ -60,11 +59,8 @@ pipeline {
                 // Activate the Conda environment and run tests
                 sh """
                     #!/usr/bin/env bash
-                    bash -c 'source /usr/share/miniconda/bin/activate'
-                    export PATH=/usr/share/miniconda/bin:$PATH
-                    bash -c source ~/.bashrc
-                    conda init bash
-                    conda activate /usr/share/miniconda/envs/PanelPal
+                    bash -c source ${CONDA_PATH}/etc/profile.d/conda.sh
+                    conda activate ${CONDA_ENV}
                     pytest test/
                 """
             }
