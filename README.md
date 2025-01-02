@@ -99,6 +99,17 @@ python PanelPal/compare_bedfile.py bedfile1.bed bedfile2.bed
 PanelPal compare-bed-files bedfile1.bed bedfile2.bed
 ```
 
+### Generate a gene list for a panel
+To generate a list of genes (in .tsv format) included on a given panel
+```bash
+#Either
+python PanelPal/panel_to_genes.py panel-genes --panel_id R207 --panel_version 2.2 --confidence_status green
+
+#Or
+PanelPal panel-genes --panel_id R207 --panel_version 2.2 --confidence_status green
+```
+
+
 ## Directory structure
 The following structure should be used going foward to keep the project directories tidy and compatible with the project build. This will also resolve issues importing modules going forward. Note: DB directory has been omitted from the tree for now.
 
