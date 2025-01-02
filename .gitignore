@@ -13,5 +13,4 @@ panelpal.db
 *.pyc
 .coverage.*
 .coverage
-.coveragerc
 tmp/

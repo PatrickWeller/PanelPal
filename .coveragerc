@@ -1,0 +1,10 @@
+[run]
+[report]
+omit =
+    */site-packages/*
+    test/*
+    PanelPal/settings.py
+    *__init__.py
+exclude_lines =
+    if __name__ == .__main__.
+    logger.
