@@ -1,4 +1,4 @@
-# Panel-Pal
+# Panel Pal
 
 <img src="images/logo.jpg" width="200" height="227" />
 
