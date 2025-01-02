@@ -9,12 +9,13 @@ If PanelPal is already installed, then run the docker container.
 docker run -it panelpal
 ```
 # Command Line Functions
-The main features of PanelPal are series of python based scripts/functions that can be ran on the command line to obtained information regarding genomic panels.<br>
-
+The main features of PanelPal are series of python based scripts/functions that can be ran on the command line to obtained information regarding genomic panels.
 
 The information returned by PanelPal is retrieved from the PanelApp and VariantValidator APIs and so are up-to-date.<br>
 PanelPal is therefore dependent on both PanelApp and VariantValidator, their servers, and their maintenance and curation.<br>
 PanelPal functions will no longer work if these other sources of data are jeopardised in any way.
+
+PanelPal has functionality for an SQL database where patient information and bed files are linked. Note that the first time a command is run from PanelPal, an empty database will be generated in the background too. 
 
 #### Help:
 Calling a function without specifying any arguments on the command line will produce a usage message showing the available flags for that command.<br>
