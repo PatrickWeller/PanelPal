@@ -29,7 +29,7 @@ pipeline {
                     #!/bin/bash
                     # Install Miniconda
                     curl -sSLo miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
-                    bash miniconda.sh -b -p -u ${CONDA_PATH}
+                    bash miniconda.sh -b -u -p ${CONDA_PATH}
                     source ${CONDA_PATH}/bin/activate
                     conda init bash
 
