@@ -35,6 +35,7 @@ pipeline {
 
                     # Create or update the Conda environment
                     conda env create --file env/environment.yaml || conda env update -f env/environment.yml --prune
+                    conda activate PanelPal
                 """
             }
         }
