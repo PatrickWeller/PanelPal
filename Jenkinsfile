@@ -7,10 +7,18 @@ pipeline {
     }
 
     stages {
+    //     stage('Checkout Code') {
+    //         steps {
+    //             // Checkout the repository code
+    //             git 'https://github.com/PatrickWeller/PanelPal.git'
+    //         }
+    //     }
+
         stage('Checkout Code') {
             steps {
-                // Checkout the repository code
-                git 'https://github.com/PatrickWeller/PanelPal.git'
+                git branch: 'issue109', 
+                    url: 'https://github.com/PatrickWeller/PanelPal.git', 
+                    credentialsId: 'github-pat'
             }
         }
 
