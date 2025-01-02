@@ -10,6 +10,15 @@ docker run -it panelpal
 ```
 # Command Line Functions
 
+Calling a function without specifying any arguments on the command line will produce a usage message showing the available flags for that command.<br>
+An error message stating which arguments are required will also be printed.<br>
+E.g.
+```bash
+(base)~/Documents/PanelPal$ PanelPal check-panel
+usage: PanelPal check-panel [-h] --panel_id PANEL_ID
+PanelPal check-panel: error: the following arguments are required: --panel_id
+```
+
 ## Check Panel
 To check and retrieve panel information from the PanelApp API:
 
@@ -26,9 +35,29 @@ Panel ID: R207
 Clinical Indication: Inherited ovarian cancer (without breast cancer)
 Latest Version: 4.3
 ```
+##  Generate a gene list for a panel
+To generate a list of genes (in .tsv format) included on a given panel
+```bash
+#Either
+python PanelPal/panel_to_genes.py --panel_id R207 --panel_version 2.2 --confidence_status green
+
+#Or
+PanelPal panel-genes --panel_id R207 --panel_version 2.2 --confidence_status green
+```
+#### Output: R207_v2.2_green_genes.tsv
+```
+BRCA1
+BRCA2
+BRIP1
+MLH1
+MSH2
+MSH6
+RAD51C
+RAD51D
+```
 
 ## Get panels containing a given gene
-To generate a list of panels containing a specific gene (e.g. BRCA1):
+To generate a list of current panels containing a specific gene (e.g. BRCA1):
 
 ```bash
 #Either
@@ -125,3 +154,5 @@ Entry                                                       Comment
 16_67082202_67082318_exon5|NM_022845.3|CBFB                 # Present in R415_v1.6_GRCh38.bed only
 16_67098699_67101068_exon6|NM_022845.3|CBFB                 # Present in R415_v1.6_GRCh38.bed only
 ```
+
+# Database
