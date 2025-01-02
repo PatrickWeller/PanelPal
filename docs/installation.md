@@ -49,7 +49,7 @@ This message also tells you the version number of PanelPal.
 
 For peace of mind you can check that the functional and unit tests all pass.
 
-Run the following:
+Pytest is installed as a requirement for this purpose. Therefore, you can simply run the following:
 ```
 pytest
 ```
