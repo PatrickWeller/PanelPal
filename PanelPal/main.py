@@ -25,6 +25,16 @@ The script offers several primary subcommands:
     It takes two BED files as input and writes the differences to an output file within the
     'bedfile_comparisons' directory.
 
+5. **gene-panels**:
+    This subcommand lists panels containing a given gene.
+    It requires the HGNC symbol of the gene to query.
+    Users can filter panels by confidence status and include panels without R codes.
+
+6. **panel-genes**:
+    This subcommand lists genes in a panel.
+    It requires the panel ID and version.
+    Users can filter genes by confidence status (default is 'green').
+
 Parameters
 ----------
 None (this is an entry point for the script, which processes commands and arguments via argparse).
@@ -34,6 +44,9 @@ Subcommands
 - **check-panel**: Check panel information for a given panel ID.
 - **generate-bed**: Generate a BED file for a genomic panel.
 - **compare-panel-versions**: Compare two versions of a genomic panel.
+- **compare-bed-files**: Compare two BED files and find the differences between them.
+- **gene-panels**: List panels containing a given gene.
+- **panel-genes**: List genes in a panel.
 
 Examples
 --------
@@ -46,6 +59,16 @@ To generate a BED file for a specific panel, version, and genome build:
 
 To query the gene differences between two versions of a panel:
     $ PanelPal compare-panel-versions --panel R21 --versions 1.0 2.2 --status_filter green
+
+To compare two BED files and identify the differences:
+    $ PanelPal compare-bed-files file1.bed file2.bed
+
+To list panels containing a specific gene:
+    $ PanelPal gene-panels --hgnc_symbol BRCA1 --confidence_status green --show_all_panels
+
+To list genes in a specific panel:
+    $ PanelPal panel-genes --panel_id R207 --panel_version 1.2 --confidence_status green
+
 """
 import sys
 import argparse

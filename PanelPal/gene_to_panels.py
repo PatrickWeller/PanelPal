@@ -359,7 +359,7 @@ def display_panels(hgnc_symbol, panels_with_r_codes):
         print(f"{panel_id:<15}{r_code:<15}{panel_name:<75}{status}")
 
 
-def main(hgnc_symbol=None, confidence_status="green", show_all_panels=False): # pragma: no cover
+def main(hgnc_symbol=None, confidence_status="green", show_all_panels=False):
     """
     Main function to query PanelApp for gene information and display associated panels.
 
@@ -425,10 +425,10 @@ def main(hgnc_symbol=None, confidence_status="green", show_all_panels=False): # 
         write_panels(hgnc_symbol, confidence_status, panels_with_r_codes)
 
     # Handle exceptions
-    except requests.RequestException as e:
+    except requests.RequestException as e: # pragma: no cover
         logger.error("Error querying the API: %s", e)
         print(f"Error querying the API: {e}")
-    except KeyError as ke:
+    except KeyError as ke: # pragma: no cover
         logger.error("Key error: %s", ke)
         print(f"Key error: {ke}")
         print(ke)
