@@ -176,11 +176,11 @@ def main(panel_id=None, panel_version=None, genome_build=None, status_filter='gr
         logger.error(
             "Invalid panel_id '%s'. Panel ID must start with 'R' followed "
             "by digits (e.g., 'R207').", panel_id
-            )
+        )
         raise ValueError(
             f"Invalid panel_id '{args.panel_id}'. Panel ID must start with "
             "'R' followed by digits (e.g., 'R207')."
-            )
+        )
 
     logger.info(
         "Command executed: generate-bed --panel_id %s, --panel_version %s "
@@ -198,11 +198,11 @@ def main(panel_id=None, panel_version=None, genome_build=None, status_filter='gr
             panel_id,
             panel_version,
             genome_build,
-            )
+        )
         print(
             f"PROCESS STOPPED: A BED file for the panel '{panel_id}' "
             f"(version {panel_version}, build {genome_build}) already exists."
-            )
+        )
         return
 
     logger.debug("No existing BED file found. Proceeding with generation.")
@@ -267,7 +267,7 @@ def main(panel_id=None, panel_version=None, genome_build=None, status_filter='gr
         logger.debug("Requesting panel data for panel_pk=%s, panel_version=%s",
                      panel_pk, panel_version)
         panelapp_v_data = panel_app_api_functions.get_response_old_panel_version(
-            panel_pk,panel_version)
+            panel_pk, panel_version)
         logger.info("Panel data fetched successfully for panel_id=%s, panel_pk=%s,"
                     "panel_version=%s",
                     panel_id, panel_pk,
@@ -275,8 +275,9 @@ def main(panel_id=None, panel_version=None, genome_build=None, status_filter='gr
 
         # Extract the list of genes from the panel data
         logger.debug("Extracting gene list from panel data for panel_id=%s, status_filter=%s",
-                    panel_id, status_filter)
-        gene_list = panel_app_api_functions.get_genes(panelapp_v_data, status_filter)
+                     panel_id, status_filter)
+        gene_list = panel_app_api_functions.get_genes(
+            panelapp_v_data, status_filter)
 
         logger.info(
             "Gene list extracted successfully for panel_id=%s, panel_version=%s."
@@ -313,7 +314,7 @@ def main(panel_id=None, panel_version=None, genome_build=None, status_filter='gr
             panel_id, panel_version, genome_build
         )
         logger.info("Bedtools merge completed successfully for panel_id=%s",
-                    panel_id) # pragma: no cover
+                    panel_id)  # pragma: no cover
 
         # Add headers to both the original and merged BED files
         num_genes = len(gene_list)
@@ -323,7 +324,8 @@ def main(panel_id=None, panel_version=None, genome_build=None, status_filter='gr
         bed_head(panel_id, panel_version, genome_build, num_genes, merged_bed_name)
 
         # Log completion of the process
-        logger.info("Process completed successfully for panel_id=%s", panel_id) # pragma: no cover
+        logger.info("Process completed successfully for panel_id=%s",
+                    panel_id)  # pragma: no cover
 
     except Exception as e:
         # Reraise the exception after logging it for further handling if needed
@@ -336,5 +338,5 @@ def main(panel_id=None, panel_version=None, genome_build=None, status_filter='gr
         raise
 
 
-if __name__ == "__main__": # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     main()

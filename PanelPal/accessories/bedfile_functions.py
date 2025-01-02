@@ -54,7 +54,7 @@ def bed_file_exists(panel_name, panel_version, genome_build):
         )
     try:
         # Define the expected BED file name
-        output_bed = f"/bed_files/{panel_name}_v{panel_version}_{genome_build}.bed"
+        output_bed = f"{panel_name}_v{panel_version}_{genome_build}.bed"
         logger.debug("Checking existence of BED file: %s", output_bed)
 
         # Check if the file exists

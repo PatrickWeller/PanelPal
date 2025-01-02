@@ -208,7 +208,6 @@ def main():
         help="Filter by gene status. Green only; green and amber; or red / all",
     )
 
-    
     # Subcommand: compare-bed-files
     parser_bed_files = subparsers.add_parser(
         "compare-bed-files",
@@ -224,7 +223,7 @@ def main():
         type=str,
         help="Path to the second BED file.",
     )
-    
+
     args = parser.parse_args()
 
     if not args.command:

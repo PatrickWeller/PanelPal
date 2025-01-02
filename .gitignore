@@ -5,8 +5,6 @@ PanelPal/app.log
 PanelPal/accessories/__pycache__/
 PanelPal/__pycache__/
 test/__pycache__/
-test/db_tests/__pycache__/
-test/db_tests/.pytest_cache/
 __pycache__/
 DB/__pycache__/
 panelpal.db
@@ -15,3 +13,4 @@ panelpal.db
 *.pyc
 .coverage.*
 .coverage
+tmp/
