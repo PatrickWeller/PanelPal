@@ -30,8 +30,9 @@ pipeline {
                     # Install Miniconda
                     curl -sSLo miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
                     bash miniconda.sh -b -u -p ${CONDA_PATH}
-                    source ${CONDA_PATH}/bin/activate
-                    conda init bash
+                     # Add conda to PATH and then activate it
+                    export PATH=/usr/share/miniconda/bin:$PATH
+                    bash -c 'source /usr/share/miniconda/bin/activate'
 
                     # Create or update the Conda environment
                     conda env create --file env/environment.yaml || conda env update -f env/environment.yml --prune
