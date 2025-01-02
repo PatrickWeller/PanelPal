@@ -36,8 +36,7 @@ pipeline {
 
                     # Create or update the Conda environment
                     conda env create --file env/environment.yaml || conda env update -f env/environment.yaml --prune
-                    conda init bash
-                    conda activate /usr/share/miniconda/envs/PanelPal
+                    {CONDA_PATH}/bin/conda activate ${CONDA_ENV}
                 """
             }
         }
@@ -48,7 +47,7 @@ pipeline {
                 sh """
                 #!/usr/bin/env bash
                 bash -c 'source ${CONDA_PATH}/etc/profile.d/conda.sh'
-                conda activate ${CONDA_ENV}
+                {CONDA_PATH}/bin/conda activate ${CONDA_ENV}
                 pip install --upgrade pip
                 pip install .
                 """
@@ -61,7 +60,7 @@ pipeline {
                 sh """
                     #!/usr/bin/env bash
                     bash -c 'source ${CONDA_PATH}/etc/profile.d/conda.sh'
-                    conda activate ${CONDA_ENV}
+                    {CONDA_PATH}/bin/conda activate ${CONDA_ENV}
                     pytest test/
                 """
             }
