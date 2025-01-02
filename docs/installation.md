@@ -13,6 +13,8 @@ sudo apt update
 sudo apt install docker.io
 docker --version
 ```
+#### SQL:
+A working knowledge of SQL and SQL queries could be required to interact with PanelPal's integrated database in ways not specified in this documentation.
 
 ## Installation
 
