@@ -4,7 +4,6 @@ pipeline {
     environment {
         CONDA_PATH = '/usr/share/miniconda'  // Path to Miniconda
         CONDA_ENV = 'PanelPal'  // Name of the Conda environment
-        GITHUB_CREDENTIALS = 'github-pass'
     }
 
     stages {
@@ -19,7 +18,6 @@ pipeline {
             steps {
                 git branch: 'issue109', 
                     url: 'https://github.com/PatrickWeller/PanelPal.git',
-                    credentialsId: env.GITHUB_CREDENTIALS
             }
         }
 
