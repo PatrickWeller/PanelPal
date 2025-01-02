@@ -56,6 +56,7 @@ from .gene_to_panels import main as gene_to_panels_main
 from .compare_panel_versions import main as compare_panel_versions_main
 from .compare_panel_versions import validate_panel
 from .compare_bedfiles import main as compare_bed_files_main
+from .panel_to_genes import main as panel_to_genes_main
 
 
 def print_help():
@@ -82,7 +83,10 @@ Available Commands:
                             Example: PanelPal gene-panels --hgnc_symbol BRCA1 --confidence_status green --show_all_panels
     
     compare-bed-files       Compare two BED files and find the differences between them.
-                            Example: PanelPal compare-bed-files file1.bed file2.bed 
+                            Example: PanelPal compare-bed-files file1.bed file2.bed
+
+    panel-genes             List genes in a panel. Requires the panel ID and version.
+                            Default confidence status is 'green'. Optional arguments include 'confidence_status'
 
     --help, -h              Prints this help message
     """
@@ -198,7 +202,6 @@ def main():
         help="Filter by gene status. Green only; green and amber; or red / all",
     )
 
-    
     # Subcommand: compare-bed-files
     parser_bed_files = subparsers.add_parser(
         "compare-bed-files",
@@ -214,7 +217,36 @@ def main():
         type=str,
         help="Path to the second BED file.",
     )
+
+    # Subcommand: panel-genes
+    parser_panel_genes = subparsers.add_parser(
+        "panel-genes",
+        help="List genes in a panel",
+    )
+    parser_panel_genes.add_argument(
+        "--panel_id",
+        type=str,
+        required=True,
+        help='The ID of the panel, (e.g., "R207").',
+    )
+    parser_panel_genes.add_argument(
+        "--panel_version",
+        type=float,
+        required=True,
+        help='The version of the panel (e.g., "4.0").',
+    )
+    parser_panel_genes.add_argument(
+        "--confidence_status",
+        type=str,
+        default="green",
+        choices=["red", "amber", "green", "all"],
+        help=(
+            "Filter panels by confidence status. Choices are 'green', 'amber', or 'red'. "
+            "Defaults to 'green'."
+        ),
+    )
     
+    # Parse the arguments
     args = parser.parse_args()
 
     if not args.command:
@@ -245,6 +277,8 @@ def main():
         )
     elif args.command == "compare-bed-files":
         compare_bed_files_main(args.file1, args.file2)
+    elif args.command == "panel-genes":
+        panel_to_genes_main(args.panel_id, args.panel_version, args.confidence_status)
     else:
         print_help()
 
