@@ -26,6 +26,7 @@ pipeline {
             steps {
                 // Install Miniconda and create the Conda environment
                 sh """
+                    #!/bin/bash
                     # Install Miniconda
                     curl -sSLo miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
                     bash miniconda.sh -b -p ${CONDA_PATH}
@@ -49,6 +50,7 @@ pipeline {
             steps {
                 // Activate the Conda environment and run tests
                 sh """
+                    #!/bin/bash
                     source ${CONDA_PATH}/bin/activate
                     conda activate ${CONDA_ENV}
                     pytest test/
