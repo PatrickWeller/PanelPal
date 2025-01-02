@@ -35,8 +35,8 @@ pipeline {
 
                     # Create or update the Conda environment
                     conda env create --file env/environment.yaml || conda env update -f env/environment.yaml --prune
-                    source /usr/share/miniconda/etc/profile.d/conda.sh
-                    conda activate /usr/share/miniconda/envs/PanelPal
+                    // source /usr/share/miniconda/etc/profile.d/conda.sh
+                    // conda activate /usr/share/miniconda/envs/PanelPal
                 """
             }
         }
@@ -45,8 +45,9 @@ pipeline {
             steps {
                 // Install the PanelPal package in editable mode
                 sh """
-                    pip install --upgrade pip
-                    pip install .
+                #!/usr/bin/env bash
+                conda run -n PanelPal python pip install --upgrade pip
+                conda run -n PanelPal python pip install .
                 """
             }
         }
@@ -56,9 +57,7 @@ pipeline {
                 // Activate the Conda environment and run tests
                 sh """
                     #!/usr/bin/env bash
-                    source ${CONDA_PATH}/bin/activate
-                    conda activate ${CONDA_ENV}
-                    pytest test/
+                    conda run -n PanelPal python pytest test/
                 """
             }
         }
