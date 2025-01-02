@@ -35,9 +35,8 @@ pipeline {
 
                     # Create or update the Conda environment
                     conda env create --file env/environment.yaml || conda env update -f env/environment.yaml --prune
-                    source /usr/share/miniconda/bin/conda init bash
-                    source ~/.bashrc  # Reload the shell configuration after 'conda init'
-                    conda activate base
+                    source /usr/share/miniconda/etc/profile.d/conda.sh
+                    conda activate /usr/share/miniconda/envs/PanelPal
                 """
             }
         }
