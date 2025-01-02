@@ -32,7 +32,7 @@ pipeline {
 
                     # Add conda to PATH and then activate it
                     export PATH=/usr/share/miniconda/bin:$PATH
-                    bash -c 'source ${CONDA_PATH}/etc/profile.d/conda.sh
+                    bash -c 'source ${CONDA_PATH}/etc/profile.d/conda.sh'
 
                     # Create or update the Conda environment
                     conda env create --file env/environment.yaml || conda env update -f env/environment.yaml --prune
@@ -46,7 +46,7 @@ pipeline {
                 // Install the PanelPal package in editable mode
                 sh """
                 #!/usr/bin/env bash
-                bash -c source ${CONDA_PATH}/etc/profile.d/conda.sh
+                bash -c 'source ${CONDA_PATH}/etc/profile.d/conda.sh'
                 conda activate ${CONDA_ENV}
                 pip install --upgrade pip
                 pip install .
@@ -59,7 +59,7 @@ pipeline {
                 // Activate the Conda environment and run tests
                 sh """
                     #!/usr/bin/env bash
-                    bash -c source ${CONDA_PATH}/etc/profile.d/conda.sh
+                    bash -c 'source ${CONDA_PATH}/etc/profile.d/conda.sh'
                     conda activate ${CONDA_ENV}
                     pytest test/
                 """
