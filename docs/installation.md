@@ -18,26 +18,26 @@ docker --version
 
 #### 1. Clone or download this repository:
 
-   ```bash
+   ```
    git clone https://github.com/PatrickWeller/PanelPal.git
    ```
 
 #### 2. Build the docker image:
 This can take a few minutes.
 
-```bash
+```
 cd PanelPal
 docker build -t panelpal .
 ```
 #### 3. Run the docker container:
 
-```bash
+```
 docker run -it panelpal
 ```
 
 #### 4. Test PanelPal is installed:
 
-```bash
+```
 PanelPal
 ```
 This will provide you will the help message for PanelPal which explains the usage of each command.<br>

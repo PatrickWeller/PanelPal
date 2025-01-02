@@ -109,10 +109,10 @@ To compare the content of two bed files:
 
 ```bash
 #Either
-python PanelPal/compare_bedfile.py bedfile1.bed bedfile2.bed
+python PanelPal/compare_bedfile.py R415_v1.0_GRCh38.bed R415_v1.6_GRCh38.bed
 
 #Or
-PanelPal compare-bed-files bedfile1.bed bedfile2.bed
+PanelPal compare-bed-files R415_v1.0_GRCh38.bed R415_v1.6_GRCh38.bed
 ```
 #### Output: bedfile_comparisons/comparisons_R415_V1.0_GRCh38.bed_R415_V1.6_GRCh38.bed.txt
 ```
