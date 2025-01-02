@@ -29,13 +29,15 @@ pipeline {
                     # Install Miniconda
                     curl -sSLo miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
                     bash miniconda.sh -b -u -p ${CONDA_PATH}
-                     # Add conda to PATH and then activate it
+                    # Add conda to PATH and then activate it
                     export PATH=/usr/share/miniconda/bin:$PATH
                     bash -c 'source /usr/share/miniconda/bin/activate'
 
                     # Create or update the Conda environment
                     conda env create --file env/environment.yaml || conda env update -f env/environment.yaml --prune
-                    conda activate PanelPal
+                    source /usr/share/miniconda/bin/conda init bash
+                    source ~/.bashrc  # Reload the shell configuration after 'conda init'
+                    conda activate base
                 """
             }
         }
@@ -43,7 +45,10 @@ pipeline {
         stage('Install PanelPal') {
             steps {
                 // Install the PanelPal package in editable mode
-                sh 'pip install .'
+                sh """
+                    pip install --upgrade pip
+                    pip install .
+                """
             }
         }
 
