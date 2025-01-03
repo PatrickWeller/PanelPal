@@ -1,6 +1,6 @@
 # Technical Manual
 
-This is the technical manual for PanelPal. The intended audience is bioinformaticians or software developers with technical knowledge and experience of python that may wish to:
+This is the technical manual for PanelPal. The intended audience is bioinformaticians or software developers with technical knowledge and experience of python that may wish to:<br>
 - Better understand the source code behind PanelPal.
 - Tweak the source code of PanelPal for their own customisation.
 - Contribute to making PanelPal a better product for all users. 
