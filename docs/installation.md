@@ -57,5 +57,5 @@ Available Commands:
 #### 5. Start using PanelPal
 Congratulations, PanelPal has been installed successfully and you can now start implementing the National Test Directory for Rare Disease for your NGS Tests.
 
-Please refer to the [user manual](user_manual.md) for instructions on how to use PanelPal.
+Please refer to the [User Manual](https://panel-pal.readthedocs.io/en/latest/user_manual/) for instructions on how to use PanelPal.
 
