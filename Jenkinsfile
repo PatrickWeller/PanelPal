@@ -7,7 +7,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 // Clone the repository
-                git branch: 'issue109_docker', url: 'https://github.com/PatrickWeller/PanelPal.git'
+                git url: 'https://github.com/PatrickWeller/PanelPal.git'
             }
         }
         stage('Build Docker Image') {
