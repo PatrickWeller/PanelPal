@@ -1,9 +1,9 @@
 # PanelPal
 <img src="assets/logo.jpg" width="200" height="227" />
 
-**Note: This piece of software is in development as a university project and as yet is not a fully functioning or tested product. Use of this software is at your own risk.**
+**Notice: This piece of software is in development as a university project and as yet is not a fully functioning or tested product. Additionally, ongoing maintenance and contributions to this code by the original developers will cease after 07/01/2025. Use of this software is at your own risk.**
 
-PanelPal is a python package of command line tools for helping UK labs implement the National Test Directory for rare disease. It uses API queries to get up-to-date information regarding NGS panels for germline disease.
+PanelPal is a python package of command line tools aimed at NHS labs to help them implement the National Genomic Test Directory for Rare Disease for their NGS tests. It uses API queries to get up-to-date information regarding NGS panels for germline disease. Panels can be applied to patients during bedfile generation for a panel, and thus the patient can be added as an entry to an SQL database.
 
 
 ## Overview of Features
@@ -19,9 +19,10 @@ PanelPal is a python package of command line tools for helping UK labs implement
 
 
 ## Quick Start
-1. [Installation Guide](docs/installation.md)
-2. [User Manual](docs/user_manual.md)
-3. [Technical Manual](docs/technical_manual.md)
+1. [Index](docs/index.md)
+2. [Installation Guide](docs/installation.md)
+3. [User Manual](docs/user_manual.md)
+4. [Technical Manual](docs/technical_manual.md)
 
 
 ## License
