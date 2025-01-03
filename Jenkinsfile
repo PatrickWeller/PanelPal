@@ -1,82 +1,88 @@
 pipeline {
-    agent any // This specifies that the pipeline can run on any available agent.
+    agent {
+        // Docker image with Conda pre-installed
+        docker {
+            image 'continuumio/miniconda3'
+            args '-v /tmp:/tmp'
+        }
+    }
 
     environment {
-        CONDA_PATH = '/usr/share/miniconda'  // Path to Miniconda
         CONDA_ENV = 'PanelPal'  // Name of the Conda environment
+        REPO_URL = "https://github.com/PatrickWeller/PanelPal.git"
+        GIT_BRANCH = "issue109"
     }
 
     stages {
-    //     stage('Checkout Code') {
-    //         steps {
-    //             // Checkout the repository code
-    //             git 'https://github.com/PatrickWeller/PanelPal.git'
-    //         }
-    //     }
-
         stage('Checkout Code') {
             steps {
-                git branch: 'issue109', 
-                    url: 'https://github.com/PatrickWeller/PanelPal.git'
+                git branch: "${GIT_BRANCH}", 
+                    url: "${REPO_URL}"
             }
         }
 
-        stage('Set up Conda and Create Environment') {
+        stage('Setup Conda Environment') {
             steps {
-                // Install Miniconda and create the Conda environment
-                sh """
-                    #!/usr/bin/env bash
-                    # Install Miniconda
-                    curl -sSLo miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
-                    bash miniconda.sh -b -u -p ${CONDA_PATH}
-
-                    # Add conda to PATH and then activate it
-                    source ${CONDA_PATH}/etc/profile.d/conda.sh
-                    conda init bash
-
-                    # Create or update the Conda environment
-                    export PATH=/usr/share/miniconda/bin:$PATH
-                    conda env create --file env/environment.yaml || conda env update -f env/environment.yaml --prune
-                    pytest test/
-                    conda activate ${CONDA_ENV}
-                """
+                script {
+                    // Create and activate the Conda environment from environment.yaml
+                    sh """
+                        conda env create -f environment.yaml -n ${CONDA_ENV_NAME} || conda env update -f environment.yaml -n ${CONDA_ENV_NAME}
+                    """
+                }
             }
         }
-
-        // stage('Install PanelPal') {
-        //     steps {
-        //         // Install the PanelPal package in editable mode
-        //         sh """
-        //         #!/usr/bin/env bash
-        //         source ${CONDA_PATH}/etc/profile.d/conda.sh
-        //         conda activate ${CONDA_ENV}
-        //         pip install --upgrade pip
-        //         pip install .
-        //         """
-        //     }
-        // }
-
-        stage('Run Automated Tests') {
+        stage('Build Docker Image') {
             steps {
-                // Activate the Conda environment and run tests
-                sh """
-                    #!/usr/bin/env bash
-                    source ${CONDA_PATH}/etc/profile.d/conda.sh
-                    ${CONDA_PATH}/bin/conda activate ${CONDA_ENV}
-                    pytest test/
-                """
+                script {
+                    // Build the Docker image for PanelPal
+                    sh """
+                        docker build -t panelpal .
+                    """
+                }
+            }
+        }
+        stage('Activate Conda Environment and Install Dependencies') {
+            steps {
+                script {
+                    // Activate Conda environment and install the package
+                    sh """
+                        . /opt/conda/etc/profile.d/conda.sh
+                        conda activate ${CONDA_ENV_NAME}
+                        pip install .
+                    """
+                }
+            }
+        }
+        stage('Run Tests') {
+            steps {
+                script {
+                    // Run Pytest in the activated environment
+                    sh """
+                        . /opt/conda/etc/profile.d/conda.sh
+                        conda activate ${CONDA_ENV_NAME}
+                        pytest
+                    """
+                }
             }
         }
     }
-
     post {
+        always {
+            echo 'Cleaning up...'
+            script {
+                // Deactivate and remove the environment
+                sh """
+                    . /opt/conda/etc/profile.d/conda.sh
+                    conda deactivate || true
+                    conda env remove -n ${CONDA_ENV_NAME} || true
+                """
+            }
+        }
         success {
-            // This block is executed if the pipeline runs successfully.
-            echo 'Pipeline succeeded! Your project is built and tested.'
+            echo 'Pipeline completed successfully!'
         }
         failure {
-            // This block is executed if the pipeline fails.
-            echo 'Pipeline failed. Please check the logs for details.'
+            echo 'Pipeline failed. Check logs for details.'
         }
     }
 }
