@@ -24,8 +24,10 @@ PanelPal is a python package of command line tools aimed at NHS labs to help the
 3. [User Manual](docs/user_manual.md)
 4. [Technical Manual](docs/technical_manual.md)
 
+
 ## Continuous Integration
 Automated unit and functional testing and continuous integration testing have been set up with GitHub Actions (see .github/workflows) and Jenkins CI (See Jenkinsfile).
+
 
 ## License
 
