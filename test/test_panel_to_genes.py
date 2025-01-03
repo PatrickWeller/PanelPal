@@ -1,8 +1,6 @@
 import argparse
 import unittest
 from unittest.mock import patch, MagicMock
-import pytest
-import requests
 from PanelPal.panel_to_genes import parse_arguments, write_genes_to_file, main
 
 class TestPanelToGenes(unittest.TestCase):
