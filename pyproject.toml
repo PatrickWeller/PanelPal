@@ -28,11 +28,12 @@ dependencies = [
     "pytest==8.3.3",
     "responses==0.25.3",
     "pandas==2.2.3",
+    "sqlalchemy==2.0.34",
 ]
 
 [tool.setuptools.packages.find]
-include = ["PanelPal*"]
-exclude = ["tmp*", "DB*", "assets*", "logging*"]
+include = ["PanelPal*", "DB*"]
+exclude = ["tmp*", "assets*", "logging*"]
 
 [project.urls]
 Homepage = "https://github.com/PatrickWeller/PanelPal"
