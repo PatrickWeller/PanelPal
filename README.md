@@ -19,10 +19,10 @@ PanelPal is a python package of command line tools aimed at NHS labs to help the
 
 
 ## Quick Start
-1. [Index](https://panel-pal.readthedocs.io/en/latest/))
-2. [Installation Guide](docs/installation.md)
-3. [User Manual](docs/user_manual.md)
-4. [Technical Manual](docs/technical_manual.md)
+1. [Index](https://panel-pal.readthedocs.io/en/latest/)
+2. [Installation Guide](https://panel-pal.readthedocs.io/en/latest/installation/)
+3. [User Manual](https://panel-pal.readthedocs.io/en/latest/user_manual/)
+4. [Technical Manual](https://panel-pal.readthedocs.io/en/latest/technical_manual/)
 
 
 ## Continuous Integration
