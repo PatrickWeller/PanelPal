@@ -27,7 +27,7 @@ pipeline {
                 script {
                     // Run tests inside the container
                     sh """
-                        docker run --rm ${DOCKER_IMAGE} pytest
+                        docker run --rm ${DOCKER_IMAGE} pytest --cov=PanelPal test/
                     """
                 }
             }
@@ -39,7 +39,7 @@ pipeline {
             echo 'Cleaning up...'
             sh """
                 docker system prune -f
-                
+
                 # Remove the image, suppress errors if not found
                 docker rmi ${DOCKER_IMAGE} || true 
             """

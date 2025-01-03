@@ -129,6 +129,8 @@ The following structure should be used going foward to keep the project director
     ├── __init__.py
     └── test_*.py
 ```
+## Continuous Integration (CI)
+This project uses Jenkins to automate the testing process. The pipeline is defined in the Jenkinsfile.
 
 ## License
 
