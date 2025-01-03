@@ -43,6 +43,19 @@ docker run -it panelpal
 PanelPal
 ```
 This will provide you will the help message for PanelPal which explains the usage of each command.<br>
-This message also tells you the version number of PanelPal.
+This message also tells you the version number of PanelPal. E.g.:
+```
+PanelPal: A toolkit for panelapp queries
+version: 1.0.0 
 
+Available Commands:
+    check-panel             Check panel information for a given panel ID.
+                            Example: PanelPal check-panel --panel_id R59
+...
+```
+
+#### 5. Start using PanelPal
+Congratulations, PanelPal has been installed successfully and you can now start implementing the National Test Directory for Rare Disease for your NGS Tests.
+
+Please refer to the [user manual](docs/user_manual) for instructions on how to use PanelPal.
 
