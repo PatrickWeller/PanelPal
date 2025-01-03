@@ -41,7 +41,7 @@ import time
 import subprocess
 import requests
 from PanelPal.settings import get_logger
-from requests.exceptions import HTTPError, Timeout, RequestException
+from requests.exceptions import HTTPError, Timeout
 
 logger = get_logger(__name__)
 
@@ -53,7 +53,7 @@ if not os.path.exists(BED_DIRECTORY):
 
 
 def get_gene_transcript_data(
-    gene_name, genome_build="GRCh38", max_retries=6, wait_time=2
+    gene_name, genome_build="GRCh38", max_retries=5, wait_time=2
 ):
     """
     Fetches the gene transcript data for a given gene from the Variant Validator API.
@@ -65,7 +65,7 @@ def get_gene_transcript_data(
     genome_build : str, optional
         The genome build to use (default is "GRCh38").
     max_retries : int, optional
-        Max number of retries when rate limit or timeout errors occur (default is 6).
+        Max number of retries when rate limit is exceeded (error 429).
     wait_time : int, optional
         Fixed wait time (in seconds) between requests (default is 2).
 
@@ -76,12 +76,9 @@ def get_gene_transcript_data(
 
     Raises
     ------
-    ValueError
-        If the genome build is not valid (not "GRCh37", "GRCh38", or "all").
-    requests.exceptions.RequestException
-        If the request fails due to an HTTP error (status code not 200), timeout, or other network-related issues.
+    Exception
+        If the request to the API fails (status code not 200).
     """
-
     # Base URL for the Variant Validator API endpoint
     base_url = (
         "https://rest.variantvalidator.org/VariantValidator/tools/gene2transcripts_v2/"
@@ -102,50 +99,43 @@ def get_gene_transcript_data(
 
     retries = 0
 
-    # Helper function that exponentially increases time between retries
-    # (avoid redundancy - used for both rate limiting and timeouts)
-    def handle_retry(exception):
-        """Helper function to handle retry logic."""
-        backoff_time = 2 ** (retries - 1)
-        logger.warning(
-            f"{exception.__class__.__name__} occurred. Retrying in {
-                backoff_time} seconds "
-            f"(Attempt {retries} of {max_retries})."
-        )
-        time.sleep(backoff_time)
-
     while retries < max_retries:
         try:
-            response = requests.get(url, timeout=20)
+            response = requests.get(url, timeout=10)
             response.raise_for_status()  # Raise HTTPError for bad responses
             if response.status_code == 200:
                 return response.json()  # Success case
 
-        except HTTPError as e:
-            if response.status_code == 429:  # Rate limit exceeded
+        except HTTPError:
+            if response.status_code == 429:
                 retries += 1
                 if retries < max_retries:
-                    handle_retry(e)
+                    backoff_time = 2 ** (retries - 1)  # Exponential backoff
+                    logger.warning(
+                        "Rate limit exceeded. Retrying in %d seconds (Attempt %d of %d).",
+                        backoff_time, retries, max_retries,
+                    )
+                    time.sleep(backoff_time)
                     continue
-                else:
-                    logger.error(
-                        "Max retries reached for rate limit. Terminating.")
-            raise
 
-        except Timeout as e:
+                logger.error(
+                    "Max retries reached for rate limit. Terminating.")
+            raise  # Re-raise any other HTTPError or if max retries exceeded
+
+        except Timeout:
             retries += 1
-            if retries < max_retries:
-                handle_retry(e)
-                continue
-            else:
-                logger.error("Max retries reached for timeout. Terminating.")
-            raise
+            if retries <= max_retries:
+                # Increase wait time with each retry
+                wait_time = 10 + 5 * (retries - 1)
+                logger.warning(
+                    "Timeout occurred. Retrying in %d seconds (Attempt %d of %d).",
+                    wait_time, retries, max_retries,
+                )
+                time.sleep(wait_time)  # Wait before retrying
+                continue  # Retry on timeout
 
-        except RequestException as e:
-            logger.error("Request failed: %s", str(e))
-            raise
-
-    raise RequestException(
+    # If max retries are reached for timeouts or rate limits, raise an exception
+    raise requests.exceptions.RequestException(
         f"Max retries reached for {gene_name}. Terminating.")
 
 
@@ -299,7 +289,7 @@ def generate_bed_file(gene_list, panel_name, panel_version, genome_build="GRCh38
                 # log addition of exon data for each gene
                 logger.info("Added exon data for %s to the BED file.", gene)
 
-            except Exception as e:
+            except requests.exceptions.RequestException as e:
                 logger.error("Error processing %s: %s", gene, e)
                 sys.exit(f"Error processing {gene}: {e}")
 
