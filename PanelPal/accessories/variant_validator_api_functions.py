@@ -37,6 +37,7 @@ Example Usage
 """
 import sys
 import os
+import os
 import time
 import subprocess
 import requests
@@ -44,6 +45,12 @@ from PanelPal.settings import get_logger
 from requests.exceptions import HTTPError, Timeout
 
 logger = get_logger(__name__)
+
+# Define directory to store bed files in
+BED_DIRECTORY = "bed_files"
+# Create directory if it doesn't exist
+if not os.path.exists(BED_DIRECTORY):
+    os.makedirs(BED_DIRECTORY)
 
 # Define directory to store bed files in
 BED_DIRECTORY = "bed_files"
@@ -88,6 +95,8 @@ def get_gene_transcript_data(
         logger.error(
             "Genome build %s is not valid input. Please use GRCh37 or GRCh38", genome_build
         )
+        raise ValueError(
+            f"{genome_build} is not a valid genome build. Use GRCh37 or GRCh38.")
         raise ValueError(
             f"{genome_build} is not a valid genome build. Use GRCh37 or GRCh38.")
 
@@ -249,6 +258,8 @@ def generate_bed_file(gene_list, panel_name, panel_version, genome_build="GRCh38
     # Define the name of the output BED file based on the panel name and genome build
     output_file = os.path.join(BED_DIRECTORY, f"{panel_name}_v{
                                panel_version}_{genome_build}.bed")
+    output_file = os.path.join(BED_DIRECTORY, f"{panel_name}_v{
+                               panel_version}_{genome_build}.bed")
     logger.info("Creating BED file: %s", output_file)
 
     # Open the BED file for writing (or create it if it doesn't exist)
@@ -258,6 +269,8 @@ def generate_bed_file(gene_list, panel_name, panel_version, genome_build="GRCh38
 
             try:
                 # Fetch the transcript data for the current gene using the API
+                gene_transcript_data = get_gene_transcript_data(
+                    gene, genome_build)
                 gene_transcript_data = get_gene_transcript_data(
                     gene, genome_build)
 
@@ -275,6 +288,8 @@ def generate_bed_file(gene_list, panel_name, panel_version, genome_build="GRCh38
                     exon["exon_end"] += 10
 
                     # Concatenate exon number, reference, and gene symbol in one column
+                    concat_info = f"{exon['exon_number']}|{
+                        exon['reference']}|{exon['gene_symbol']}"
                     concat_info = f"{exon['exon_number']}|{
                         exon['reference']}|{exon['gene_symbol']}"
 
@@ -345,10 +360,13 @@ def bedtools_merge(panel_name, panel_version, genome_build):
         subprocess.run(merge_command, shell=True, check=True)
         logger.info("Successfully sorted and merged BED file to %s",
                     merged_bed_file)
+        logger.info("Successfully sorted and merged BED file to %s",
+                    merged_bed_file)
 
     # If an error is encountered log the error
     except subprocess.CalledProcessError as e:
         logger.error("Error during bedtools operation: %s", e)
         raise
 
+    return merged_bed_file
     return merged_bed_file
