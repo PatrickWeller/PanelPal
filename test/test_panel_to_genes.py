@@ -2,6 +2,7 @@ import argparse
 import unittest
 from unittest.mock import patch, MagicMock
 import pytest
+import requests
 from PanelPal.panel_to_genes import parse_arguments, write_genes_to_file, main
 
 class TestPanelToGenes(unittest.TestCase):
@@ -113,6 +114,68 @@ class TestPanelToGenes(unittest.TestCase):
             "Command executed: panel-genes --panel_id %s --panel_version %s --confidence_filter %s",
             'R207', 1.2, 'green'
         )
+    
+    @patch('PanelPal.panel_to_genes.is_valid_panel_id')
+    @patch('PanelPal.panel_to_genes.logger')
+    def test_value_error_invalid_panel_id(self, mock_logger, mock_is_valid_panel_id):
+        """
+        Test that ValueError is raised and logged for an invalid panel_id.
+        """
+        # Simulate invalid panel_id
+        mock_is_valid_panel_id.return_value = False
 
+        # Use self.assertRaises to check that ValueError is raised
+        with self.assertRaises(ValueError):
+            main(panel_id='invalid_panel', panel_version=-1)
+
+        # Verify logging of the error messages
+        mock_logger.error.assert_any_call(
+            "Invalid panel_id '%s'. Panel ID must start with 'R' followed "
+            "by digits (e.g., 'R207').", 'invalid_panel'
+        )
+        mock_logger.error.assert_any_call(
+            "ValueError: %s", "Invalid panel_id 'invalid_panel'. Panel ID must start with 'R' followed by digits (e.g., 'R207')."
+        )
+
+    @patch('PanelPal.accessories.panel_app_api_functions.get_response')
+    @patch('PanelPal.accessories.panel_app_api_functions.get_response_old_panel_version')
+    def test_key_error_handling(self, mock_get_response_old_panel_version, mock_get_response):
+        # Mock the API response to simulate a KeyError
+        mock_response = MagicMock()
+        mock_response.json.return_value = {}
+        mock_get_response.return_value = mock_response
+
+        # Simulate KeyError when accessing 'id' in the response
+        mock_get_response_old_panel_version.side_effect = KeyError('id')
+
+        # Use self.assertRaises to check that KeyError is raised
+        with self.assertRaises(KeyError):
+            main(panel_id='R207', panel_version=1.2, confidence_status='green')
+
+    @patch('PanelPal.accessories.panel_app_api_functions.get_response')
+    @patch('PanelPal.accessories.panel_app_api_functions.get_response_old_panel_version')
+    @patch('PanelPal.panel_to_genes.write_genes_to_file')
+    def test_unexpected_error_handling(self, mock_write_genes_to_file, mock_get_response_old_panel_version, mock_get_response):
+        # Mock the API response to simulate normal behavior
+        mock_response = MagicMock()
+        mock_response.json.return_value = {"id": "12345"}
+        mock_get_response.return_value = mock_response
+
+        # Mock the old panel version response to simulate normal behavior
+        mock_old_panel_response = MagicMock()
+        mock_old_panel_response.json.return_value = {"genes": []}
+        mock_get_response_old_panel_version.return_value = mock_old_panel_response
+
+        # Simulate an unexpected error when writing to a file
+        mock_write_genes_to_file.side_effect = Exception('Unexpected error')
+
+        # Ensure that the unexpected error is raised
+        with self.assertRaises(Exception) as context:
+            main(panel_id='R207', panel_version=1.2, confidence_status='green')
+
+        # Check if the raised exception is the unexpected error
+        self.assertEqual(str(context.exception), 'Unexpected error')    
+
+    
 if __name__ == '__main__':
     unittest.main()

@@ -234,9 +234,6 @@ def main(panel_id=None, panel_version=None, confidence_status="green"):
     except KeyError as ke:
         logger.error("KeyError: %s", str(ke))
         raise
-    except IOError as ioe:
-        logger.error("IOError: %s", str(ioe))
-        raise
 
     # Catch and log any other exceptions
     except Exception as e:
