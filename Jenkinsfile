@@ -1,54 +1,21 @@
 pipeline {
-    agent {
-        // Docker image with Conda pre-installed
-        docker {
-            image 'continuumio/miniconda3'
-            args '-v /tmp:/tmp'
-        }
-    }
-
+    agent any
     environment {
-        CONDA_ENV = 'PanelPal'  // Name of the Conda environment
-        REPO_URL = "https://github.com/PatrickWeller/PanelPal.git"
-        GIT_BRANCH = "issue109"
+        DOCKER_IMAGE = "panelpal:latest" // Name of the Docker image
     }
-
     stages {
-        stage('Checkout Code') {
+        stage('Checkout') {
             steps {
-                git branch: "${GIT_BRANCH}", 
-                    url: "${REPO_URL}"
-            }
-        }
-
-        stage('Setup Conda Environment') {
-            steps {
-                script {
-                    // Create and activate the Conda environment from environment.yaml
-                    sh """
-                        conda env create -f environment.yaml -n ${CONDA_ENV_NAME} || conda env update -f environment.yaml -n ${CONDA_ENV_NAME}
-                    """
-                }
+                // Clone the repository
+                git branch: 'issue109', url: 'https://github.com/PatrickWeller/PanelPal.git'
             }
         }
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Build the Docker image for PanelPal
+                    // Build the Docker image using the Dockerfile
                     sh """
-                        docker build -t panelpal .
-                    """
-                }
-            }
-        }
-        stage('Activate Conda Environment and Install Dependencies') {
-            steps {
-                script {
-                    // Activate Conda environment and install the package
-                    sh """
-                        . /opt/conda/etc/profile.d/conda.sh
-                        conda activate ${CONDA_ENV_NAME}
-                        pip install .
+                        docker build -t ${DOCKER_IMAGE} .
                     """
                 }
             }
@@ -56,11 +23,9 @@ pipeline {
         stage('Run Tests') {
             steps {
                 script {
-                    // Run Pytest in the activated environment
+                    // Run tests inside the container
                     sh """
-                        . /opt/conda/etc/profile.d/conda.sh
-                        conda activate ${CONDA_ENV_NAME}
-                        pytest
+                        docker run --rm ${DOCKER_IMAGE} pytest
                     """
                 }
             }
@@ -68,18 +33,10 @@ pipeline {
     }
     post {
         always {
-            echo 'Cleaning up...'
-            script {
-                // Deactivate and remove the environment
-                sh """
-                    . /opt/conda/etc/profile.d/conda.sh
-                    conda deactivate || true
-                    conda env remove -n ${CONDA_ENV_NAME} || true
-                """
-            }
+            echo 'Pipeline completed.'
         }
         success {
-            echo 'Pipeline completed successfully!'
+            echo 'Tests passed successfully!'
         }
         failure {
             echo 'Pipeline failed. Check logs for details.'
