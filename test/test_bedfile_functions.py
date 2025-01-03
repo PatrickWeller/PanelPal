@@ -512,7 +512,7 @@ class TestBedHeadFunction:
             f"# BED file generated for panel: {panel_id} (Version: {panel_version}). "
             f"Date of creation: {date_generated}.\n"
             f"# Genome build: {genome_build}. Number of genes: {num_genes}.\n"
-            f"# BED file: bed_files/{bed_filename}\n"  # Fixed format here
+            f"# BED file: {bed_filename}\n"  # Fixed format here
             "# Columns: chrom, chromStart, chromEnd, exon_number|transcript|gene symbol\n"
         )
         # fmt: on
@@ -521,7 +521,7 @@ class TestBedHeadFunction:
 
         # Assert logging
         mock_logger.info.assert_called_once_with(
-            "Header successfully added to %s", f"bed_files/{bed_filename}")
+            "Header successfully added to %s", f"{bed_filename}")
 
     @patch("PanelPal.accessories.bedfile_functions.open",
            new_callable=mock_open,
@@ -549,7 +549,7 @@ class TestBedHeadFunction:
             f"# Merged BED file generated for panel: {panel_id} (Version: {panel_version}) "
             f"Date of creation: {date_generated}.\n"
             f"# Genome build: {genome_build}. Number of genes: {num_genes}\n"
-            f"# Merged BED file: bed_files/{bed_filename}\n"
+            f"# Merged BED file: {bed_filename}\n"
             "# Columns: chrom, chromStart, chromEnd \n"
             "# Note: for exon and gene details, see the original BED file.\n"
         )
@@ -560,7 +560,7 @@ class TestBedHeadFunction:
 
         # Assert logging
         mock_logger.info.assert_called_once_with(
-            "Header successfully added to %s", f"bed_files/{bed_filename}"
+            "Header successfully added to %s", f"{bed_filename}"
         )
 
     @patch("PanelPal.accessories.bedfile_functions.open",
