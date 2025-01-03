@@ -25,6 +25,16 @@ The script offers several primary subcommands:
     It takes two BED files as input and writes the differences to an output file within the
     'bedfile_comparisons' directory.
 
+5. **gene-panels**:
+    This subcommand lists panels containing a given gene.
+    It requires the HGNC symbol of the gene to query.
+    Users can filter panels by confidence status and include panels without R codes.
+
+6. **panel-genes**:
+    This subcommand lists genes in a panel.
+    It requires the panel ID and version.
+    Users can filter genes by confidence status (default is 'green').
+
 Parameters
 ----------
 None (this is an entry point for the script, which processes commands and arguments via argparse).
@@ -34,6 +44,9 @@ Subcommands
 - **check-panel**: Check panel information for a given panel ID.
 - **generate-bed**: Generate a BED file for a genomic panel.
 - **compare-panel-versions**: Compare two versions of a genomic panel.
+- **compare-bed-files**: Compare two BED files and find the differences between them.
+- **gene-panels**: List panels containing a given gene.
+- **panel-genes**: List genes in a panel.
 
 Examples
 --------
@@ -46,6 +59,16 @@ To generate a BED file for a specific panel, version, and genome build:
 
 To query the gene differences between two versions of a panel:
     $ PanelPal compare-panel-versions --panel R21 --versions 1.0 2.2 --status_filter green
+
+To compare two BED files and identify the differences:
+    $ PanelPal compare-bed-files file1.bed file2.bed
+
+To list panels containing a specific gene:
+    $ PanelPal gene-panels --hgnc_symbol BRCA1 --confidence_status green --show_all_panels
+
+To list genes in a specific panel:
+    $ PanelPal panel-genes --panel_id R207 --panel_version 1.2 --confidence_status green
+
 """
 import sys
 import argparse
@@ -57,6 +80,7 @@ from .compare_panel_versions import main as compare_panel_versions_main
 from .compare_panel_versions import validate_panel
 from DB.panelpal_db import create_database
 from .compare_bedfiles import main as compare_bed_files_main
+from .panel_to_genes import main as panel_to_genes_main
 
 
 def print_help():
@@ -84,7 +108,10 @@ Available Commands:
                             Example: PanelPal gene-panels --hgnc_symbol BRCA1 --confidence_status green --show_all_panels
     
     compare-bed-files       Compare two BED files and find the differences between them.
-                            Example: PanelPal compare-bed-files file1.bed file2.bed 
+                            Example: PanelPal compare-bed-files file1.bed file2.bed
+
+    panel-genes             List genes in a panel. Requires the panel ID and version.
+                            Default confidence status is 'green'. Optional arguments include 'confidence_status'
 
     --help, -h              Prints this help message
 
@@ -224,6 +251,36 @@ def main():
         help="Path to the second BED file.",
     )
 
+
+    # Subcommand: panel-genes
+    parser_panel_genes = subparsers.add_parser(
+        "panel-genes",
+        help="List genes in a panel",
+    )
+    parser_panel_genes.add_argument(
+        "--panel_id",
+        type=str,
+        required=True,
+        help='The ID of the panel, (e.g., "R207").',
+    )
+    parser_panel_genes.add_argument(
+        "--panel_version",
+        type=float,
+        required=True,
+        help='The version of the panel (e.g., "4.0").',
+    )
+    parser_panel_genes.add_argument(
+        "--confidence_status",
+        type=str,
+        default="green",
+        choices=["red", "amber", "green", "all"],
+        help=(
+            "Filter panels by confidence status. Choices are 'green', 'amber', or 'red'. "
+            "Defaults to 'green'."
+        ),
+    )
+    
+    # Parse the arguments
     args = parser.parse_args()
 
     if not args.command:
@@ -254,6 +311,8 @@ def main():
         )
     elif args.command == "compare-bed-files":
         compare_bed_files_main(args.file1, args.file2)
+    elif args.command == "panel-genes":
+        panel_to_genes_main(args.panel_id, args.panel_version, args.confidence_status)
     else:
         print_help()
 
