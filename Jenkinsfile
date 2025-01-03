@@ -15,10 +15,18 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Build the Docker image using the Dockerfile
-                    sh """
-                        docker build -q -t ${DOCKER_IMAGE} .
-                    """
+                    // Check if image exists and if the Dockerfile has changed
+                    def imageExists = sh(script: "docker images -q ${DOCKER_IMAGE}", returnStatus: true) == 0
+                    def dockerfileChanged = sh(script: "git diff --exit-code Dockerfile", returnStatus: true) != 0
+
+                    if (!imageExists || dockerfileChanged) {
+                        // Build the image if necessary
+                        sh """
+                            docker build -q -t ${DOCKER_IMAGE} .
+                        """
+                    } else {
+                        echo "Skipping Docker image build, no changes detected."
+                    }
                 }
             }
         }
