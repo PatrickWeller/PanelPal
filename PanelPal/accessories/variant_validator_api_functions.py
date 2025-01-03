@@ -41,7 +41,7 @@ import time
 import subprocess
 import requests
 from PanelPal.settings import get_logger
-from requests.exceptions import HTTPError
+from requests.exceptions import HTTPError, Timeout, RequestException
 
 logger = get_logger(__name__)
 
@@ -65,7 +65,7 @@ def get_gene_transcript_data(
     genome_build : str, optional
         The genome build to use (default is "GRCh38").
     max_retries : int, optional
-        Max number of retries when rate limit is exceeded (error 429).
+        Max number of retries when rate limit or timeout errors occur (default is 6).
     wait_time : int, optional
         Fixed wait time (in seconds) between requests (default is 2).
 
@@ -76,9 +76,12 @@ def get_gene_transcript_data(
 
     Raises
     ------
-    Exception
-        If the request to the API fails (status code not 200).
+    ValueError
+        If the genome build is not valid (not "GRCh37", "GRCh38", or "all").
+    requests.exceptions.RequestException
+        If the request fails due to an HTTP error (status code not 200), timeout, or other network-related issues.
     """
+
     # Base URL for the Variant Validator API endpoint
     base_url = (
         "https://rest.variantvalidator.org/VariantValidator/tools/gene2transcripts_v2/"
@@ -99,6 +102,18 @@ def get_gene_transcript_data(
 
     retries = 0
 
+    # Helper function that exponentially increases time between retries
+    # (avoid redundancy - used for both rate limiting and timeouts)
+    def handle_retry(exception):
+        """Helper function to handle retry logic."""
+        backoff_time = 2 ** (retries - 1)
+        logger.warning(
+            f"{exception.__class__.__name__} occurred. Retrying in {
+                backoff_time} seconds "
+            f"(Attempt {retries} of {max_retries})."
+        )
+        time.sleep(backoff_time)
+
     while retries < max_retries:
         try:
             response = requests.get(url, timeout=20)
@@ -107,25 +122,30 @@ def get_gene_transcript_data(
                 return response.json()  # Success case
 
         except HTTPError as e:
-            if response.status_code == 429:
+            if response.status_code == 429:  # Rate limit exceeded
                 retries += 1
                 if retries < max_retries:
-                    backoff_time = 2 ** (retries - 1)  # Exponential backoff
-                    logger.warning(
-                        "Rate limit exceeded. Retrying in %d seconds (Attempt %d of %d).",
-                        backoff_time, retries, max_retries,
-                    )
-                    time.sleep(backoff_time)
+                    handle_retry(e)
                     continue
                 else:
                     logger.error(
                         "Max retries reached for rate limit. Terminating.")
-            raise  # Re-raise any other HTTPError or if max retries exceeded
-        except requests.exceptions.RequestException as e:
+            raise
+
+        except Timeout as e:
+            retries += 1
+            if retries < max_retries:
+                handle_retry(e)
+                continue
+            else:
+                logger.error("Max retries reached for timeout. Terminating.")
+            raise
+
+        except RequestException as e:
             logger.error("Request failed: %s", str(e))
             raise
 
-    raise requests.exceptions.RequestException(
+    raise RequestException(
         f"Max retries reached for {gene_name}. Terminating.")
 
 
