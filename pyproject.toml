@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "PanelPal"
-version = "1.0.0"
+version = "2.0.0"
 description = "A tool for managing genomic panels in the National Test Directory"
 authors = [
     { name = "Patrick Weller" },
@@ -28,6 +28,8 @@ dependencies = [
     "pytest==8.3.3",
     "responses==0.25.3",
     "pandas==2.2.3",
+    "mkdocs==1.6.1",
+    "pytest==8.3.3",
     "sqlalchemy==2.0.34",
 ]
 

@@ -88,7 +88,7 @@ def print_help():
     help_message = """
 PanelPal: A toolkit for panelapp queries
 version: 2.0.0 
- 
+
 Available Commands:
     check-panel             Check panel information for a given panel ID.
                             Example: PanelPal check-panel --panel_id R59
