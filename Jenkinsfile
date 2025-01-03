@@ -6,7 +6,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                // Clone the repository
+                // Clone the repository and checkout Jenkinsfile branch
                 git url: 'https://github.com/PatrickWeller/PanelPal.git', 
                 branch: "${env.BRANCH_NAME}"
             }
@@ -35,6 +35,14 @@ pipeline {
     }
     post {
         always {
+            // Clean up Docker images and containers if needed
+            echo 'Cleaning up...'
+            sh """
+                docker system prune -f
+                
+                # Remove the image, suppress errors if not found
+                docker rmi ${DOCKER_IMAGE} || true 
+            """
             echo 'Pipeline completed.'
         }
         success {
