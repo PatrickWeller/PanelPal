@@ -70,15 +70,15 @@ To list genes in a specific panel:
     $ PanelPal panel-genes --panel_id R207 --panel_version 1.2 --confidence_status green
 
 """
+
 import sys
 import argparse
-import sys
+from DB.panelpal_db import create_database
 from .check_panel import main as check_panel_main
 from .generate_bed import main as generate_bed_main
 from .gene_to_panels import main as gene_to_panels_main
 from .compare_panel_versions import main as compare_panel_versions_main
 from .compare_panel_versions import validate_panel
-from DB.panelpal_db import create_database
 from .compare_bedfiles import main as compare_bed_files_main
 from .panel_to_genes import main as panel_to_genes_main
 
@@ -87,8 +87,8 @@ def print_help():
     """Print custom help message for PanelPal."""
     help_message = """
 PanelPal: A toolkit for panelapp queries
-version: 2.0.0 
- 
+version: 3.0.0
+
 Available Commands:
     check-panel             Check panel information for a given panel ID.
                             Example: PanelPal check-panel --panel_id R59
@@ -112,6 +112,7 @@ Available Commands:
 
     panel-genes             List genes in a panel. Requires the panel ID and version.
                             Default confidence status is 'green'. Optional arguments include 'confidence_status'
+                            Example: PanelPal panel-genes --panel_id R207 --panel_version 1.2 --confidence_status green
 
     --help, -h              Prints this help message
 
@@ -131,7 +132,6 @@ def main():
     parser = argparse.ArgumentParser(
         description="PanelPal: A toolkit for helping UK labs "
         "implement the National Test Directory for rare disease",
-
         epilog="For more details, visit https://github.com/PatrickWeller/PanelPal",
     )
 
@@ -251,7 +251,6 @@ def main():
         help="Path to the second BED file.",
     )
 
-
     # Subcommand: panel-genes
     parser_panel_genes = subparsers.add_parser(
         "panel-genes",
@@ -279,7 +278,7 @@ def main():
             "Defaults to 'green'."
         ),
     )
-    
+
     # Parse the arguments
     args = parser.parse_args()
 
