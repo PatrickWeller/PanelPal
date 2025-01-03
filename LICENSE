@@ -27,6 +27,7 @@ This project uses the following third-party libraries:
 - **requests** (Apache 2.0 License)
 - **pytest** (MIT License)
 - **responses** (Apache 2.0 License)
-- **bedtools** - (MIT License)
+- **bedtools** (MIT License)
+- **sqlalchemy** (Apache 2.0)
 
 For full license details, refer to the respective libraries' documentation.

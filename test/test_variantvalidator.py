@@ -145,7 +145,7 @@ class TestGetGeneTranscriptData:
         mock_response = {"error": "Rate limit exceeded"}
 
         # Mock 5 consecutive 429 responses to test the max retries
-        for _ in range(5):
+        for _ in range(6):
             responses.add(
                 responses.GET,
                 url,
@@ -159,7 +159,7 @@ class TestGetGeneTranscriptData:
             get_gene_transcript_data(gene, build)
 
         # Verify that the correct number of retries were attempted
-        assert len(responses.calls) == 4
+        assert len(responses.calls) == 5
 
     @responses.activate
     def test_other_api_errors(self):
@@ -200,6 +200,7 @@ class TestExtractExonInfo:
     """
     Test cases for the `extract_exon_info` function.
     """
+
     def test_extract_exon_info_valid_data(self):
         """Test extracting exon information from valid gene transcript data."""
         # Example input data based on the provided structure
@@ -384,7 +385,9 @@ class TestGenerateBedFile:
         generate_bed_file(gene_list, panel_name, panel_version, genome_build)
 
         # Check if the file was created
-        output_file = f"{panel_name}_v{panel_version}_{genome_build}.bed"
+        output_file = os.path.join("bed_files", f"{panel_name}_v{
+            panel_version}_{genome_build}.bed"
+        )
         assert os.path.exists(output_file)
 
         # Read and verify file contents, check it isn't empty
@@ -434,8 +437,12 @@ class TestBedToolsMerge:
         genome_build = "GRCh38"
 
         # Mock BED file names
-        bed_file = f"{panel_name}_v{panel_version}_{genome_build}.bed"
-        merged_bed_file = f"{panel_name}_v{panel_version}_{genome_build}_merged.bed"
+        bed_file = os.path.join("bed_files", f"{panel_name}_v{
+                                panel_version}_{genome_build}.bed"
+                                )
+        merged_bed_file = os.path.join("bed_files", f"{panel_name}_v{
+                                       panel_version}_{genome_build}_merged.bed"
+                                       )
 
         # Expected command to be run.
         expected_command = (
@@ -465,11 +472,16 @@ class TestBedToolsMerge:
         genome_build = "GRCh38"
 
         # Mock BED file names
-        bed_file = f"{panel_name}_v{panel_version}_{genome_build}.bed"
-        merged_bed_file = f"{panel_name}_v{panel_version}_{genome_build}_merged.bed"
+        bed_file = os.path.join("bed_files", f"{panel_name}_v{
+                                panel_version}_{genome_build}.bed"
+                                )
+        merged_bed_file = os.path.join("bed_files", f"{panel_name}_v{
+                                       panel_version}_{genome_build}_merged.bed"
+                                       )
 
         # Expected command to be run.
-        expected_command = f"bedtools sort -i {bed_file} | bedtools merge > {merged_bed_file}"
+        expected_command = f"bedtools sort -i {
+            bed_file} | bedtools merge > {merged_bed_file}"
 
         # Trigger the bedtools_merge function and expect an error
         with pytest.raises(subprocess.CalledProcessError):

@@ -1,6 +1,4 @@
 [run]
-
-
 [report]
 omit =
     */site-packages/*
