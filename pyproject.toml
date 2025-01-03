@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "PanelPal"
-version = "1.0.0"
+version = "2.0.0"
 description = "A tool for managing genomic panels in the National Test Directory"
 authors = [
     { name = "Patrick Weller" },
