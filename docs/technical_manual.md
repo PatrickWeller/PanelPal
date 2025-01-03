@@ -10,6 +10,7 @@ The source code for PanelPal can be found here: [Panel Pal Repository](https://g
 
 
 ## Project Architecture
+Some files have been omitted for readability.
 ```
 ├── PanelPal
 │   ├── accessories
@@ -17,10 +18,11 @@ The source code for PanelPal can be found here: [Panel Pal Repository](https://g
 │   │   ├── panel_app_api_functions.py
 │   │   └── variant_validator_api_functions.py
 │   ├── check_panel.py
-│   ├── compare_bedfiles.py
+│   ├── panel-to-genes.py
 │   ├── compare_panel_versions.py
-│   ├── generate_bed.py
 │   ├── gene_to_panels.py
+│   ├── generate_bed.py
+│   ├── compare_bedfiles.py
 │   ├── logging
 │   │   └── panelpal.log
 │   ├── main.py
@@ -39,7 +41,8 @@ The source code for PanelPal can be found here: [Panel Pal Repository](https://g
 ├── mkdocs.yaml
 ├── docs
 │   ├── images
-│   │   └── logo.jpg
+│   │   ├── logo.jpg
+│   │   └── schema.jpg
 │   ├── index.md
 │   ├── installation.md
 │   ├── technical_manual.md
@@ -133,6 +136,8 @@ def generate_bed_file(...):
                     exon["exon_end"] += 10
     ...
 ```
+## Changelog
+Please see CHANGELOG.md for the newest features, changes and bug fixes.
 
 ## Contributing
 We welcome contributions to improve [PanelPal](https://github.com/PatrickWeller/PanelPal)! Here's how you can get involved:
