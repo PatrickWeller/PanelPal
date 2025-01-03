@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        DOCKER_IMAGE = "panelpal:latest" // Name of the Docker image
+        DOCKER_IMAGE = "panelpal" // Name of the Docker image
     }
     stages {
         stage('Checkout') {
