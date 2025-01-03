@@ -250,7 +250,6 @@ def get_genes(response, status_filter="green"):
         logger.error("Unknown status filter: %s", status_filter)
         return []
 
-
     except ValueError as e:
         # Log any errors encountered while parsing the JSON data
         logger.error("Error parsing JSON: %s", e)
@@ -318,7 +317,8 @@ def get_response_old_panel_version(panel_pk, version):
         # Log any errors encountered during the request
         logger.error("Error fetching old panel version: %s", e)
         # Raise a custom PanelAppError with a more descriptive message
-        raise PanelAppError(f"Failed to retrieve version {version} of panel {panel_pk}.") from e
+        raise PanelAppError(f"Failed to retrieve version {
+                            version} of panel {panel_pk}.") from e
 
 
 def get_response_gene(hgnc_symbol):
@@ -340,8 +340,9 @@ def get_response_gene(hgnc_symbol):
     PanelAppError
         If the request fails due to timeout, network issues, or other errors.
     """
-    url = f"https://panelapp.genomicsengland.co.uk/api/v1/genes/?entity_name={hgnc_symbol}"
-    
+    url = f"https://panelapp.genomicsengland.co.uk/api/v1/genes/?entity_name={
+        hgnc_symbol}"
+
     try:
         # Send the GET request to the API
         logger.info("Sending request to Panel App API")
@@ -353,17 +354,19 @@ def get_response_gene(hgnc_symbol):
         # If the request was successful, return the response object
         logger.info("Request to Panel App API was successful")
         return response
-    
+
     # Handle errors if the API request times out
     except requests.exceptions.Timeout as e:
         # Log error if the API request times out
-        logger.error("Request timed out while fetching data for gene %s", hgnc_symbol)
+        logger.error(
+            "Request timed out while fetching data for gene %s", hgnc_symbol)
         # Raise a custom PanelAppError with a descriptive message
-        raise PanelAppError(f"Timeout: Gene {hgnc_symbol} request exceeded the time limit. Please try again.") from e
+        raise PanelAppError(f"Timeout: Gene {
+                            hgnc_symbol} request exceeded the time limit. Please try again.") from e
 
     except requests.exceptions.RequestException as e:
         # Log any errors encountered during the request
         logger.error("Error fetching data for gene %s: %s", hgnc_symbol, e)
         # Raise a custom PanelAppError with a more descriptive message
-        raise PanelAppError(f"Failed to retrieve data for gene: {hgnc_symbol}.") from e
-   
+        raise PanelAppError(f"Failed to retrieve data for gene: {
+                            hgnc_symbol}.") from e

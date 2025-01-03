@@ -214,11 +214,11 @@ def main(panel_id=None, panel_version=None, genome_build=None, status_filter='gr
             panel_id,
             panel_version,
             genome_build,
-            )
+        )
         print(
             f"PROCESS STOPPED: A BED file for the panel '{panel_id}' "
             f"(version {panel_version}, build {genome_build}) already exists."
-            )
+        )
         return
 
     logger.debug("No existing BED file found. Proceeding with generation.")
@@ -319,9 +319,11 @@ def main(panel_id=None, panel_version=None, genome_build=None, status_filter='gr
         # Add headers to both the original and merged BED files
         num_genes = len(gene_list)
         bed_name = f"bed_files/{panel_id}_v{panel_version}_{genome_build}.bed"
-        merged_bed_name =  f"bed_files/{panel_id}_v{panel_version}_{genome_build}_merged.bed"
+        merged_bed_name = f"bed_files/{panel_id}_v{
+            panel_version}_{genome_build}_merged.bed"
         bed_head(panel_id, panel_version, genome_build, num_genes, bed_name)
-        bed_head(panel_id, panel_version, genome_build, num_genes, merged_bed_name)
+        bed_head(panel_id, panel_version, genome_build,
+                 num_genes, merged_bed_name)
 
         # Log completion of the process
         logger.info("Process completed successfully for panel_id=%s",
