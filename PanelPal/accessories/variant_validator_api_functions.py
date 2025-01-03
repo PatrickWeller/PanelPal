@@ -328,7 +328,8 @@ def bedtools_merge(panel_name, panel_version, genome_build):
     Returns
     -------
     None
-        This function creates a merged BED file (e.g., `R59_v2_merged.bed`) in the same directory.
+        This function creates a merged BED file (e.g., `R59_v2_merged.bed`) 
+        in the same directory.
 
     Raises
     ------
@@ -358,8 +359,6 @@ def bedtools_merge(panel_name, panel_version, genome_build):
             f"bedtools sort -i {bed_file} | bedtools merge > {merged_bed_file}"
         )
         subprocess.run(merge_command, shell=True, check=True)
-        logger.info("Successfully sorted and merged BED file to %s",
-                    merged_bed_file)
         logger.info("Successfully sorted and merged BED file to %s",
                     merged_bed_file)
 
