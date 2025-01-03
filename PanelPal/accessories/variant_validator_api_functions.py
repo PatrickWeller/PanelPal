@@ -97,8 +97,6 @@ def get_gene_transcript_data(
         )
         raise ValueError(
             f"{genome_build} is not a valid genome build. Use GRCh37 or GRCh38.")
-        raise ValueError(
-            f"{genome_build} is not a valid genome build. Use GRCh37 or GRCh38.")
 
     # Construct the URL with the given gene name and genome build
     url = (
@@ -110,7 +108,8 @@ def get_gene_transcript_data(
 
     while retries < max_retries:
         try:
-            response = requests.get(url, timeout=10)
+            timeout = 10 + 5 * (retries - 1)
+            response = requests.get(url, timeout=timeout)
             response.raise_for_status()  # Raise HTTPError for bad responses
             if response.status_code == 200:
                 return response.json()  # Success case
@@ -135,7 +134,7 @@ def get_gene_transcript_data(
             retries += 1
             if retries <= max_retries:
                 # Increase wait time with each retry
-                wait_time = 10 + 5 * (retries - 1)
+                wait_time = 1 * (retries - 1)
                 logger.warning(
                     "Timeout occurred. Retrying in %d seconds (Attempt %d of %d).",
                     wait_time, retries, max_retries,
