@@ -33,6 +33,7 @@ Some files have been omitted for readability.
 ├── panelpal.db
 ├── pyproject.toml
 ├── environment.yaml
+├── Jenkinsfile
 ├── Dockerfile
 ├── entrypoint.sh
 ├── README.md
@@ -58,6 +59,7 @@ Some files have been omitted for readability.
     ├── test_compare_panel_versions.py
     ├── test_generate_bed.py
     ├── test_gene_to_panels.py
+    ├── test_panel_to_genes.py
     ├── test_panelapp.py
     └── test_variantvalidator.py
 ```
@@ -152,8 +154,8 @@ We welcome contributions to improve [PanelPal](https://github.com/PatrickWeller/
       - numpy style docstrings
       - `pylint` or `black` to ensure PEP-8 compliance
       - `coverage` to check test coverage, and a .coveragerc to pass over code not requiring tests. 
-    - Push up to GitHub and check that automated tests still all pass OK
-    - Submit a pull request with a clear description of your changes
+    - Push up to GitHub and check that automated tests with GitHub Actions still all pass OK.
+    - Submit a pull request with a clear description of your changes, and check that JenkinsCI integration testing still all works OK. 
       - Please make use of the pull request template as appropriate. Minor code changes may not require the full checklist to be fulfilled.
 3. **Provide Feedback or Ask Questions**
     - For questions or feedback, please email [Patrick.Weller@wales.nhs.uk](mailto:Patrick.Weller@wales.nhs.uk).

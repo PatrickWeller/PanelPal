@@ -28,8 +28,11 @@ To learn how to run each function in PanelPal, please see the [User Manual](user
 ### Technical Manual
 For bioinformaticians and other software developers looking to learn more about, or contribute to PanelPal, please refer to the [Technical Manual](technical_manual.md)
 
+## Continuous Integration
+Automated unit and functional testing and continuous integration testing have been set up with GitHub Actions (see .github/workflows) and Jenkins CI (See Jenkinsfile).
+
 ## License
-This project is licensed under the MIT License 
+This project is licensed under the MIT License.
 
 ## Developers
 - Patrick Weller - Trainee Bioinformatician, All Wales Medical Genomics Service, Cardiff and Vale University Health Board, NHS Wales 
