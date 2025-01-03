@@ -9,15 +9,13 @@ If PanelPal is already installed, then run the docker container.
 docker run -it panelpal
 ```
 # Command Line Functions
-The main features of PanelPal are series of python based scripts/functions that can be ran on the command line to obtained information regarding genomic panels.
+The main features of PanelPal are series of python based scripts that can be ran as command on the terminal to obtain information regarding genomic panels.
 
-The information returned by PanelPal is retrieved from the PanelApp and VariantValidator APIs and so are up-to-date.<br>
-PanelPal is therefore dependent on both PanelApp and VariantValidator, their servers, and their maintenance and curation.<br>
-PanelPal functions will no longer work if these other sources of data are jeopardised in any way.
+The information returned by PanelPal is retrieved from the PanelApp and VariantValidator APIs and so are up-to-date. PanelPal is therefore dependent on both PanelApp and VariantValidator, their servers, and their maintenance and curation. PanelPal functions will no longer work if these other sources of data are jeopardised in any way.
 
 PanelPal has functionality for an SQL database where patient information and bed files are linked. Note that the first time a command is run from PanelPal, an empty database will be generated in the background too. 
 
-#### Help:
+#### Help Message:
 Calling a function without specifying any arguments on the command line will produce a usage message showing the available flags for that command.<br>
 An error message stating which arguments are required will also be printed.<br>
 E.g.
@@ -36,10 +34,10 @@ This is a change we hope to make in a future update to PanelPal.
 #### Usage:
 
 ```bash
-#Either
+# Either
 PanelPal check-panel --panel_id R207
 
-#Or
+# Or
 python PanelPal/check_panel.py --panel_id R207
 ```
 #### Output:
@@ -64,11 +62,11 @@ Note: that 'red' and 'all' are functionally equivalent.
 
 #### Usage:
 ```bash
-#Either
-python PanelPal/panel_to_genes.py --panel_id R207 --panel_version 2.2 --confidence_status green
-
-#Or
+# Either
 PanelPal panel-genes --panel_id R207 --panel_version 2.2 --confidence_status green
+
+# Or
+python PanelPal/panel_to_genes.py --panel_id R207 --panel_version 2.2 --confidence_status green
 ```
 #### Output: R207_v2.2_green_genes.tsv
 ```
@@ -96,10 +94,10 @@ By default, panels that do not have R numbers are not returned from this functio
 However, the optional flag ```--show_all_panels```, which is defaulted to 'False', can be toggled to 'True' when running the script to include these panels. 
 #### Usage:
 ```bash
-#Either
+# Either
 PanelPal gene-panels --hgnc_symbol BRCA1
 
-#Or
+# Or
 python PanelPal/gene_to_panels.py --hgnc_symbol BRCA1
 ```
 #### Output:
@@ -140,10 +138,10 @@ The terms 'Removed genes' and 'Added genes' are not 100% accurate.  A gene may h
 
 #### Usage: 
 ```bash
-#Either
+# Either
 PanelPal compare-panel-versions -p R21 -v 1.0 2.0 -f green
 
-#Or
+# Or
 python PanelPal/compare_panel_versions.py --panel R21 --versions 1.0 2.0 --status_filter green
 ```
 #### Output:
@@ -172,11 +170,11 @@ This function also generates a collapsed/merged bed file, though this currently 
 It is assumed that when a user generates a bed file, they may be doing so as they are going to apply that panel to a patient, and therfore run the patient data through a pipelien with that bed file. Therefore, this function also provides an option for the user to enter patient information into the PanelPal database. The user can accept or decline the option to enter information into the database. More information on this is feature is found later on this page. See [Database](#Database)
 #### Usage:
 ```bash
-#Either
-python PanelPal/generate_bed.py --panel_id R415 --panel_version 1.6 --genome_build GRCh38 --status_filter green
-
-#Or
+# Either
 PanelPal generate-bed --panel_id R415 --panel_version 1.6 --genome_build GRCh38 --status_filter green
+
+# Or
+python PanelPal/generate_bed.py --panel_id R415 --panel_version 1.6 --genome_build GRCh38 --status_filter green
 ```
 #### Output: R415_v1.6_GRCh38.bed
 ```
@@ -208,11 +206,11 @@ This can be useful when seeing which regions would be missed if a patient was ra
 The output file is put into a folder called 'bedfile_comparisons'.
 #### Usage:
 ```bash
-#Either
-python PanelPal/compare_bedfile.py R415_v1.0_GRCh38.bed R415_v1.6_GRCh38.bed
-
-#Or
+# Either
 PanelPal compare-bed-files R415_v1.0_GRCh38.bed R415_v1.6_GRCh38.bed
+
+# Or
+python PanelPal/compare_bedfile.py R415_v1.0_GRCh38.bed R415_v1.6_GRCh38.bed
 ```
 #### Output: bedfile_comparisons/comparisons_R415_V1.0_GRCh38.bed_R415_V1.6_GRCh38.bed.txt
 ```
