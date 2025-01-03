@@ -230,7 +230,7 @@ PanelPal comes with an integrated database that is automatically created on star
 
 The schema consists of three main tables:
 
-<img src="images/schema.jpg" width="552" height="654" />
+![Schema](images/schema.jpg)
 
 ## Usage:
 As well as manually adding records using SQL queries, PanelPal provides a convenient way to insert data via its built-in `generate-bed` function. During this process, users are prompted to optionally enter patient information, which is then stored in the database.
