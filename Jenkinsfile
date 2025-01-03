@@ -7,9 +7,11 @@ pipeline {
         stage('Checkout') {
             steps {
                 // Clone the repository
-                git url: 'https://github.com/PatrickWeller/PanelPal.git'
+                git url: 'https://github.com/PatrickWeller/PanelPal.git', 
+                branch: "${env.BRANCH_NAME}"
             }
         }
+
         stage('Build Docker Image') {
             steps {
                 script {
