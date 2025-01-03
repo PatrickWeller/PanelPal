@@ -78,6 +78,7 @@ from .generate_bed import main as generate_bed_main
 from .gene_to_panels import main as gene_to_panels_main
 from .compare_panel_versions import main as compare_panel_versions_main
 from .compare_panel_versions import validate_panel
+from DB.panelpal_db import create_database
 from .compare_bedfiles import main as compare_bed_files_main
 from .panel_to_genes import main as panel_to_genes_main
 
@@ -86,8 +87,8 @@ def print_help():
     """Print custom help message for PanelPal."""
     help_message = """
 PanelPal: A toolkit for panelapp queries
-version: 1.0.0 
-
+version: 2.0.0 
+ 
 Available Commands:
     check-panel             Check panel information for a given panel ID.
                             Example: PanelPal check-panel --panel_id R59
@@ -95,6 +96,7 @@ Available Commands:
     generate-bed            Generate a BED file for a genomic panel. Requires the
                             panel ID, panel version, and genome build.
                             Example: PanelPal generate-bed --panel_id R59 --panel_version 4 --genome_build GRCh38 --status_filter red
+                            Optionally, you can add a patient to the database (default is 'yes', type 'n' to skip)
 
     compare-panel-versions  Compare two versions of a genomic panel. Requires the panel ID and two version numbers. 
                             Optionally, filter by gene status.
@@ -112,12 +114,20 @@ Available Commands:
                             Default confidence status is 'green'. Optional arguments include 'confidence_status'
 
     --help, -h              Prints this help message
+
     """
     print(help_message)
 
 
 def main():
     """Main function which gathers arguments and passes them to the relevant PanelPal command."""
+
+    try:
+        create_database()
+    except Exception as e:
+        print(f"Error: Could not initialize the database. {e}")
+        exit(1)
+
     parser = argparse.ArgumentParser(
         description="PanelPal: A toolkit for helping UK labs "
         "implement the National Test Directory for rare disease",
@@ -241,6 +251,7 @@ def main():
         help="Path to the second BED file.",
     )
 
+
     # Subcommand: panel-genes
     parser_panel_genes = subparsers.add_parser(
         "panel-genes",
@@ -276,9 +287,9 @@ def main():
         print_help()
         sys.exit(1)
 
+    # Execute corresponding subcommands
     if args.command == "check-panel":
-        panel_id = args.panel_id
-        check_panel_main(panel_id)
+        check_panel_main(args.panel_id)
     elif args.command == "generate-bed":
         generate_bed_main(
             panel_id=args.panel_id,
