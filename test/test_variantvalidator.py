@@ -104,7 +104,7 @@ class TestGetGeneTranscriptData:
         mock_response = {"error": "Rate limit exceeded"}
 
         # Mock multiple 429 responses to simulate rate limit being exceeded
-        for _ in range(3):  # Retry 3 times (max_retries is 4, so 3 retries)
+        for _ in range(5):  # Retry max amount of times
             responses.add(
                 responses.GET,
                 url,
@@ -113,7 +113,7 @@ class TestGetGeneTranscriptData:
             )
             time.sleep(1)  # Sleep to simulate wait time between retries
 
-        # The fourth request should succeed with a 200 response
+        # 6th request should succeed with a 200 response
         success_response = {
             "gene": "BRCA1",
             "transcripts": [{"id": "NM_007294.3", "gene": "BRCA1"}],
@@ -125,12 +125,12 @@ class TestGetGeneTranscriptData:
             status=200,
         )
 
-        # Call the function and assert the expected result
+        # Call function and check expected result matches
         result = get_gene_transcript_data(gene, build)
         assert result == success_response
 
-        # Verify that the response was retried 3 times and then succeeded
-        assert len(responses.calls) == 4  # 3 retries + 1 success
+        # Verify the response was retried 5 times and then succeeded
+        assert len(responses.calls) == 6  # (5 retries + 1 success)
 
     @responses.activate
     def test_api_rate_limit_exceeded_max_retries(self):
@@ -144,7 +144,7 @@ class TestGetGeneTranscriptData:
         )
         mock_response = {"error": "Rate limit exceeded"}
 
-        # Mock 5 consecutive 429 responses to test the max retries
+        # Mock 6 consecutive 429 responses to test the max retries
         for _ in range(6):
             responses.add(
                 responses.GET,
@@ -152,14 +152,13 @@ class TestGetGeneTranscriptData:
                 json=mock_response,
                 status=429,
             )
-            time.sleep(1)
 
-        # The function should raise an exception after 4 retries
+        # The function should raise an exception after 6 retries
         with pytest.raises(requests.exceptions.RequestException):
             get_gene_transcript_data(gene, build)
 
         # Verify that the correct number of retries were attempted
-        assert len(responses.calls) == 5
+        assert len(responses.calls) == 6
 
     @responses.activate
     def test_other_api_errors(self):
@@ -178,7 +177,7 @@ class TestGetGeneTranscriptData:
         # Test that a corresponding exception is raised.
         with pytest.raises(
             requests.exceptions.RequestException,
-            match="HTTP 500: Failed to fetch data for BRCA1.",
+            match="500 Server Error: Internal Server Error for url: .*",
         ):
             get_gene_transcript_data(gene, build)
 
@@ -189,11 +188,30 @@ class TestGetGeneTranscriptData:
         gene = "BRCA1"
         build = "egg"
 
-        # Test that a corresponding exception is raised.
+        # Test that exception for invalid genome build is raised
         with pytest.raises(
             ValueError, match="egg is not a valid genome build. Use GRCh37 or GRCh38."
         ):
             get_gene_transcript_data(gene, build)
+
+    @responses.activate
+    def test_api_timeout(self):
+        """Test API behavior when a timeout occurs."""
+        # Set up test parameters
+        gene = "BRCA1"
+        build = "GRCh38"
+        url = (
+            f"{self.base_url}/{gene}/mane_select/refseq/{build}"
+            "?content-type=application%2Fjson"
+        )
+
+        # Simulate a timeout
+        with patch('requests.get') as mock_get:
+            mock_get.side_effect = requests.exceptions.Timeout
+
+            # Test that the function raises a timeout exception
+            with pytest.raises(requests.exceptions.Timeout):
+                get_gene_transcript_data(gene, build)
 
 
 class TestExtractExonInfo:

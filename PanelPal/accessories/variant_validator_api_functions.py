@@ -41,6 +41,7 @@ import time
 import subprocess
 import requests
 from PanelPal.settings import get_logger
+from requests.exceptions import HTTPError
 
 logger = get_logger(__name__)
 
@@ -52,7 +53,7 @@ if not os.path.exists(BED_DIRECTORY):
 
 
 def get_gene_transcript_data(
-    gene_name, genome_build="GRCh38", max_retries=5, wait_time=2
+    gene_name, genome_build="GRCh38", max_retries=6, wait_time=2
 ):
     """
     Fetches the gene transcript data for a given gene from the Variant Validator API.
@@ -99,48 +100,33 @@ def get_gene_transcript_data(
     retries = 0
 
     while retries < max_retries:
-        logger.info("Fetching data for %s (Attempt %d)",
-                    gene_name, retries + 1)
+        try:
+            response = requests.get(url, timeout=20)
+            response.raise_for_status()  # Raise HTTPError for bad responses
+            if response.status_code == 200:
+                return response.json()  # Success case
 
-        # Send the GET request to the Variant Validator API
-        response = requests.get(url, timeout=15)
+        except HTTPError as e:
+            if response.status_code == 429:
+                retries += 1
+                if retries < max_retries:
+                    backoff_time = 2 ** (retries - 1)  # Exponential backoff
+                    logger.warning(
+                        "Rate limit exceeded. Retrying in %d seconds (Attempt %d of %d).",
+                        backoff_time, retries, max_retries,
+                    )
+                    time.sleep(backoff_time)
+                    continue
+                else:
+                    logger.error(
+                        "Max retries reached for rate limit. Terminating.")
+            raise  # Re-raise any other HTTPError or if max retries exceeded
+        except requests.exceptions.RequestException as e:
+            logger.error("Request failed: %s", str(e))
+            raise
 
-        if response.status_code == 200:  # success
-            logger.info("Data for %s fetched successfully.", gene_name)
-            return response.json()  # return JSON content from API response
-
-        if response.status_code == 429:  # Rate limit exceeded
-            backoff_time = 2**retries  # Exponential backoff for retries
-            logger.warning(
-                "Rate limit exceeded for %s. Retrying in %d seconds.",
-                gene_name,
-                backoff_time,
-            )
-            time.sleep(backoff_time)
-            retries += 1
-
-        else:  # Other errors
-            logger.error(
-                "Failed to fetch gene data for %s: %d", gene_name, response.status_code
-            )
-            raise requests.exceptions.RequestException(
-                f"HTTP {response.status_code}: Failed to fetch data for {
-                    gene_name}."
-            )
-
-        # Fixed wait between requests to reduce likelihood of hitting rate limits
-        logger.info(
-            "Waiting for %d seconds before the next request.", wait_time)
-        time.sleep(wait_time)
-
-    # Exception if max retries are exceeded
-    logger.error(
-        "Max retries reached for %s. The number of retries may need increasing.",
-        gene_name,
-    )
     raise requests.exceptions.RequestException(
-        f"Max retries reached for {gene_name}. Terminating."
-    )
+        f"Max retries reached for {gene_name}. Terminating.")
 
 
 def extract_exon_info(gene_transcript_data):
