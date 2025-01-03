@@ -93,7 +93,7 @@ test/test_variantvalidator.py .............                                     
 =============================== 144 passed in 75.38s (0:01:15) =================================
 ```
 ## API Usage in PanelPal
-The majority of PanelPal functions work by making use of two APIs. The [PanelApp API](https://panelapp.genomicsengland.co.uk/) by Genomics England, and the [Variant Validator REST API](https://rest.variantvalidator.org/) developed by the University of Leeds and University of Manchester. 
+The majority of PanelPal functions work by making use of two APIs. The [PanelApp API](https://panelapp.genomicsengland.co.uk/api/docs) by Genomics England, and the [Variant Validator REST API](https://rest.variantvalidator.org/) developed by the University of Leeds and University of Manchester. 
 
 If you wish to know more about either API and how they work, please refer to their individual documentation or repositories. 
 - [PanelApp repository available here](https://gitlab.com/genomicsengland/panelapp)
