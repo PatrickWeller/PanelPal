@@ -367,4 +367,4 @@ def bedtools_merge(panel_name, panel_version, genome_build):
         raise
 
     return merged_bed_file
-    return merged_bed_file
+
