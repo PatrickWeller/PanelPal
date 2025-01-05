@@ -37,12 +37,20 @@ Example Usage
 """
 import sys
 import os
+import os
 import time
 import subprocess
 import requests
 from PanelPal.settings import get_logger
+from requests.exceptions import HTTPError, Timeout
 
 logger = get_logger(__name__)
+
+# Define directory to store bed files in
+BED_DIRECTORY = "bed_files"
+# Create directory if it doesn't exist
+if not os.path.exists(BED_DIRECTORY):
+    os.makedirs(BED_DIRECTORY)
 
 # Define directory to store bed files in
 BED_DIRECTORY = "bed_files"
@@ -99,48 +107,44 @@ def get_gene_transcript_data(
     retries = 0
 
     while retries < max_retries:
-        logger.info("Fetching data for %s (Attempt %d)",
-                    gene_name, retries + 1)
+        try:
+            timeout = 10 + 5 * (retries - 1)
+            response = requests.get(url, timeout=timeout)
+            response.raise_for_status()  # Raise HTTPError for bad responses
+            if response.status_code == 200:
+                return response.json()  # Success case
 
-        # Send the GET request to the Variant Validator API
-        response = requests.get(url, timeout=15)
+        except HTTPError:
+            if response.status_code == 429:
+                retries += 1
+                if retries < max_retries:
+                    backoff_time = 2 ** (retries - 1)  # Exponential backoff
+                    logger.warning(
+                        "Rate limit exceeded. Retrying in %d seconds (Attempt %d of %d).",
+                        backoff_time, retries, max_retries,
+                    )
+                    time.sleep(backoff_time)
+                    continue
 
-        if response.status_code == 200:  # success
-            logger.info("Data for %s fetched successfully.", gene_name)
-            return response.json()  # return JSON content from API response
+                logger.error(
+                    "Max retries reached for rate limit. Terminating.")
+            raise  # Re-raise any other HTTPError or if max retries exceeded
 
-        if response.status_code == 429:  # Rate limit exceeded
-            backoff_time = 2**retries  # Exponential backoff for retries
-            logger.warning(
-                "Rate limit exceeded for %s. Retrying in %d seconds.",
-                gene_name,
-                backoff_time,
-            )
-            time.sleep(backoff_time)
+        except Timeout:
             retries += 1
+            if retries <= max_retries:
+                # Increase wait time with each retry
+                wait_time = 1 * (retries - 1)
+                logger.warning(
+                    "Timeout occurred. Retrying in %d seconds (Attempt %d of %d).",
+                    wait_time, retries, max_retries,
+                )
+                time.sleep(wait_time)  # Wait before retrying
+                continue  # Retry on timeout
 
-        else:  # Other errors
-            logger.error(
-                "Failed to fetch gene data for %s: %d", gene_name, response.status_code
-            )
-            raise requests.exceptions.RequestException(
-                f"HTTP {response.status_code}: Failed to fetch data for {
-                    gene_name}."
-            )
-
-        # Fixed wait between requests to reduce likelihood of hitting rate limits
-        logger.info(
-            "Waiting for %d seconds before the next request.", wait_time)
-        time.sleep(wait_time)
-
-    # Exception if max retries are exceeded
-    logger.error(
-        "Max retries reached for %s. The number of retries may need increasing.",
-        gene_name,
-    )
+    # If max retries are reached for timeouts or rate limits, raise an exception
     raise requests.exceptions.RequestException(
-        f"Max retries reached for {gene_name}. Terminating."
-    )
+        f"Max retries reached for {gene_name}. Terminating.")
 
 
 def extract_exon_info(gene_transcript_data):
@@ -253,6 +257,8 @@ def generate_bed_file(gene_list, panel_name, panel_version, genome_build="GRCh38
     # Define the name of the output BED file based on the panel name and genome build
     output_file = os.path.join(BED_DIRECTORY, f"{panel_name}_v{
                                panel_version}_{genome_build}.bed")
+    output_file = os.path.join(BED_DIRECTORY, f"{panel_name}_v{
+                               panel_version}_{genome_build}.bed")
     logger.info("Creating BED file: %s", output_file)
 
     # Open the BED file for writing (or create it if it doesn't exist)
@@ -262,6 +268,8 @@ def generate_bed_file(gene_list, panel_name, panel_version, genome_build="GRCh38
 
             try:
                 # Fetch the transcript data for the current gene using the API
+                gene_transcript_data = get_gene_transcript_data(
+                    gene, genome_build)
                 gene_transcript_data = get_gene_transcript_data(
                     gene, genome_build)
 
@@ -281,6 +289,8 @@ def generate_bed_file(gene_list, panel_name, panel_version, genome_build="GRCh38
                     # Concatenate exon number, reference, and gene symbol in one column
                     concat_info = f"{exon['exon_number']}|{
                         exon['reference']}|{exon['gene_symbol']}"
+                    concat_info = f"{exon['exon_number']}|{
+                        exon['reference']}|{exon['gene_symbol']}"
 
                     # Each line in the BED file corresponds to an exon and its relevant details
                     bed_file.write(
@@ -293,7 +303,7 @@ def generate_bed_file(gene_list, panel_name, panel_version, genome_build="GRCh38
                 # log addition of exon data for each gene
                 logger.info("Added exon data for %s to the BED file.", gene)
 
-            except Exception as e:
+            except requests.exceptions.RequestException as e:
                 logger.error("Error processing %s: %s", gene, e)
                 sys.exit(f"Error processing {gene}: {e}")
 
@@ -317,7 +327,8 @@ def bedtools_merge(panel_name, panel_version, genome_build):
     Returns
     -------
     None
-        This function creates a merged BED file (e.g., `R59_v2_merged.bed`) in the same directory.
+        This function creates a merged BED file (e.g., `R59_v2_merged.bed`) 
+        in the same directory.
 
     Raises
     ------
@@ -356,3 +367,4 @@ def bedtools_merge(panel_name, panel_version, genome_build):
         raise
 
     return merged_bed_file
+
