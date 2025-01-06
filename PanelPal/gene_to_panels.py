@@ -106,6 +106,7 @@ def extract_panels(response_json, confidence_filter="green"):
     pd.DataFrame
         A DataFrame containing panel information filtered by confidence level.
     """
+    # Extract panel information from the response JSON
     panels = []
     for result in response_json.get("results", []):
         panel = result.get("panel")
@@ -116,6 +117,7 @@ def extract_panels(response_json, confidence_filter="green"):
         if confidence_filter not in {"all", confidence_colour}:
             continue
 
+        # Add panel information to the list
         if panel:
             panel_id = panel.get("id")
             panel_name = panel.get("name")
@@ -149,8 +151,10 @@ def extract_r_codes(disorders):
     str
         A comma-separated string of extracted R codes, or "N/A" if no R codes are found.
     """
+    # If no disorders are found, return "N/A"
     if not disorders:
         return "N/A"
+    # Extract R codes using a regular expression
     r_codes = re.findall(r"R\d+", str(disorders))
     return ", ".join(r_codes) if r_codes else "N/A"
 
@@ -171,10 +175,18 @@ def extract_r_codes_from_disorders(panels_df, show_all_panels=False):
     pd.DataFrame
         A DataFrame with an added 'R Code' column where extracted R codes are listed.
     """
-    panels_df = panels_df.copy()  # Ensure we are working with a copy
+    
+    # Ensure we are working with a copy
+    panels_df = panels_df.copy()
+    
+    # Extract R codes from the 'Relevant Disorders' column
     panels_df["R Code"] = panels_df["Relevant Disorders"].apply(extract_r_codes)
+    
+    # Filter out panels without R codes if required
     if not show_all_panels:
         panels_df = panels_df[panels_df["R Code"] != "N/A"]
+    
+    # Return the updated DataFrame
     return panels_df
 
 
@@ -193,8 +205,14 @@ def write_panels(hgnc_symbol, confidence_status, df):
     -------
     None
     """
+    
+    # Replace commas in the confidence status with underscores
     confidence_status = confidence_status.replace(",", "_")
+    
+    # Save the panel list to a TSV file
     output_file = f"panels_containing_{hgnc_symbol}_{confidence_status}.tsv"
+    
+    # Save the panel list to a TSV file
     df.to_csv(
         output_file,
         columns=["PanelApp ID", "R Code", "Panel Name", "Gene Status"],
@@ -202,6 +220,8 @@ def write_panels(hgnc_symbol, confidence_status, df):
         index=False,
         sep="\t",
     )
+    
+    # Print the output file path to screen
     print(f"\nPanel list saved to: {output_file}")
 
 
@@ -223,16 +243,27 @@ def process_panels(response_json, confidence_statuses, show_all_panels):
     pd.DataFrame
         A DataFrame containing the processed panels.
     """
+    
+    # Extract panels for each confidence status
     panels_df_list = [
         extract_panels(response_json, confidence_filter=status)
         for status in confidence_statuses
     ]
+
+    # Combine the panels and remove duplicates
     panels_df = pd.concat(panels_df_list).drop_duplicates().reset_index(drop=True)
+    
+    # If no panels are found, return an empty DataFrame
     if panels_df.empty:
         return pd.DataFrame()
 
+    # Extract R codes from the relevant disorders
     panels_with_r_codes = extract_r_codes_from_disorders(panels_df, show_all_panels)
+    
+    # Replace 'N/A' with '-' for panels without R codes
     panels_with_r_codes["R Code"] = panels_with_r_codes["R Code"].replace("N/A", "-")
+    
+    # Return the processed panels
     return panels_with_r_codes
 
 
@@ -253,12 +284,18 @@ def log_and_print_command(hgnc_symbol, confidence_status, show_all_panels):
     -------
     None
     """
+
+    # Gather the command executed
     command_executed = (
         f"Command executed: gene-panels --hgnc_symbol {hgnc_symbol} "
         f"--confidence_status {confidence_status} --show_all_panels {show_all_panels}"
     )
+
+    # Log the command executed
     logger = get_logger(__name__)
     logger.info(command_executed)
+
+    # Print the command executed to screen
     print(f"{command_executed}\n")
 
 
@@ -277,12 +314,16 @@ def log_and_print_no_panels(hgnc_symbol, confidence_status):
     -------
     None
     """
+
+    # Log the message when no panels are found
     logger = get_logger(__name__)
     logger.info(
         "No panels found for gene %s with confidence: %s.",
         hgnc_symbol,
         confidence_status,
     )
+
+    # Print the message when no panels are found to screen
     print(
         f"No panels found for gene {hgnc_symbol} with confidence: {confidence_status}."
     )
@@ -303,10 +344,13 @@ def display_panels(hgnc_symbol, panels_with_r_codes):
     -------
     None
     """
+    
+    # Set up the display table
     print(f"Panels associated with gene {hgnc_symbol}:\n")
     print(f"{'PanelApp ID':<15}{'R Code':<15}{'Panel Name':<75}{'Gene Status'}")
     print("-" * 120)
 
+    # Display the panels
     for _, row in panels_with_r_codes.iterrows():
         panel_id = row["PanelApp ID"]
         r_code = row["R Code"]
@@ -333,44 +377,62 @@ def main(hgnc_symbol=None, confidence_status="green", show_all_panels=False):
     -------
     None
     """
+
+    # Set up the logger
     logger = get_logger(__name__)
 
+    # Parse the command-line arguments from main.py
     if hgnc_symbol is None:
         args = parse_arguments()
         hgnc_symbol = args.hgnc_symbol
         confidence_status = args.confidence_status
         show_all_panels = args.show_all_panels
 
+    # Log and print the command executed
     log_and_print_command(hgnc_symbol, confidence_status, show_all_panels)
 
+    # Check if confidence status is 'green,amber' and split if necessary
     if confidence_status == "green,amber":
         confidence_statuses = ["green", "amber"]
+
+    # Otherwise, use the provided confidence status
     else:
         confidence_statuses = [confidence_status]
 
+    # Query the PanelApp API for the gene
     try:
         logger.info("Querying PanelApp API for gene: %s", hgnc_symbol)
+        # Get the response from the API
         response = get_response_gene(hgnc_symbol)
+
+        # Get response JSON
         response_json = response.json()
 
+        # Process the panels from the API response JSON
         panels_with_r_codes = process_panels(
             response_json, confidence_statuses, show_all_panels
         )
+
+        # If no panels are found, log and print a message
         if panels_with_r_codes.empty:
             log_and_print_no_panels(hgnc_symbol, confidence_status)
             return
 
+        # Display the panels associated with the gene in a table
         display_panels(hgnc_symbol, panels_with_r_codes)
+
+        # Write the panel data to file
         write_panels(hgnc_symbol, confidence_status, panels_with_r_codes)
 
-    except requests.RequestException as e:
+    # Handle exceptions
+    except requests.RequestException as e: # pragma: no cover
         logger.error("Error querying the API: %s", e)
         print(f"Error querying the API: {e}")
-    except KeyError as ke:
+    except KeyError as ke: # pragma: no cover
         logger.error("Key error: %s", ke)
         print(f"Key error: {ke}")
         print(ke)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
     main()

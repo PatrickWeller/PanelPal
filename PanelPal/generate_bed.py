@@ -45,7 +45,14 @@ Notes
 import argparse
 import sys
 import os
-
+from PanelPal.db_input import (
+    add_patient_to_db,
+    add_bed_file_to_db,
+    add_panel_data_to_db,
+    patient_info_prompt,
+    bed_file_info_prompt
+)
+from PanelPal.settings import get_logger
 from PanelPal.accessories import variant_validator_api_functions
 from PanelPal.accessories import panel_app_api_functions
 from PanelPal.accessories.bedfile_functions import bed_file_exists, bed_head
@@ -138,6 +145,8 @@ def main(panel_id=None, panel_version=None, genome_build=None, status_filter='gr
 
     Parameters
     ----------
+    patient_info: dict
+        The patient information being added to the database (optional)
     panel_id : str
         The ID of the panel (e.g., "R207").
     panel_version : str
@@ -167,11 +176,11 @@ def main(panel_id=None, panel_version=None, genome_build=None, status_filter='gr
         logger.error(
             "Invalid panel_id '%s'. Panel ID must start with 'R' followed "
             "by digits (e.g., 'R207').", panel_id
-            )
+        )
         raise ValueError(
             f"Invalid panel_id '{args.panel_id}'. Panel ID must start with "
             "'R' followed by digits (e.g., 'R207')."
-            )
+        )
 
     logger.info(
         "Command executed: generate-bed --panel_id %s, --panel_version %s "
@@ -189,16 +198,64 @@ def main(panel_id=None, panel_version=None, genome_build=None, status_filter='gr
             panel_id,
             panel_version,
             genome_build,
-            )
+        )
         print(
             f"PROCESS STOPPED: A BED file for the panel '{panel_id}' "
             f"(version {panel_version}, build {genome_build}) already exists."
-            )
+        )
+        return
+
+    logger.debug("No existing BED file found. Proceeding with generation.")
+
+    if bed_file_exists(panel_id, panel_version, genome_build):
+        logger.warning(
+            "Process stopping: BED file already exists for panel_id=%s, "
+            "panel_version=%s, genome_build=%s.",
+            panel_id,
+            panel_version,
+            genome_build,
+        )
+        print(
+            f"PROCESS STOPPED: A BED file for the panel '{panel_id}' "
+            f"(version {panel_version}, build {genome_build}) already exists."
+        )
         return
 
     logger.debug("No existing BED file found. Proceeding with generation.")
 
     try:
+        # Prompt the user for patient information
+        patient_info = patient_info_prompt()
+
+        # If patient info is provided, the dictionary returned = database input
+        if patient_info:
+            add_patient_to_db(patient_info)
+
+            # Prompt user for BED file metadata if patient info was provided
+            bed_file_info = bed_file_info_prompt(
+                patient_id=patient_info["patient_id"],
+                panel_name=panel_id,
+                panel_version=panel_version,
+                genome_build=genome_build
+            )
+            # add BED file to database
+            add_bed_file_to_db(bed_file_info)
+
+            # Retrieve BED file ID (i.e. the path to the BED file)
+            bed_file_id = bed_file_info["bed_file"]
+
+            # Fetch the panel data and add to the database
+            add_panel_data_to_db(panel_id, bed_file_id)
+
+            # Log success
+            logger.info(
+                "Record added to the database for patient ID: %s",
+                patient_info["patient_id"])
+
+        else:
+            # If patient info is not provided, skip adding to the database
+            pass
+
         # Fetch the panel data from PanelApp using the panel_id
         logger.debug("Requesting panel data for panel_id=%s", panel_id)
         panelapp_data = panel_app_api_functions.get_response(panel_id)
@@ -210,7 +267,7 @@ def main(panel_id=None, panel_version=None, genome_build=None, status_filter='gr
         logger.debug("Requesting panel data for panel_pk=%s, panel_version=%s",
                      panel_pk, panel_version)
         panelapp_v_data = panel_app_api_functions.get_response_old_panel_version(
-            panel_pk,panel_version)
+            panel_pk, panel_version)
         logger.info("Panel data fetched successfully for panel_id=%s, panel_pk=%s,"
                     "panel_version=%s",
                     panel_id, panel_pk,
@@ -218,8 +275,9 @@ def main(panel_id=None, panel_version=None, genome_build=None, status_filter='gr
 
         # Extract the list of genes from the panel data
         logger.debug("Extracting gene list from panel data for panel_id=%s, status_filter=%s",
-                    panel_id, status_filter)
-        gene_list = panel_app_api_functions.get_genes(panelapp_v_data, status_filter)
+                     panel_id, status_filter)
+        gene_list = panel_app_api_functions.get_genes(
+            panelapp_v_data, status_filter)
 
         logger.info(
             "Gene list extracted successfully for panel_id=%s, panel_version=%s."
@@ -256,17 +314,20 @@ def main(panel_id=None, panel_version=None, genome_build=None, status_filter='gr
             panel_id, panel_version, genome_build
         )
         logger.info("Bedtools merge completed successfully for panel_id=%s",
-                    panel_id) # pragma: no cover
+                    panel_id)  # pragma: no cover
 
         # Add headers to both the original and merged BED files
         num_genes = len(gene_list)
-        bed_name = f"{panel_id}_v{panel_version}_{genome_build}.bed"
-        merged_bed_name =  f"{panel_id}_v{panel_version}_{genome_build}_merged.bed"
+        bed_name = f"bed_files/{panel_id}_v{panel_version}_{genome_build}.bed"
+        merged_bed_name = f"bed_files/{panel_id}_v{
+            panel_version}_{genome_build}_merged.bed"
         bed_head(panel_id, panel_version, genome_build, num_genes, bed_name)
-        bed_head(panel_id, panel_version, genome_build, num_genes, merged_bed_name)
+        bed_head(panel_id, panel_version, genome_build,
+                 num_genes, merged_bed_name)
 
         # Log completion of the process
-        logger.info("Process completed successfully for panel_id=%s", panel_id) # pragma: no cover
+        logger.info("Process completed successfully for panel_id=%s",
+                    panel_id)  # pragma: no cover
 
     except Exception as e:
         # Reraise the exception after logging it for further handling if needed
@@ -279,5 +340,5 @@ def main(panel_id=None, panel_version=None, genome_build=None, status_filter='gr
         raise
 
 
-if __name__ == "__main__": # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     main()

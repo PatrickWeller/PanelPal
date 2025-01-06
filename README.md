@@ -1,135 +1,50 @@
 # PanelPal
 <img src="assets/logo.jpg" width="200" height="227" />
 
-**Note: This piece of software is in development as a university project and as yet is not a fully functioning or tested product. Use of this software is at your own risk.**
+**Notice: This piece of software is in development as a university project and as yet is not a fully functioning or tested product. Additionally, ongoing maintenance and contributions to this code by the original developers will cease after 07/01/2025. Use of this software is at your own risk.**
 
-PanelPal is a python package of command line tools for helping UK labs implement the National Test Directory for rare disease. It uses API queries to get up-to-date information regarding NGS panels for germline disease.
-
-
-## Features
-
-- Fetch information about a panel using its R number ID.
-- Compare the genes on two versions of a panel. 
-- Create BED files for a genomic panels with chromosomal coordinates.
+PanelPal is a python package of command line tools aimed at NHS labs to help them implement the National Genomic Test Directory for Rare Disease for their NGS tests. It uses API queries to get up-to-date information regarding NGS panels for germline disease. Panels can be applied to patients during bedfile generation for a panel, and thus the patient can be added as an entry to an SQL database.
 
 
-## Installation
+## Overview of Features
 
-To set up a conda environment for this project, you can use the provided `environment.yaml` file.
+- Fetch a panel name when providing an R number.
+- Fetch the genes in a panel; either the latest version or a specific historic version.
+- Filter a panel's genes by their review status
+- Compare the genes on two versions of a panel.
+- Retrieve all panels a gene is present on.
+- Create BED files for genomic panels with exonic chromosomal coordinates.
+- Compare BED files for their unique chromosomal coordinates
+- Add patient entries to an SQL database 
 
-1. Clone or download this repository:
 
-   ```bash
-   git clone https://github.com/PatrickWeller/PanelPal.git
-    ```
+## Quick Start
+1. [Index](https://panel-pal.readthedocs.io/en/latest/)
+2. [Installation Guide](https://panel-pal.readthedocs.io/en/latest/installation/)
+3. [User Manual](https://panel-pal.readthedocs.io/en/latest/user_manual/)
+4. [Technical Manual](https://panel-pal.readthedocs.io/en/latest/technical_manual/)
 
-2. Build the docker image:
 
-   ```bash
-   cd PanelPal
-   docker build -t panelpal .
-    ```
+## Continuous Integration
+Automated unit and functional testing and continuous integration testing have been set up with GitHub Actions (see .github/workflows) and Jenkins CI (See Jenkinsfile).
 
-3. Run the docker container:
-
-    ```bash
-    docker run -it panelpal
-    ```
-
-4. Test PanelPal is installed:
-
-    ```bash
-    PanelPal
-    ```
-
-## Usage
-
-### Check Panel
-To check and retrieve panel information from the PanelApp API:
-
-```bash
-#Either
-PanelPal check-panel --panel_id R207
-
-#Or
-python PanelPal/check_panel.py --panel_id R207
-```
-
-### Get panels containing a given gene
-To generate a list of panels containing a specific gene (e.g. BRCA1):
-
-```bash
-#Either
-PanelPal gene-panels --hgnc_symbol BRCA1
-
-#Or
-python PanelPal/gene_to_panels.py --hgnc_symbol BRCA1
-```
-
-### Compare Panel Versions
-To compare the genes on two versions of a given panel:
-
-```bash
-#Either
-PanelPal compare-panel-versions -p R21 -v 1.0 2.0 -f green
-
-#Or
-python PanelPal/compare_panel_versions.py --panel R21 --versions 1.0 2.0 --status_filter green
-```
-
-### Generate Bed File
-To generate a bed file for a given panel:
-
-```bash
-#Either
-python PanelPal/generate_bed.py --panel_id R207 --panel_version 4 --genome_build GRCh38 --status_filter green
-
-#Or
-PanelPal generate-bed --panel_id R207 --panel_version 4 --genome_build GRCh38 --status_filter green
-```
-
-### Compare Bed Files
-To compare the content of two bed files:
-
-```bash
-#Either
-python PanelPal/compare_bedfile.py bedfile1.bed bedfile2.bed
-
-#Or
-PanelPal compare-bed-files bedfile1.bed bedfile2.bed
-```
-
-## Directory structure
-The following structure should be used going foward to keep the project directories tidy and compatible with the project build. This will also resolve issues importing modules going forward. Note: DB directory has been omitted from the tree for now.
-
-```bash
-.
-├── PanelPal
-│   ├── accessories
-│   │   ├── __init__.py
-│   │   ├── panel_app_api_functions.py
-│   │   └── variant_validator_api_functions.py
-│   ├── check_panel.py
-│   ├── compare_bedfiles.py
-│   ├── compare_panel_versions.py
-│   ├── generate_bed.py
-│   ├── __init__.py
-│   ├── logging
-│   │   └── panelpal.log
-│   ├── main.py
-│   └── settings.py
-├── README.md
-├── pyproject.toml
-├── environment.yaml
-├── Dockerfile
-├── entrypoint.sh
-├── assets
-│   └── logo.jpg
-└── test
-    ├── __init__.py
-    └── test_*.py
-```
 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
+
+## Contributing
+We welcome contributions to improve PanelPal! Here's how you can get involved:
+
+1. **Report Issues** - 
+    - Found a bug or have a suggestion? Open an issue on our GitHub issues page. 
+    - Add a label to describe the type of issue, e.g. bug, enhancement.
+2. **Submit Changes**
+    - Fork the repository and create a new branch for your changes.
+    - Make your edits and a thorough suite of tests. Note that we make use of:
+      - numpy style docstrings
+      - `pylint` or `black` to ensure PEP-8 compliance
+      - `coverage` to check test coverage
+    - Submit a pull request with a clear description of your changes
+3. **Provide Feedback or Ask Questions**
+    - For questions or feedback, please email [Patrick.Weller@wales.nhs.uk](mailto:Patrick.Weller@wales.nhs.uk).
