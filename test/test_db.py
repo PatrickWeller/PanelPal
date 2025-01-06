@@ -1,6 +1,5 @@
 """
 Tests to check whether database initialisation runs correctly.
-
 These tests verify the successful creation of database tables and log messages during
 the initialization process using an in-memory SQLite database. The tests ensure that 
 the expected tables are created and that the appropriate log entries are generated.
