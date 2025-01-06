@@ -86,6 +86,8 @@ class Patient(Base):
     __repr__()
         Returns a string representation of the `Patient` object, displaying 
         key patient information (NHS number, name, date of birth).
+    find_patient(cls, session, nhs_number):
+        Retrieves all patient records with the same NHS number.
 
     Notes
     -----
@@ -142,7 +144,6 @@ class BedFile(Base):
     """
     Bed files table.
 
-
     This table stores metadata about BED files and their associated information, 
     including analysis dates, file paths, and relationships to patients and panels.
 
@@ -161,15 +162,19 @@ class BedFile(Base):
     patient_id : sqlalchemy.Column
         A foreign key referencing the `nhs_number` column in the `patients` table.
     patient : sqlalchemy.orm.relationship
-        Defines a relationship to the `Patient` model, linking each BED file to a patient.
+        Defines a relationship to the `Patient` model, linking each BED file to 
+        a patient.
     panels : sqlalchemy.orm.relationship
-        Defines a relationship to the `PanelInfo` model, linking each BED file to related panels.
+        Defines a relationship to the `PanelInfo` model, linking each BED file to 
+        related panels.
 
     Methods
     -------
     __repr__()
         Returns a string representation of the BedFile instance, 
         showing the `analysis_date` and `bed_file_path`.
+    get_by_patient_id(cls, session, patient_id):
+        Retrieves all BedFiles for a given patient ID.
 
     Notes
     -----
@@ -250,6 +255,13 @@ class PanelInfo(Base):
         Defines a relationship to the `BedFile` model, enabling navigation
         between related records in the `bed_files` table.
 
+    Methods
+    -------
+    get_by_bedfile(cls, session, bed_file_id):
+        Retrieves PanelInfo associated with a specific BedFile ID.
+    extract_panel_data(self):
+        Extracts the panel_data JSON as a list of key-value pairs.
+
     Notes
     -----
     - The `id` column is the primary key for this table.
@@ -269,7 +281,7 @@ class PanelInfo(Base):
     bed_file = relationship("BedFile", back_populates="panels")
 
     @classmethod
-    def get_by_bed_file_id(cls, session, bed_file_id):
+    def get_by_bedfile(cls, session, bed_file_id):
         """
         Retrieve PanelInfo associated with a specific BedFile ID.
 
@@ -283,7 +295,8 @@ class PanelInfo(Base):
         Returns
         -------
         PanelInfo
-            The PanelInfo instance associated with the given BedFile ID, or None if not found.
+            The PanelInfo instance associated with the given BedFile ID, 
+            or None if not found.
         """
         return session.query(cls).filter_by(bed_file_id=bed_file_id).first()
 
@@ -294,7 +307,7 @@ class PanelInfo(Base):
         Returns
         -------
         list of tuple
-            A list of key-value pairs (tuples) extracted from the panel_data JSON.
+            A list of key-value pairs (tuples) extracted from panel_data JSON.
         
         Example Usage
         -------------
