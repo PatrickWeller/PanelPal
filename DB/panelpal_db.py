@@ -86,6 +86,8 @@ class Patient(Base):
     __repr__()
         Returns a string representation of the `Patient` object, displaying 
         key patient information (NHS number, name, date of birth).
+    find_patient(cls, session, nhs_number):
+        Retrieves all patient records with the same NHS number.
 
     Notes
     -----
@@ -113,11 +115,34 @@ class Patient(Base):
             f"dob={self.dob})>"
         )
 
+    @classmethod
+    def find_patient(cls, session, nhs_number):
+        """
+        Retrieve all patient records with the same NHS number.
+
+        Parameters
+        ----------
+        session : sqlalchemy.orm.Session
+            The database session to use for the query.
+        nhs_number : str
+            The NHS number to filter patient records by.
+
+        Returns
+        -------
+        list of Patient
+            A list of Patient instances that have the given NHS number.
+
+        Example usage
+        -------------
+            patients_with_same_nhs = Patient.find_patient(session, "1234567890")
+        """
+        return session.query(cls).filter_by(nhs_number=nhs_number).all()
+
+
 
 class BedFile(Base):
     """
     Bed files table.
-
 
     This table stores metadata about BED files and their associated information, 
     including analysis dates, file paths, and relationships to patients and panels.
@@ -137,22 +162,29 @@ class BedFile(Base):
     patient_id : sqlalchemy.Column
         A foreign key referencing the `nhs_number` column in the `patients` table.
     patient : sqlalchemy.orm.relationship
-        Defines a relationship to the `Patient` model, linking each BED file to a patient.
+        Defines a relationship to the `Patient` model, linking each BED file to 
+        a patient.
     panels : sqlalchemy.orm.relationship
-        Defines a relationship to the `PanelInfo` model, linking each BED file to related panels.
+        Defines a relationship to the `PanelInfo` model, linking each BED file to 
+        related panels.
 
     Methods
     -------
     __repr__()
         Returns a string representation of the BedFile instance, 
         showing the `analysis_date` and `bed_file_path`.
+    get_by_patient_id(cls, session, patient_id):
+        Retrieves all BedFiles for a given patient ID.
 
     Notes
     -----
     - The `id` is the primary key, and it is auto-incremented.
-    - The `patient_id` field is a foreign key referencing the `nhs_number` from the `patients` table.
-    - The `panels` attribute holds a relationship to the `PanelInfo` table, linking bed files to panel data.
-    - The class has a composite unique constraint on the combination of `patient_id` and `id` to ensure uniqueness
+    - The `patient_id` field is a foreign key referencing the `nhs_number` from the
+      `patients` table.
+    - The `panels` attribute holds a relationship to the `PanelInfo` table, 
+    linking bed files to panel data.
+    - The class has a composite unique constraint on the combination of `patient_id` 
+    and `id` to ensure uniqueness
       within the scope of a patient's records.
     """
 
@@ -182,6 +214,25 @@ class BedFile(Base):
             f"bed_file_path={self.bed_file_path})>"
         )
 
+    @classmethod
+    def get_by_patient_id(cls, session, patient_id):
+        """
+        Retrieve all BedFiles for a given patient ID.
+
+        Parameters
+        ----------
+        session : sqlalchemy.orm.Session
+            The database session.
+        patient_id : str
+            The patient ID to filter BedFiles by.
+
+        Returns
+        -------
+        list of BedFile
+            A list of BedFile instances associated with the given patient ID.
+        """
+        return session.query(cls).filter_by(patient_id=patient_id).all()
+
 
 class PanelInfo(Base):
     """
@@ -204,6 +255,13 @@ class PanelInfo(Base):
         Defines a relationship to the `BedFile` model, enabling navigation
         between related records in the `bed_files` table.
 
+    Methods
+    -------
+    get_by_bedfile(cls, session, bed_file_id):
+        Retrieves PanelInfo associated with a specific BedFile ID.
+    extract_panel_data(self):
+        Extracts the panel_data JSON as a list of key-value pairs.
+
     Notes
     -----
     - The `id` column is the primary key for this table.
@@ -221,6 +279,45 @@ class PanelInfo(Base):
 
     # Relationship to bed file
     bed_file = relationship("BedFile", back_populates="panels")
+
+    @classmethod
+    def get_by_bedfile(cls, session, bed_file_id):
+        """
+        Retrieve PanelInfo associated with a specific BedFile ID.
+
+        Parameters
+        ----------
+        session : sqlalchemy.orm.Session
+            The database session.
+        bed_file_id : int
+            The ID of the BedFile.
+
+        Returns
+        -------
+        PanelInfo
+            The PanelInfo instance associated with the given BedFile ID, 
+            or None if not found.
+        """
+        return session.query(cls).filter_by(bed_file_id=bed_file_id).first()
+
+    def extract_panel_data(self):
+        """
+        Extracts the panel_data JSON as a list of key-value pairs.
+
+        Returns
+        -------
+        list of tuple
+            A list of key-value pairs (tuples) extracted from panel_data JSON.
+        
+        Example Usage
+        -------------
+            panel_data_list = panel_info_instance.extract_panel_data()
+        """
+
+        if isinstance(self.panel_data, dict):
+            return list(self.panel_data.items())
+        return []
+
 
 
 # URL that links to the SQLite database
@@ -271,5 +368,5 @@ def create_database():
         logger.info("Database initialised successfully.")
 
     except Exception as e:
-        logger.error(f"Error creating database tables: {e}")
+        logger.error("Error creating database tables: %s", e)
         raise
